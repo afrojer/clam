@@ -4,21 +4,33 @@ Image srcimg = imgread("someimage.jpg");
 // define a luninance channel for this image
 // (the Red, Green, and Blue channels are implicitly
 //  created for us by the imgread function)
-srcimg:Lum := ((2*Red + 5*Green + 1*Blue)/8)
+Uint8 srcimg:Lum := #((2*Red + 5*Green + 1*Blue)/8)
 
-// instantiate and initialize the sobel kernel filter
-Kernel sobel;
-// definition operator ':=' defines the 'Gx' channel
-// of the sobel Kernel variable
-sobel:Gx    := {1/1}{-1  0 +1 | -2  0 +2 | -1  0 +1 };
-sobel:Gy    := {1/1}{+1 +2 +1 |  0  0  0 | -1 -2 -1 };
-sobel:G     := sqrt(Gx*Gx + Gy*Gy);
-sobel:Theta := arctan(Gy/Gx);
+Matrix s1 := {1 | 1}{ -1  0 +1 | -2  0 +2 | -1  0 +1 };
+
+// Definition operator ':=' defines the 'Gx' channel
+// of the sobel Kernel variable.
+// Kernel definitions are ordered i.e. the channels
+// are calculated in the order they are defined
+Kernel sobel = {
+	Uint8 @Gx   := s1;
+	Uint8 @Gy   := {1 | 1}{+1 +2 +1 |  0  0  0 | -1 -2 -1 };
+	Uint8 G     := #(sqrt(Gx*Gx + Gy*Gy));
+	Angle Theta := #(arctan(Gy/Gx));
+};
 
 // convolution operator:
 // The resulting image will have the same number of channels
 // as the filtering kernel.
-Image edges = srcimg:Lum ** sobel;
+Image edges = $(srcimg:Lum) ** $(sobel);
 
-// write the 'G' channel of the resulting image out to a file
-imgwrite(edges:G, "edges_of_someimage.jpg");
+// compose an output image which is a grayscale of
+// edge gradient magnitude
+Image output = {
+	Uint8 Red   = $(edges:G);
+	Uint8 Green = $(edges:G);
+	Uint8 Blue  = $(edges:G);
+};
+
+imgwrite( output, "edges_of_someimage.jpg");
+
