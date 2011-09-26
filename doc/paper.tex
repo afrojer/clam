@@ -4,10 +4,10 @@
 \newcommand{\authorlist}{Jeremy Andrus and Robert Martin and Kevin Sun and Yongxu Zhang}
 \newcommand{\authoremails}{\{jca2119, rdm2128, kfs2110, yz2419\}@columbia.edu}
 
-% Build Project proposal only
+% Build Project proposal only (default for now)
 \ifcsname ifproposal\endcsname\else
   \expandafter\let\csname ifproposal\expandafter\endcsname
-                  \csname iffalse\endcsname
+                  \csname iftrue\endcsname
 \fi
 % Build Language Reference Manual only
 \ifcsname ifrefman\endcsname\else
@@ -23,13 +23,14 @@
 \ifbook
   \documentclass[10pt,letterpaper,titlepage,onecolumn,oneside]{book}
 \else
-  \documentclass{acm_proc_onecol}
+  \documentclass[10pt,letterpaper,onecolumn,oneside]{article}
 \fi
 
 \newcommand{\sys}{ImP}
 \newcommand{\longtitle}{\sys{}: The Image Processing Language}
 \newcommand{\comment}[1]{}
 
+\usepackage[margin=2.8cm]{geometry}
 \usepackage[utf8x]{inputenc}
 \usepackage{ucs}
 \usepackage{amsmath}
@@ -63,40 +64,7 @@
 %\frenchspacing
 
 \title{\longtitle{}}
-
-\ifbook
-  \author{\authorlist{}\\\authoremails{}}
-\else
-  \numberofauthors{4}
-  \author {
-  % 1st author
-  \alignauthor Jeremy Andrus\\
-    \affaddr{Dept of Computer Science}\\
-    \affaddr{Columbia University}\\
-    \affaddr{New York, NY}\\
-    \email{jeremya@cs.columbia.edu}
-  % 2nd author
-  \alignauthor Robert Martin\\
-    \affaddr{Dept of Computer Science}\\
-    \affaddr{Columbia University}\\
-    \affaddr{New York, NY}\\
-    \email{rdm2128@columbia.edu}
-  \and
-  % 3rd author
-  \alignauthor Kevin Sun\\
-    \affaddr{Dept of Computer Science}\\
-    \affaddr{Columbia University}\\
-    \affaddr{New York, NY}\\
-    \email{kfs2110@columbia.edu}
-  % 4th author
-  \alignauthor Yongxu Zhang\\
-    \affaddr{Dept of Computer Science}\\
-    \affaddr{Columbia University}\\
-    \affaddr{New York, NY}\\
-    \email{yz2419@columbia.edu}
-  }
-\fi
-
+\author{\authorlist{}\\\authoremails{}}
 \maketitle
 
 % Body of the paper in different files

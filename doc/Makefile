@@ -24,13 +24,27 @@ LATEXOPTS = -synctex=1 -interaction=nonstopmode
 DVIOPTS =
 
 SRCARG=
+ifeq ($(BOOK)$(PROPOSAL)$(REFMAN),)
+  $(warning Defaulting to Proposal [for now])
+  PROPOSAL=1
+endif
+
+ifeq ($(BOOK),1)
+  SRCARG += "\let\ifbook\iftrue"
+else
+  SRCARG += "\let\ifbook\iffalse"
+endif
 ifeq ($(PROPOSAL),1)
   SRCARG += "\let\ifproposal\iftrue"
   NOBIB=1
+else
+  SRCARG += "\let\ifproposal\iffalse"
 endif
 ifeq ($(REFMAN),1)
   SRCARG += "\let\ifrefman\iftrue"
   NOBIB=1
+else
+  SRCARG += "\let\ifrefman\iffalse"
 endif
 
 #
@@ -38,9 +52,6 @@ endif
 #
 
 # compile the final SRCARG value
-ifeq ($(SRCARG),)
-  SRCARG = "\let\ifbook\iftrue"
-endif
 SRCARG += "\input{$(SRC).tex}"
 
 # force a dependency on all data files.
