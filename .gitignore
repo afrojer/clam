@@ -1,0 +1,9 @@
+.silly_*
+*.aux
+*.log
+*.out
+*.pdfsync
+*.synctex*
+
+paper.pdf
+
