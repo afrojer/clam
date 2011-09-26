@@ -1,0 +1,24 @@
+// read an image into the 'srcimg' variable
+Image srcimg = imgread("someimage.jpg");
+
+// define a luninance channel for this image
+// (the Red, Green, and Blue channels are implicitly
+//  created for us by the imgread function)
+srcimg:Lum := ((2*Red + 5*Green + 1*Blue)/8)
+
+// instantiate and initialize the sobel kernel filter
+Kernel sobel;
+// definition operator ':=' defines the 'Gx' channel
+// of the sobel Kernel variable
+sobel:Gx    := {1/1}{-1  0 +1 | -2  0 +2 | -1  0 +1 };
+sobel:Gy    := {1/1}{+1 +2 +1 |  0  0  0 | -1 -2 -1 };
+sobel:G     := sqrt(Gx*Gx + Gy*Gy);
+sobel:Theta := arctan(Gy/Gx);
+
+// convolution operator:
+// The resulting image will have the same number of channels
+// as the filtering kernel.
+Image edges = srcimg:Lum ** sobel;
+
+// write the 'G' channel of the resulting image out to a file
+imgwrite(edges:G, "edges_of_someimage.jpg");

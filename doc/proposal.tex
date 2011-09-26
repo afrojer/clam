@@ -1,0 +1,18 @@
+\section{Language Proposal}
+
+\lstdefinelanguage{ImP}{
+    morekeywords={Image,Kernel},
+    keywordstyle={\color{blue}\bfseries},
+    morecomment=[1]{//},
+    commentstyle={\color{gray}\bfseries},
+    morestring=[b]",
+    stringstyle={\color{red}},
+    sensitive=true,
+}
+
+We propose to create a language specific for image processing.
+Here is an example of how one might perform a Sobel edge detector
+in the \sys{} language:
+\lstinputlisting[numbers=left,language=ImP]{src/sobel.imp}
+and here is a more complicated example implementing the Canny edge detector:
+%\lstinputlisting{src/canny.imp}
