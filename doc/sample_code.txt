@@ -1,0 +1,107 @@
+/* Basic Data Types:
+ * *pixel: Denoted by an asterisk (*), a pixel is an "entry" in a matrix.
+ * %channel: Denoted by a devision sign (%), a channel is a matrix of pixels
+ * #image: Denoted by a hash (#), an image is a set of channels that completely describe an image.
+ * @number: Denoted by an asterisk (@). Probably it is always a float.
+ */
+ 
+/* Method Types:
+ * conv: implicitly accepts a chan/pixel and returns a pixel
+ * manip: implicitly accepts an image and returns a modified image of the same size
+ * chan: converts between an image and an array of 1 or more channels
+ * function: accepts whatever, and returns an $integer or @float
+ */
+ 
+/* Built-in Methods:
+ * chan rgb<%r, %g, %b>
+ * chan hsv<%h, %s, %v>
+ */
+ 
+/* conv:
+ * a convolution. It returns 1 pixel (our language will iteratively apply
+ * it on all the necessary points in the matrix. Brackets are used to
+ * refer to "nearby" pixels. Edge behavior is chosen by the caller (with
+ * some sensible default. */
+conv blur
+{
+    /* Relative pixels are referenced relative to the current pixel */
+    *p =   [-1, -1] + [-1, 0] + [-1, 1]
+        + [ 0, -1] + [ 0, 0] + [ 0, 1]
+        + [ 1, -1] + [ 1, 0] + [ 1, 1];
+    *p = *p / 8;
+    return *p;
+}
+ 
+/* manip:
+ * a manipulation. It accepts an image (implicitly named #img) and returns
+ * an image of the same size that has been manipulated in some way. */ 
+manip blurRedOnly
+{
+    rgb<%r, %g, %b> = #img;
+    %rBlurred = blur(%r);
+    return rgb<%rBlurred, %g, %b>;
+}
+ 
+ 
+/*
+ * A MORE COMPLICATED EXAMPLE
+ * An example of how "hsv" might be defined in terms of "rgb"
+ * (maybe max and min should be built-in functions as well...)
+ */
+ 
+chan maxValue
+{
+    rgb<%r, %g, %b> = #img;
+    if ((%r > %g) and (%r > %b)) {
+        %max = %r;
+    } else if (%g > %b) {
+        %max = %g;
+    } else {
+        %max = %b;
+    }
+    return <%max>;
+}
+ 
+chan minValue
+{
+    rgb<%r, %g, %b> = #img;
+    if ((%r < %g) and (%r < %b)) {
+        %min = %r;
+    } else if (%g < %b) {
+        %min = %g;
+    } else {
+        %min = %b;
+    }
+    return <%min>;
+}
+ 
+ 
+chan hsv
+{
+    rgb<%r, %g, %b> = #img;
+    maxValue<%max> = #img;
+    minValue<%min> = #img;
+ 
+    %delta = %max - %min;
+    if (%max == 0) {
+        %h = -1;
+        %s = 0;
+        %v = 0; // undefined?
+    } else {
+        if (%r == %max) {
+            %h = (%g - %b) / %delta;
+        } else if (%g == %max) {
+            %h = 2 + (%b - %r) / %delta;
+        } else {
+            %h = 4 + (%r - %g) / %delta;
+        }
+        %h = %h * 60;
+        if (%h < 0) {
+            %h = %h + 360;
+        }
+        %s = %delta / %max;
+        %v = %max;
+    }
+ 
+    return <%h, %s, %v>;
+}
