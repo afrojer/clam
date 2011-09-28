@@ -1,6 +1,8 @@
 %
 % paper.tex -- master LaTeX file for ``ImP: The Image Processing Language''
 %
+\newcommand{\sys}{CLAM}
+\newcommand{\longtitle}{\sys{}: The Concise Linear Algebra Manipulation Language}
 \newcommand{\authorlist}{Jeremy Andrus and Robert Martin and Kevin Sun and Yongxu Zhang}
 \newcommand{\authoremails}{\{jca2119, rdm2128, kfs2110, yz2419\}@columbia.edu}
 
@@ -26,17 +28,13 @@
   \documentclass[10pt,letterpaper,onecolumn,oneside]{article}
 \fi
 
-\newcommand{\sys}{ImP}
-\newcommand{\longtitle}{\sys{}: The Image Processing Language}
-\newcommand{\comment}[1]{}
-
 \usepackage[margin=2.8cm]{geometry}
 \usepackage[utf8x]{inputenc}
 \usepackage{ucs}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
-\usepackage{color}
+\usepackage[usenames]{color}
 \usepackage{listings}
 \usepackage{graphicx}
 \usepackage{url}
@@ -57,6 +55,12 @@
     pdfauthor={\authorlist{}},
     pdfdisplaydoctitle=true,
     plainpages=false]{hyperref}
+
+\setlength{\parindent}{0in}
+\addtolength{\parskip}{\baselineskip}
+
+% other useful commands
+\newcommand{\comment}[1]{}
 
 \begin{document}
 
