@@ -6,4 +6,5 @@
 *.synctex*
 
 paper.pdf
-
+paper.dvi
+paper.ps
