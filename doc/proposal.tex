@@ -1,69 +1,111 @@
-\section{Language Proposal}
+\section*{Language Proposal}
 
-\lstdefinelanguage{ImP}{
-    morekeywords={Image,Kernel},
-    keywordstyle={\color{blue}\bfseries},
-    commentstyle={\color{gray}\bfseries},
+\definecolor{DarkBlue}{rgb}{0.0, 0.08, 0.65}
+\definecolor{DarkRed}{rgb}{0.65, 0.08, 0.0}
+\definecolor{DarkGreen}{rgb}{0.08, 0.35, 0.08}
+\definecolor{Grey}{rgb}{0.55, 0.55, 0.55}
+\definecolor{Yellow}{cmyk}{0.0, 0.08, 0.5, 0.3}
+\definecolor{Brown}{rgb}{0.55, 0.27, 0.08}
+\definecolor{LightBlue}{cmyk}{0.8, 0.1, 0.0, 0.1}
+\lstdefinelanguage{PLTF11}{
+    classoffset=0,
+	morekeywords={somethingsomethingsomething},
+    keywordstyle={\color{Yellow}\itshape\bfseries},
+    classoffset=1,
+    morekeywords={Uint8,Uint16,Uint32,Int8,Int16,Int32,Angle,Matrix,Image,Kernel},
+    keywordstyle={\color{DarkBlue}\bfseries},
+    classoffset=2,
+	morekeywords={imgread,imgwrite},
+	keywordstyle={\color{Brown}},
+	otherkeywords={:=,**,=,|,:},
+	moredelim=*[s][\color{LightBlue}]{\#[}{]},
+	moredelim=*[s][\color{DarkGreen}\itshape]{\$(}{)},
+    morecomment=[l]{//},
+    commentstyle={\color{Grey}\bfseries},
     morestring=[b]",
-    stringstyle={\color{red}},
+    stringstyle={\color{DarkRed}},
     sensitive=true,
 }
 
-We propose to create a language specific for image processing.
-Here is an example of how one might perform a Sobel edge detector
-in the \sys{} language:
-\lstinputlisting[numbers=left,language=ImP]{src/sobel.imp}
-and here is a more complicated example implementing the Canny edge detector:
-%\lstinputlisting{src/canny.imp}
+\comment{
+Possible language names:
+LIP - Linear Image Processing (+1)
+MILA - Manipulate Images w/ Linear Algebra
+CLAM - Color & Light Algebraic Manipulation/Convolutions, Linear Algebra & Matrices
+GeBR - Middle part of "alGeBRa", and a rearrangement of RGB - because it manipulates colors.
+}
+
+\sys{} is a linear algebra manipulation language specifically targeted for
+image processing. It provides an efficient way to express complex image
+manipulation algorithms through compact matrix operations. Traditional image
+processing is performed using a language such as C, or C++. Algorithms in these
+languages are quite complex and error-prone due to the large number of lines of
+code required to implement something as conceptually simple as, "make this image
+blurry." The complexity arises from the need to perform elaborate calculations
+on every pixel in an image. For example, to blur an image you first need to
+calculate the luminance of the pixel (from the red, green, and blue channels),
+then you need to mathematically combine this with the luminance of adjacent pixels,
+and finally re-calculate red, green, and blue values for an output image.
+
+\sys{} will simplify image processing, and more generally linear algebra, through
+domain-specific data types and operators. The basic data type in \sys{} is a 
+\texttt{Matrix}. Matrices can be manipulated by operators that perform functions
+such as matrix multiplication, or rotation. An \texttt{Image} is another \sys{}
+data type which is expressed as a collection of matrices, or channels. For example,
+when reading an image into memory, \sys{} creates a \emph{Red}, \emph{Green}, and
+\emph{Blue} channel automatically. Additional Image channels can either be assigned,
+or calculated using an expression syntax which defines a calculation involving the
+values of other, previously defined, channels. The basic image processing operator
+in \sys{} is the convolution operator. This operator takes a channel and a
+\texttt{Kernel}, another basic data type, and outputs an \texttt{Image}. This
+operator convolves each \texttt{Matrix} within the \texttt{Kernel} with the channel,
+and collects the resulting output channels into an \texttt{Image}.
+
+Two primary use cases of \sys{} are basic image information extraction, and
+filtering. The compact syntax and powerful basic data types of \sys{} will make
+information extraction, such as finding all the edges in an image, simple, compact,
+and easy to read.
+
+\subsection*{Features}
+\sys{} uses implicit loops, i.e. there is no explicit looping construct in the
+language. Loops are implicitly defined by per-pixel matrix or convolution
+operations.
+
+Additionally, \sys{} automatically determines or calculates image and matrix
+dimensions. There is no need to explicitly size these data types. This further
+reduces complexity, and eliminates frequent mistakes such as going beyond array
+bounds in a calculation.
 
 
-\subsection{Representative Problem}
 
-A simple problem our language can solve is a blur filter, which takes as input
-an image and constructs a blurry version of that image. While conceptually
-simple, performing these calculations in procedural code like C can be onerous
-because of the many loops involved.
+\subsection*{Example Syntax}
 
-Each pixel in the blurred image is calculated by adding the color value of
-the original pixel in the same location to the values of the surrounding
-eight pixels, then dividing by 9. This procedure is repeated for every pixel
-in the blurred image.
-
-\subsection{Example Syntax}
-
-The goal of our language's syntax will be to make conceptually simple image
+The goal of the \sys{} syntax will be to make conceptually simple image
 manipulations into simple language constructs. For instance, convolutions make
 frequent use of constant matrices, so our language will provide a simple way
-to specify them, such as
-\begin{verbatim}
-    sobelMatrix = { +1 +2 +1 |  0  0  0 | -1 -2 -1 };
-\end{verbatim}
-The concept of channels will be supported by our language, which will some
-property for each pixel, stored in the form of a matrix. Built-in channels will
-be red, blue, and green -- but other useful channels may be constructed by
-the programmer. They will be calculated and stored as a new matrix. As an
-example, luminosity is a useful channel a programmer might define by
-\begin{verbatim}
-    luminosityChannel = 0.3 * redChannel + 0.6 * greenChannel + 0.1 * redChannel;
-\end{verbatim}
-Image manipulation also frequently involves describing an algorithm that should
-be carried out for each pixel, and then repeating it for every pixel. Our
-language will make it simple to refer to other properties of the "same" and
-neighboring pixels. For instance,
-\begin{verbatim}
-    if (redChannel > blueChannel) {
-        grayChannel = 0;
-    } else {
-        grayChannel = (redChannel + greenChannel + blueChannel) / 3;
-    }
-\end{verbatim}
-would create a grayscale channel (think: matrix) of the image that was black on
-every pixel that had more red than blue.
+to specify them, such as:
+\begin{lstlisting}[language=PLTF11]
+    Matrix sobelGy := { +1 +2 +1 |  0  0  0 | -1 -2 -1 };
+\end{lstlisting}
 
-Note that our language does not include loops. The loops are implicitly defined
-by the per-pixel operations using a matrix, or by the convolutions expressed
-using small matrices such as the Sobel matrix above.
+Another common image processing technique is performing the same calculation
+on every pixel in the image. An example of this is calculating the luminance
+of a pixel from the red, green, and blue channels. \sys{} makes this calculation
+simple and compact by defining an additional image channel. Assuming there exists
+an instance of a \texttt{Image} variable named, \emph{myimg}, a channel can be
+added to the image with:
+\begin{lstlisting}[language=PLTF11]
+    Int32 myimg:Luminance := #[ (3*Red + 6*Green + 1*Blue) / 10 ];
+\end{lstlisting}
+Where the expression within \texttt{\#( \ldots )} is evaluated once for every
+pixel in the \texttt{Image}. The \emph{Red}, \emph{Green}, and \emph{Blue} variables
+correspond to previously defined channels in \emph{myimg}, and their values during
+expression evaluation will be the value of the corresponding channel at the current
+pixel location.
 
-In addition, our language does not have ways to express image dimensions. All
-image dimensions are implicitly determined through the size of the input image
-or images.
+Image processing also frequently involves describing a series of operations that
+should be carried out for each pixel, and then repeating it for every pixel in an
+image. \sys{} makes it simple to describe this process through the \texttt{Kernel}
+data type and the convolution operator. Here is an example of how one might perform
+a Sobel edge detector in the \sys{} language:
+\lstinputlisting[language=PLTF11,numbers=left,frame=single]{src/sobel.imp}
