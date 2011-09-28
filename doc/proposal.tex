@@ -3,7 +3,6 @@
 \lstdefinelanguage{ImP}{
     morekeywords={Image,Kernel},
     keywordstyle={\color{blue}\bfseries},
-    morecomment=[1]{//},
     commentstyle={\color{gray}\bfseries},
     morestring=[b]",
     stringstyle={\color{red}},
@@ -17,3 +16,54 @@ in the \sys{} language:
 and here is a more complicated example implementing the Canny edge detector:
 %\lstinputlisting{src/canny.imp}
 
+
+\subsection{Representative Problem}
+
+A simple problem our language can solve is a blur filter, which takes as input
+an image and constructs a blurry version of that image. While conceptually
+simple, performing these calculations in procedural code like C can be onerous
+because of the many loops involved.
+
+Each pixel in the blurred image is calculated by adding the color value of
+the original pixel in the same location to the values of the surrounding
+eight pixels, then dividing by 9. This procedure is repeated for every pixel
+in the blurred image.
+
+\subsection{Example Syntax}
+
+The goal of our language's syntax will be to make conceptually simple image
+manipulations into simple language constructs. For instance, convolutions make
+frequent use of constant matrices, so our language will provide a simple way
+to specify them, such as
+\begin{verbatim}
+    sobelMatrix = { +1 +2 +1 |  0  0  0 | -1 -2 -1 };
+\end{verbatim}
+The concept of channels will be supported by our language, which will some
+property for each pixel, stored in the form of a matrix. Built-in channels will
+be red, blue, and green -- but other useful channels may be constructed by
+the programmer. They will be calculated and stored as a new matrix. As an
+example, luminosity is a useful channel a programmer might define by
+\begin{verbatim}
+    luminosityChannel = 0.3 * redChannel + 0.6 * greenChannel + 0.1 * redChannel;
+\end{verbatim}
+Image manipulation also frequently involves describing an algorithm that should
+be carried out for each pixel, and then repeating it for every pixel. Our
+language will make it simple to refer to other properties of the "same" and
+neighboring pixels. For instance,
+\begin{verbatim}
+    if (redChannel > blueChannel) {
+        grayChannel = 0;
+    } else {
+        grayChannel = (redChannel + greenChannel + blueChannel) / 3;
+    }
+\end{verbatim}
+would create a grayscale channel (think: matrix) of the image that was black on
+every pixel that had more red than blue.
+
+Note that our language does not include loops. The loops are implicitly defined
+by the per-pixel operations using a matrix, or by the convolutions expressed
+using small matrices such as the Sobel matrix above.
+
+In addition, our language does not have ways to express image dimensions. All
+image dimensions are implicitly determined through the size of the input image
+or images.
