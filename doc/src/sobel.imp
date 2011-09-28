@@ -8,7 +8,7 @@ Uint8 srcimg:Lum := #[(3*Red + 6*Green + 1*Blue)/10];
 // Kernel definitions are ordered i.e. the channels
 // are calculated in the order they are defined
 Kernel sobel = {
-	Uint8 @Gx    = [1 | 1]{ -1  0 +1 | -2  0 +2 | -1  0 +1 };
+	Uint8 @Gx   := [1 | 1]{ -1  0 +1 | -2  0 +2 | -1  0 +1 };
 	Uint8 @Gy   := [1 | 1]{+1 +2 +1 |  0  0  0 | -1 -2 -1 };
 	Uint8 G     := #[sqrt(Gx*Gx + Gy*Gy)];
 	Angle Theta := #[arctan(Gy/Gx)];

@@ -58,7 +58,7 @@ or calculated using an expression syntax which defines a calculation involving t
 values of other, previously defined, channels. The basic image processing operator
 in \sys{} is the convolution operator. This operator takes a channel and a
 \texttt{Kernel}, another basic data type, and outputs an \texttt{Image}. This
-operator convolves each \texttt{Matrix} within the \texttt{Kernel} with the channel,
+operator convolves each \texttt{Matrix} within the \texttt{Kernel} with the input channel,
 and collects the resulting output channels into an \texttt{Image}.
 
 Two primary use cases of \sys{} are basic image information extraction, and
@@ -69,14 +69,10 @@ and easy to read.
 \subsection*{Features}
 \sys{} uses implicit loops, i.e. there is no explicit looping construct in the
 language. Loops are implicitly defined by per-pixel matrix or convolution
-operations.
-
-Additionally, \sys{} automatically determines or calculates image and matrix
+operations. Additionally, \sys{} automatically determines or calculates image and matrix
 dimensions. There is no need to explicitly size these data types. This further
 reduces complexity, and eliminates frequent mistakes such as going beyond array
 bounds in a calculation.
-
-
 
 \subsection*{Example Syntax}
 
@@ -97,7 +93,7 @@ added to the image with:
 \begin{lstlisting}[language=PLTF11]
     Int32 myimg:Luminance := #[ (3*Red + 6*Green + 1*Blue) / 10 ];
 \end{lstlisting}
-Where the expression within \texttt{\#( \ldots )} is evaluated once for every
+Where the expression within \texttt{\#[ \ldots ]} is evaluated once for every
 pixel in the \texttt{Image}. The \emph{Red}, \emph{Green}, and \emph{Blue} variables
 correspond to previously defined channels in \emph{myimg}, and their values during
 expression evaluation will be the value of the corresponding channel at the current
