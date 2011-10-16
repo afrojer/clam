@@ -8,3 +8,6 @@
 paper.pdf
 paper.dvi
 paper.ps
+
+obj/*
+clam
