@@ -68,7 +68,7 @@
 %\frenchspacing
 
 \title{\longtitle{}}
-\author{\authorlist{}\\\authoremails{}}
+\author{\authorlist{}\\\authoremails{}\\\\Columbia University\\COMS W4115: Programming Languages and Translators}
 \maketitle
 
 % Body of the paper in different files
@@ -76,9 +76,10 @@
   % Project Proposal
   \input{proposal}
 \else
+  \input{clamlisting}
   \ifrefman
     % Language Reference Manual
-    \section{Language Reference Manual}
+    \section*{Language Reference Manual}
     \input{manual}
   \else
     % Final Project report is the default output here

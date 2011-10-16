@@ -1,0 +1,35 @@
+
+\definecolor{clamLightBlue}{cmyk}{0.8, 0.1, 0.0, 0.1}
+\definecolor{clamDarkBlue}{rgb}{0.0, 0.08, 0.65}
+\definecolor{clamDarkRed}{rgb}{0.65, 0.08, 0.0}
+\definecolor{clamDarkGreen}{rgb}{0.08, 0.35, 0.08}
+\definecolor{clamYellow}{cmyk}{0.0, 0.08, 0.5, 0.3}
+\definecolor{clamPurple}{rgb}{0.58, 0.0, 0.83}
+\definecolor{clamBrown}{rgb}{0.55, 0.27, 0.08}
+\definecolor{clamGrey}{rgb}{0.55, 0.55, 0.55}
+\lstdefinelanguage{CLAM}{
+    classoffset=0,
+    keywordstyle={\color{clamPurple}\bfseries}, % default style (used by 'otherkeywords')
+    morekeywords={somethingsomethingsomething},
+    classoffset=1,
+    morekeywords={Uint8,Uint16,Uint32,Int8,Int16,Int32,Matrix,Image,Kernel},
+    keywordstyle={\color{clamDarkRed}\bfseries},
+    classoffset=2,
+    morekeywords={imgread,imgwrite},
+    keywordstyle={\color{clamDarkBlue}\bfseries},
+    classoffset=3,
+    otherkeywords={=,|,:,:=,**},
+    morecomment=[l]{//},
+    morecomment=[n]{(*}{*)},
+    commentstyle={\color{clamGrey}\bfseries},
+    morestring=[b]",
+    stringstyle={\color{clamBrown}},
+    moredelim=*[s][\color{clamLightBlue}]{\#[}{]\#},
+    moredelim=*[s][\color{clamDarkGreen}]{\$(}{)},
+    sensitive=true,
+    showstringspaces=false,
+    showspaces=false,
+    showtabs=false,
+    basicstyle=\ttfamily,
+}
+

@@ -25,8 +25,8 @@ DVIOPTS =
 
 SRCARG=
 ifeq ($(BOOK)$(PROPOSAL)$(REFMAN),)
-  $(warning Defaulting to Proposal [for now])
-  PROPOSAL=1
+  $(warning Defaulting to Language Reference Manual [for now])
+  REFMAN=1
 endif
 
 ifeq ($(BOOK),1)
