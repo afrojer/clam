@@ -64,7 +64,7 @@ DVIDEPEND = $(DEP) $(RESULTS:%.pdf=%.eps) $(FIGURES:%.pdf=%.eps)
 
 FORCE = .silly_file_to_force_rebuild
 
-.PHONY: all check_tools clean cleanall force do_force pdf
+.PHONY: all check_tools clean distclean force do_force pdf
 
 all: check_tools $(FORCE) $(SRC).pdf
 
@@ -123,6 +123,6 @@ clean:
 	$(RM) $(SRC).pdfsync $(SRC).synctex.gz
 
 # clean up everything
-cleanall: clean
+distclean: clean
 	$(RM) graphs/*.ps graphs/*.eps figures/*.ps figures/*.eps
 	$(RM) $(SRC).pdf $(SRC).ps
