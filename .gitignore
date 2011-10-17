@@ -9,5 +9,5 @@ paper.pdf
 paper.dvi
 paper.ps
 
-obj/*
-clam
+clam/obj/*
+clam/clam
