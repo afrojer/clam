@@ -2,7 +2,8 @@ TGT = clam
 
 LEX_SRC = scanner.mll
 YACC_SRC = parser.mly
-ML_SRC = clam.ml
+# NOTE: keep clam.ml at the back of the list!
+ML_SRC = clamsys.ml backend.ml clam.ml
 ML_INC = ast.mli
 
 # env config
@@ -10,13 +11,15 @@ OBJDIR = obj
 OCC = $(shell which ocamlc)
 OCLEX = $(shell which ocamllex)
 OYACC = $(shell which ocamlyacc)
-OCAML_OPTS =
-OCLEX_OPTS = -q
-OYACC_OPTS =
+OCAMLDEP = $(shell which ocamldep)
+OCAML_COPTS =
+OCAML_LOPTS = unix.cma
+OCLEX_OPTS  = -q
+OYACC_OPTS  =
 
 ### no more editing ###
 
-OCAML_OPTS += -I $(OBJDIR) -I $(OBJDIR)/lex -I $(OBJDIR)/yacc
+OCAML_COPTS += -I $(OBJDIR) -I $(OBJDIR)/lex -I $(OBJDIR)/yacc
 
 LEX_ML   := $(LEX_SRC:%.mll=$(OBJDIR)/lex/%.ml)
 YACC_ML  := $(YACC_SRC:%.mly=$(OBJDIR)/yacc/%.ml)
@@ -29,37 +32,43 @@ ML_OBJ   += $(LEX_ML:%.ml=%.cmo)
 ML_OBJ   += $(ML_SRC:%.ml=$(OBJDIR)/%.cmo)
 
 ML_DEP   := $(ML_INC:%.mli=$(OBJDIR)/%.mli.dep)
-ML_DEP   += $(YACC_MLI:%.mli=%.mli.dep)
-ML_DEP   += $(YACC_ML:%.ml=%.ml.dep)
-ML_DEP   += $(LEX_ML:%.ml=%.ml.dep)
+#ML_DEP   += $(YACC_ML:%.ml=%.zml.dep)
+#ML_DEP   += $(LEX_ML:%.ml=%.zml.dep)
 ML_DEP   += $(ML_SRC:%.ml=$(OBJDIR)/%.ml.dep)
+
+prepdir = \
+  $(shell if [ ! -d "$(shell dirname $(1))" ]; then \
+          mkdir -p "$(shell dirname $(1))" >/dev/null 2>&1; fi)
 
 all: $(TGT)
 	@echo "done."
 
 $(OBJDIR)/lex/%.ml: %.mll
-	@echo "[OCAML LEX] $*.mll"
+	@echo "[OCAML  LEX] $*.mll"
+	$(call prepdir,$@)
 	@$(OCLEX) $(OCLEX_OPTS) -o $@ $<
 
 $(OBJDIR)/yacc/%.ml $(OBJDIR)/yacc/%.mli: %.mly
 	@echo "[OCAML YACC] $*.mly"
+	$(call prepdir,$@)
 	@$(OYACC) $(OYACC_OPTS) -b $(OBJDIR)/yacc/$* $<
 
 $(OBJDIR)/%.cmi %.cmi: %.mli
-	@echo "[OCAML I] $*.mli"
-	@$(OCC) $(OCAML_OPTS) -c -o $@ $<
+	@echo "[OCAML    I] $*.mli"
+	@$(OCC) $(OCAML_COPTS) -c -o $@ $<
 
 $(OBJDIR)/%.cmo %.cmo: %.ml
-	@echo "[OCAML C] $<"
-	@$(OCC) $(OCAML_OPTS) -c -o $@ $<
+	@echo "[OCAML    C] $<"
+	@$(OCC) $(OCAML_COPTS) -c -o $@ $<
 
 $(TGT): $(ML_DEP) $(ML_OINC) $(ML_OBJ)
-	@echo "[OCAML L] $(TGT)"
-	@$(OCC) -o $(TGT) $(ML_OBJ)
+	@echo "[OCAML    L] $(TGT)"
+	$(OCC) -o $(TGT) $(OCAML_LOPTS) $(ML_OBJ)
 
 clean:
-	@echo "[CLEAN]"
+	@echo "  CLEAN"
 	@rm -f $(ML_OBJ)
+	@rm -f $(ML_OINC)
 	@rm -f $(ML_DEP)
 	@rm -f $(LEX_ML)
 	@rm -f $(YACC_ML) $(YACC_MLI)
@@ -68,14 +77,19 @@ clean:
 	@rm -f $(ML_OBJ:%.cmo=%.o)
 
 distclean: clean
-	@echo "[RM] $(TGT)"
+	@echo "  RM    $(TGT)"
 	@rm -rf "$(OBJDIR)"
 	@rm -f "$(TGT)"
 
-%.dep:
-	@if [ ! -d "$(shell dirname $@)" ]; then \
-		mkdir -p "$(shell dirname $@)" >/dev/null 2>&1; fi
-	@touch "$@"
+$(OBJDIR)/%.mli.dep: %.mli
+	$(call prepdir,$@)
+	$(shell $(OCAMLDEP) -intf $< |sed 's#\([^. ]\+\)\.\(cm[iox]\)#$(OBJDIR)/\1.\2#g;' > $@)
+
+$(OBJDIR)/%.ml.dep: %.ml
+	$(call prepdir,$@)
+	$(shell $(OCAMLDEP) -impl $< |sed 's#\([^. ]\+\)\.\(cm[iox]\)#$(OBJDIR)/\1.\2#g;' > $@)
+
+-include $(ML_DEP)
 
 .PHONY: all clean distclean
 
