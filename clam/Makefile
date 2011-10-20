@@ -1,5 +1,8 @@
 TGT = clam
 
+# Binaries created by clam compiler (for 'make clean' to remove)
+OUT_BIN = *.clam
+
 LEX_SRC = scanner.mll
 YACC_SRC = parser.mly
 # NOTE: keep clam.ml at the back of the list!
@@ -66,6 +69,7 @@ $(TGT): $(ML_DEP) $(ML_OINC) $(ML_OBJ)
 	$(OCC) -o $(TGT) $(OCAML_LOPTS) $(ML_OBJ)
 
 clean:
+	@rm -fv $(OUT_BIN)
 	@echo "  CLEAN"
 	@rm -f $(ML_OBJ)
 	@rm -f $(ML_OINC)
