@@ -89,6 +89,9 @@ $(OBJDIR)/%.ml.dep: %.ml
 	$(call prepdir,$@)
 	$(shell $(OCAMLDEP) -impl $< |sed 's#\([^. ]\+\)\.\(cm[iox]\)#$(OBJDIR)/\1.\2#g;' > $@)
 
+test: $(TGT)
+	@./tester.sh
+
 -include $(ML_DEP)
 
 .PHONY: all clean distclean
