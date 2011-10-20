@@ -19,22 +19,22 @@ module VarMap = Map.Make(struct
 end)
 
 let rec eval env = function
-    Lit(x) -> x, env
+    Lit(x) -> string_of_int(x), env
   | Variable(x) ->
       if VarMap.mem x env then
-        (VarMap.find x env), env
+        (string_of_int(VarMap.find x env)), env
       else raise (Failure ("undeclared variable "^(string_of_int x)))
   | Binop(e1, op, e2) ->
       let v1, env = eval env e1 in
       let v2, env = eval env e2 in
       (match op with
-          Add -> v1 + v2
-        | Sub -> v1 - v2
-        | Mul -> v1 * v2
-        | Div -> v1 / v2), env
+          Add -> (v1 ^ " + " ^ v2)
+        | Sub -> (v1 ^ " - " ^ v2)
+        | Mul -> (v1 ^ " * " ^ v2)
+        | Div -> (v1 ^ " / " ^ v2)), env
   | Assign(x, e) ->
       let v, env = eval env e in
-      v, (VarMap.add x v env)
+      v, (VarMap.add x (int_of_string v) env)
   | Seq(e1, e2) ->
       let v, env = eval env e1 in
       let v, env = eval env e2 in
@@ -45,6 +45,7 @@ let generate_c program =
   let result, env = eval VarMap.empty program in
   "#include <stdio.h>\n"^
   "int main(int argc, char *argv) {\n"^
-  "  printf(\"Hello CLAM: result=%d\\n\", " ^ (string_of_int result) ^ ");\n"^
+  "  int val = (" ^ result ^ ");\n"^
+  "  printf(\"Hello CLAM: result=%d\\n\", val);\n"^
   "}\n"
 
