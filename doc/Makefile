@@ -42,7 +42,6 @@ else
 endif
 ifeq ($(REFMAN),1)
   SRCARG += "\let\ifrefman\iftrue"
-  NOBIB=1
 else
   SRCARG += "\let\ifrefman\iffalse"
 endif

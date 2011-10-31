@@ -81,11 +81,13 @@
     % Language Reference Manual
     \section*{Language Reference Manual}
     \input{manual}
+    \clearpage
   \else
     % Final Project report is the default output here
     \tableofcontents
     \input{intro}
     \input{tutorial}
+    % Language Reference Manual
     \chapter{Language Reference Manual}
     \input{manual}
     \input{plan}
@@ -94,12 +96,12 @@
     \input{lessons}
     \appendix
     \input{appendix}
-    {
-      \balance
-      \bibliographystyle{abbrv}
-      \bibliography{paper}
-    }
   \fi
+  {
+    \balance
+    \bibliographystyle{abbrv}
+    \bibliography{paper}
+  }
 \fi
 
 \end{document}

@@ -1,1 +1,201 @@
-Our language reference manual goes here\dots
+\newcommand{\startsyn}{\begin{center}\begin{tabular}{l}}
+\newcommand{\stopsyn}{\end{tabular}\end{center}}
+
+\section{Introduction}
+The \sys{} programming language is a linear algebra manipulation language
+specifically targeted for image processing. It provides an efficient way to
+express complex image manipulation algorithms through compact matrix
+operations. \sys{} programs are first compiled into a ''C`` module which is
+further compiled into a machine binary by an existing 
+This reference is inspired by the C reference manual~\cite{DBLP:books/ph/KernighanR88}.
+
+\section{Lexical Conventions}
+\label{sec:lex}
+
+\subsection{Tokens}
+\label{ssec:tokens}
+
+\subsection{Comments}
+\label{ssec:comments}
+
+\subsection{Identifiers}
+\label{ssec:identifiers}
+
+\subsection{Keywords}
+\label{ssec:keywords}
+
+\subsection{Constants}
+\label{ssec:constants}
+
+\subsubsection{Numeric Constants}
+\label{sssec:numericconstants}
+
+\subsubsection{Matrix Constants}
+\label{sssec:matrixconstants}
+Discuss how one can declare a constant matrix using the form:
+\begin{lstlisting}[language=CLAM,escapechar=\%]
+    Matrix sobelGy := [N | D]{R1C1 R1C2%\ldots% | R2C1 R2C2%\ldots% | R3C1 R3C2%\ldots%};
+\end{lstlisting}
+
+\subsection{String Literals}
+\label{ssec:strings}
+
+\section{Meaning of Identifiers}
+\label{sec:identmeaning}
+
+\subsection{Basic Types}
+\label{ssec:types}
+There are several basic types, and sub-types defined by the \sys{} language.
+Type identifiers always begin with an upper-case letter followed by a sequence
+of zero or more legal identifier characters. The list of built-in types is as follows:
+\startsyn
+\texttt{Channel} \\
+\texttt{Image} \\
+\texttt{Kernel}
+\stopsyn
+
+\subsubsection{Atom Types}
+\label{sssec:subtypes}
+The \texttt{Channel} built-in type may be further modified to specify
+individual, or ``atom'' type. This specifies the type of each element of the
+matrix which makes up the \texttt{Channel}. An \emph{atom-type} identifier
+is denoted with the \texttt{.} character followed by a type specifier.
+\startsyn
+\emph{basic-type}\texttt{.}\emph{atom-type}
+\stopsyn
+Legal \emph{atom-types} are as follows:
+\startsyn
+Uint8 \\
+Uint16 \\
+Uint32 \\
+Int8 \\
+Int16 \\
+Int32
+\stopsyn
+For example, a \texttt{Channel}\ldots
+
+\subsection{Type Qualifiers}
+\label{ssec:typequal}
+Discuss the use of the \texttt{@} symbol to denote a special matrix which when used
+in calculation does not produce in a discrete channel in the result.
+
+Discuss the use of another symbol which tells the matrix composition that calculation must finish before proceeding (i.e. it actively inhibits parallel execution of convolution - probably useful if a subsequent calculation requires a neighborhood of previously calculated values).
+
+\section{Definitions and Objects}
+\label{sec:defobj}
+Here we should discuss the difference between ``defining'' a matrix (e.g. via calculation in escaped-C syntax) and actual object assignment performed by computation and assignment operators\ldots
+
+\section{Expressions}
+\label{sec:expressions}
+
+\subsection{Primary Expressions}
+\label{ssec:primaryexpresions}
+identifiers, constants, strings. The type of the expressions depends on the identifier, constant or string.
+
+\subsection{Unary Operators}
+\label{ssec:unaryoperators}
+There are two unary operators in \sys{}, and they are only used with a
+numeric-valued operand.
+These expressions are grouped right-to-left:
+\startsyn
+\texttt{+}\emph{numeric-expression} \\
+\texttt{-}\emph{numeric-expression}
+\stopsyn
+
+\subsubsection{\texttt{+} operator}
+This operator forces the value of its numeric operand to be positive.
+The resulting expression is of numeric type with a value equal to the
+absolute value of the numeric operand.
+
+\subsubsection{\texttt{-} operator}
+This operator forces the value of its numeric operand to be negative.
+The resulting expression is of numeric type with a value equal to the
+negative of the numeric operand.
+
+\subsection{Channel Expresions}
+\label{ssec:channelexpressions}
+Channels for the basis of both \texttt{Image} and \texttt{Kernel} types, and
+\sys{} has several operators which manipulate channels.
+
+\subsubsection{\texttt{:} operator}
+\label{sssec:colonop}
+Extract or use an individual channel in an image.
+\startsyn
+\emph{image-identifier}\texttt{:}\emph{channel-identifier}
+\stopsyn
+The resulting expression has the \texttt{Matrix} type corresponding to the
+extracted channel.
+
+\subsubsection{\texttt{\$()} operator}
+\label{sssec:evalop}
+This operator forces the evaluation of a previously defined Image channel. It
+is generally used in the context of a convolution operation.
+\startsyn
+\texttt{\$(}\emph{channel-expression}\texttt{)}
+\stopsyn
+The resulting expression is of \texttt{Channel} type.
+
+\subsection{Channel Composition Operators}
+\label{ssec:channelops}
+These operators compose an \texttt{Image} from one or more \texttt{Channels}.
+All channel composition operators are left-to-right associative.
+
+\subsubsection{\texttt{|} operator}
+\label{sssec:barop}
+Compose two (or more) \texttt{Channel}s. The resulting expression is a
+\emph{multi-channel-expression}, and can be assigned to either an \texttt{Image}
+or a \texttt{Kernel} object.
+\startsyn
+\emph{channel-expression} \texttt{|} \emph{channel-expression} \\
+\emph{multi-channel-expression} \texttt{|} \emph{channel-expression}
+\stopsyn
+Note that \texttt{Channel}s are appended in order, and subsequent operations
+may rely on this order.
+
+\subsubsection{\texttt{||} operator}
+\label{sssec:doublebarop}
+Compose two (or more) \texttt{Channel}s. The resulting expression is a
+\emph{multi-channel-expression}, and can be assigned to either an \texttt{Image}
+or a \texttt{Kernel} object. This operator differs from the \texttt{|} operator in that
+it forces the serial computation of channel values. This allows subsequent channel
+value calculations to use neighboring pixels of previously calculated channels.
+\startsyn
+\emph{channel-expression} \texttt{||} \emph{channel-expression} \\
+\emph{multi-channel-expression} \texttt{||} \emph{channel-expression}
+\stopsyn
+
+\subsection{Escaped ``C'' Expression}
+\label{ssec:escapedC}
+Talk about the \texttt{\#[\ldots]\#} operator.
+
+\subsection{Channel Composition Expresions}
+%Talk about the $|$, $|=$, and $||$ expressions.
+
+\subsection{Assignmet Expresions}
+\label{ssec:assignment}
+
+\subsubsection{\texttt{|=} assignment operator}
+
+\subsubsection{\texttt{\^=} assignment operator}
+
+\subsubsection{\texttt{=} assignment}
+
+\section{Statements}
+\label{sec:statements}
+fill this in a bit more
+
+\section{Program Definition}
+A program in the \sys{} language is simply a sequence of statements which
+are executed in order.
+
+\section{Scope Rules}
+All identifiers in the \sys{} language are global.
+PROBABLY should mention how the escaped ``C'' syntax works with variable scoping\ldots
+
+\section{Declarations}
+All variables must be declared before they can be used.
+PROBABLY should clarify exactly when a variable/identifier is in scope (e.g. after semi-colon of declaration statement).
+
+\section{Grammar}
+This will be the annoying section where we explicitly spell out all the above rules
+in a concise way.
