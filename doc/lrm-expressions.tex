@@ -84,18 +84,67 @@ value calculations to use neighboring pixels of previously calculated channels.
 \stopsyn
 } % END comment (save this for later...)
 
+\subsection{\texttt{**} operator}
+\label{ssec:convolutionop}
+MISSING: Talk about the core of our language\ldots the convolution operator
+
 \subsection{Escaped ``C'' Expression}
 \label{ssec:escapedC}
-Talk about the \texttt{\#[\ldots]\#} operator.
+MISSING: Talk about the \texttt{\#[\ldots]\#} operator.
+
+\subsection{I/O Expressions}
+
+\subsubsection{\texttt{imgread} expression}
+\label{sssec:imgread}
+The \texttt{imgread} expression reads in an \texttt{Image} object from
+a known image format located on the file system. The expression results
+in an \texttt{Image} object which can be assigned using the \texttt{=}
+operator (see section~\ref{sssec:equalop}). The resulting \texttt{Image}
+object has 3 \texttt{Channel}s named \emph{Red}, \emph{Green}, and
+\emph{Blue}. Each of the channels correspond to the red, green, and blue
+image data read into the \texttt{Image} object. This expression is invoked
+as a ``C'' style function, and expects 1 parameter: the path of the image
+file to read.
+\startsyn
+\texttt{imgread(} \emph{string-constant} \texttt{)}
+\stopsyn
+
+\subsubsection{\texttt{imgwrite} expression}
+\label{sssec:imgwrite}
+The \texttt{imgwrite} expression writes out an \texttt{Image} object to a known
+image format. It requires that the \texttt{Image} object has at least 3 named
+\texttt{Channels}: \emph{Red}, \emph{Green}, and \emph{Blue}.
+This expression has no type (null type), and is invoked as a ``C'' style function.
+It expects 3 parameters: the first parameter is an \texttt{Image} identifier, the
+second is the image format, and the the third is the path to which the image
+should be written.
+\startsyn
+\texttt{imgwrite(} \emph{image-identifier} \texttt{,} \emph{string-constant} \texttt{,} \emph{string-constant} \texttt{)}
+\stopsyn
 
 \subsection{Assignment Expressions}
 \label{ssec:assignment}
 
 \subsubsection{\texttt{=} assignment operator}
+\label{sssec:equalop}
+Assigns the value of the right operand to the left operand, copying data as necessary.
+The types of both operands must match.
 
 \subsubsection{\texttt{:=} assignment operator}
+\label{sssec:colonequalop}
+Assigns a calculation constant (see section~\ref{sssec:calcconstants}), or
+escaped ``C'' expression (see section~\ref{ssec:escapedC}) to a \texttt{Calc}
+object.
 
 \subsubsection{\texttt{|=} assignment operator}
+\label{sssec:barequalop}
+Add a \texttt{Channel} or a \texttt{Calc} object to an \texttt{Image} or
+\texttt{Kernel} object. Assignments using this operator are ordered by statement
+order, and subsequent operations can rely on this order.
+
+Note that a \texttt{Calc} object assigned to an \texttt{Image} object must be
+evaluated using the \texttt{\$()} operator (see section~\ref{sssec:evalop}) before
+being using in calculation or further assignment.
 
 \comment{
 \subsubsection{\texttt{\^=} assignment operator}

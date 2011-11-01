@@ -28,4 +28,4 @@ output:Red   = edges:sobelG;
 output:Green = edges:sobelG;
 output:Blue  = edges:sobelG;
 
-imgwrite( output, "edges_of_someimage.jpg");
+imgwrite( output, "jpg", "edges_of_someimage.jpg");
