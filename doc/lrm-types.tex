@@ -1,0 +1,45 @@
+\section{Meaning of Identifiers}
+\label{sec:identmeaning}
+
+\subsection{Basic Types}
+\label{ssec:types}
+There are four basic types defined by the \sys{} language.
+Type identifiers always begin with an upper-case letter followed by a sequence
+of zero or more legal identifier characters. The list of built-in types is as follows:
+\startsyn
+\texttt{Channel} \\
+\texttt{Image} \\
+\texttt{Calc} \\
+\texttt{Kernel}
+\stopsyn
+
+\subsubsection{Atom Types}
+\label{sssec:atomtypes}
+The \texttt{Channel} and \texttt{Calc} built-in types may be further modified
+to specify individual element, or ``atom'' types. This specifies either the type
+of each element of the matrix which makes up the \texttt{Channel}, or the type
+of the resulting calculation performed by a \texttt{Calc} object.
+An \emph{atom-type} identifier is denoted using the \texttt{<} and \texttt{>}
+characters immediately following the identifier of the object whose atom type
+is being specified:
+\startsyn
+\emph{basic-type} \emph{identifier}\texttt{<}\emph{atom-type}\texttt{>}
+\stopsyn
+Legal \emph{atom-type}s are as follows:
+\startsyn
+Uint8 \\
+Uint16 \\
+Uint32 \\
+Int8 \\
+Int16 \\
+Int32 \\
+Angle
+\stopsyn
+
+\subsection{Type Qualifiers}
+\label{ssec:typequal}
+Discuss the use of the \texttt{@} symbol to denote a special matrix which when used
+in calculation does not produce in a discrete channel in the result.
+
+Discuss the use of another symbol which tells the matrix composition that calculation must finish before proceeding (i.e. it actively inhibits parallel execution of convolution - probably useful if a subsequent calculation requires a neighborhood of previously calculated values).
+
