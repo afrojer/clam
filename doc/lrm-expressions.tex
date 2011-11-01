@@ -86,11 +86,51 @@ value calculations to use neighboring pixels of previously calculated channels.
 
 \subsection{\texttt{**} operator}
 \label{ssec:convolutionop}
-MISSING: Talk about the core of our language\ldots the convolution operator
+
+The convlution operator, or \texttt{**}, performs the calculations of a
+\texttt{Kernel} on an \texttt{Image}, and evaluates to a new \texttt{Image}.
+When the \texttt{Kernel} is evaluated, as many operations as possible are
+parallelized to improve performance.
+
+Parallelized calculations may depend on each other as long as the
+dependent calculation is listed second when the \texttt{Kernel} is
+defined, and the dependent calculation does not depend on more than
+the current pixel of the required calculation.
+
+Any channels that are marked with an \texttt{@} symbol are transient and
+are not added to the result \texttt{Image}.
 
 \subsection{Escaped ``C'' Expression}
 \label{ssec:escapedC}
-MISSING: Talk about the \texttt{\#[\ldots]\#} operator.
+
+Escaped ``C'' expressions can be used on the right side of the \texttt{:=}
+when defining a \texttt{Channel}. The escaped code must be a single expression
+in C that will evaluate to the equivalent type as the \texttt{Channel} in C.
+The expression should not end in a semicolon.
+
+The equivalent types are:
+
+\begin{center}\begin{tabular}{l | l}
+\sys type & equivalent C type \\
+\hline
+Uint8  & char \\
+Uint16 & int \\
+Uint32 & long \\
+Angle  & double \\
+Float  & double
+\end{tabular}\end{center}
+
+When the channel described by an escaped ``C'' expression must be evaluated,
+every pixel in the channel is calculated by evaluating the C expression.
+When the expression is evaluated, every identifier corresponding to
+another channel in the image appears will be replaced by the value of the
+pixel in the same location for that channel. Thus, if the C expression
+contains the identifier \texttt{Red}, then when the channel is calculated
+it will replace \texttt{Red} in the expression with the appropriate value
+from the \texttt{Red} channel.
+
+Standard C operators are available for use, as well as \texttt{sqrt} and
+\texttt{exp}.
 
 \subsection{I/O Expressions}
 
