@@ -8,6 +8,8 @@
 paper.pdf
 paper.dvi
 paper.ps
+paper.bbl
+paper.blg
 
 clam/obj/*
 clam/clam
