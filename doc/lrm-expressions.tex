@@ -8,7 +8,8 @@ identifiers, constants, strings. The type of the expressions depends on the iden
 \subsection{Unary Operators}
 \label{ssec:unaryoperators}
 There are two unary operators in \sys{}, and they are only used with a
-numeric-valued operand.
+numeric-valued operand such as a numeric constant
+(see~\ref{sssec:numericconstants}).
 These expressions are grouped right-to-left:
 \startsyn
 \texttt{+}\emph{numeric-expression} \\
@@ -25,46 +26,51 @@ This operator forces the value of its numeric operand to be negative.
 The resulting expression is of numeric type with a value equal to the
 negative of the numeric operand.
 
-\subsection{Channel Expresions}
+\subsection{Channel/Calc Expresions}
 \label{ssec:channelexpressions}
-Channels for the basis of both \texttt{Image} and \texttt{Kernel} types, and
-\sys{} has several operators which manipulate channels.
+\texttt{Channel} and \texttt{Calc} types are the basis of \texttt{Image} and
+\texttt{Kernel} objects respectively. There are several operators that
+manipulate \texttt{Channel}s and \texttt{Calc}s.
 
 \subsubsection{\texttt{:} operator}
 \label{sssec:colonop}
-Extract or use an individual channel in an image.
+Extract or use an individual \texttt{Channel} in an image.
 \startsyn
 \emph{image-identifier}\texttt{:}\emph{channel-identifier}
 \stopsyn
-The resulting expression has the \texttt{Matrix} type corresponding to the
-extracted channel.
+The resulting expression has a type corresponding to the
+extracted \texttt{Channel}.
 
 \subsubsection{\texttt{\$()} operator}
 \label{sssec:evalop}
-This operator forces the evaluation of a previously defined Image channel. It
-is generally used in the context of a convolution operation.
+This operator forces the evaluation of a previously defined \texttt{Image}
+\texttt{Channel}. It is generally used in the context of a convolution operation.
 \startsyn
 \texttt{\$(}\emph{channel-expression}\texttt{)}
 \stopsyn
-The resulting expression is of \texttt{Channel} type.
+The resulting expression has a type corresponding to the
+calculated \texttt{Channel}.
 
-\subsection{Channel Composition Operators}
-\label{ssec:channelops}
+\subsection{Composition Operators}
+\label{ssec:compositionops}
 These operators compose an \texttt{Image} from one or more \texttt{Channels}.
 All channel composition operators are left-to-right associative.
 
 \subsubsection{\texttt{|} operator}
 \label{sssec:barop}
-Compose two (or more) \texttt{Channel}s. The resulting expression is a
-\emph{multi-channel-expression}, and can be assigned to either an \texttt{Image}
-or a \texttt{Kernel} object.
+Compose two (or more) \texttt{Channel}s or \texttt{Calc}s. The resulting expression is a
+\emph{multi-channel-expression}, or \emph{multi-calc} expression, and can be assigned
+to either an \texttt{Image} or a \texttt{Kernel} object respectively.
 \startsyn
 \emph{channel-expression} \texttt{|} \emph{channel-expression} \\
-\emph{multi-channel-expression} \texttt{|} \emph{channel-expression}
+\emph{multi-channel-expression} \texttt{|} \emph{channel-expression} \\
+\emph{calc-expression} \texttt{|} \emph{calc-expression} \\
+\emph{multi-calc-expression} \texttt{|} \emph{calc-expression} \\
 \stopsyn
-Note that \texttt{Channel}s are appended in order, and subsequent operations
-may rely on this order.
+Note that \texttt{Channel}s and \texttt{Calc}s are appended in order, and
+subsequent operations may rely on this order.
 
+\comment{
 \subsubsection{\texttt{||} operator}
 \label{sssec:doublebarop}
 Compose two (or more) \texttt{Channel}s. The resulting expression is a
@@ -76,20 +82,21 @@ value calculations to use neighboring pixels of previously calculated channels.
 \emph{channel-expression} \texttt{||} \emph{channel-expression} \\
 \emph{multi-channel-expression} \texttt{||} \emph{channel-expression}
 \stopsyn
+} % END comment (save this for later...)
 
 \subsection{Escaped ``C'' Expression}
 \label{ssec:escapedC}
 Talk about the \texttt{\#[\ldots]\#} operator.
 
-\subsection{Channel Composition Expresions}
-%Talk about the $|$, $|=$, and $||$ expressions.
-
 \subsection{Assignmet Expresions}
 \label{ssec:assignment}
 
+\subsubsection{\texttt{=} assignment operator}
+
+\subsubsection{\texttt{:=} assignment operator}
+
 \subsubsection{\texttt{|=} assignment operator}
 
+\comment{
 \subsubsection{\texttt{\^=} assignment operator}
-
-\subsubsection{\texttt{=} assignment}
-
+} % END comment - save for later...
