@@ -14,31 +14,75 @@ This reference is inspired by the C reference manual~\cite{DBLP:books/ph/Kernigh
 
 \subsection{Tokens}
 \label{ssec:tokens}
+The tokens in \sys{} are broken down as follows: We have reserved
+keywords, constants, control characters, identifiers, and operators.
+The end of a token is defined by the presence of a newline, space,
+or tab character (whitespace), or by the presence of a character that
+cannot possibly be part of the current token.
 
 \subsection{Comments}
 \label{ssec:comments}
+Comments are demarcated with an opening /* and closing */, as in C.
+Any characters inside the comment boundaries are ignored. Comments
+can be nested.
 
 \subsection{Identifiers}
 \label{ssec:identifiers}
+Identifiers are composed of an upper or lower-case letter immediately
+followed by any number of additional letters and/or digits. Identifiers
+are case sensitive, so ''foo`` and ''Foo`` are different identifiers.
+Identifiers cannot be keyworeds, and underscores are disallowed.
 
 \subsection{Keywords}
 \label{ssec:keywords}
+The reserved keywords in \sys{} are:
+Import, Export, Kernel, Channel, 
+Int8, Int32, Angle, and Float.
+
 
 \subsection{Constants}
 \label{ssec:constants}
+In \sys{} there are 5 types of constants: string constants, matrix
+constants, integers, angles, and floats.
 
 \subsubsection{Numeric Constants}
 \label{sssec:numericconstants}
 
+Integers are repesented by a series of number characters, with an
+optional negative sign in front.
+
+Angles are represented by a series of number characters with an
+optional period character, followed by a lower-case ''a``.
+
+Floats are represented by a series of number characters with an
+optional period character, followed by a lower-case ''f``.
+
 \subsubsection{Matrix Constants}
 \label{sssec:matrixconstants}
-Discuss how one can declare a constant matrix using the form:
+Matrix constants are represented by an opening curly brace, followed
+by a series of integers separated by whitespace or pipe characters.
+The pipe characters represent the division between the rows of the
+matrix. Each row must have the same number of integers, but the
+matrix need not be square.
+
+A matrix constant may also have an optional fraction preceding it,
+which indicates that every value in the matrix should be multiplied
+by that fraction. The fraction will be expressed as an opening
+bracket character, an integer representing the numerator, a pipe
+character, an integer representing the denominator, and a closing
+bracket character.
+
+The following is an example of a matrix constant.
 \begin{lstlisting}[language=CLAM,escapechar=\%]
     Matrix sobelGy := [N | D]{R1C1 R1C2%\ldots% | R2C1 R2C2%\ldots% | R3C1 R3C2%\ldots%};
 \end{lstlisting}
 
 \subsection{String Literals}
 \label{ssec:strings}
+
+String constants are demarcated by double quote characters or single
+quote characters. Consecutive string constants will be automatically
+appended together into a single string constant.
 
 \section{Meaning of Identifiers}
 \label{sec:identmeaning}
