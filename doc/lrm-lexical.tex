@@ -4,7 +4,7 @@
 \subsection{Tokens}
 \label{ssec:tokens}
 The tokens in \sys{} are broken down as follows: We have reserved
-keywords, constants, control characters, identifiers, and operators.
+keywords, identifiers, constants, control characters, and operators.
 The end of a token is defined by the presence of a newline, space,
 or tab character (whitespace), or by the presence of a character that
 cannot possibly be part of the current token.
@@ -15,19 +15,22 @@ Comments are demarcated with an opening /* and closing */, as in C.
 Any characters inside the comment boundaries are ignored. Comments
 can be nested.
 
+\subsection{Keywords}
+\label{ssec:keywords}
+The reserved keywords in \sys{} are:
+\begin{center}\begin{tabular}{l l l l}
+Image & Import & Int8 & Uint8\\
+Kernel & Export & Int16 & Uint16\\
+Channel & Angle & Int32 & Uint32\\
+Calc & Float & &
+\end{tabular}\end{center}
+
 \subsection{Identifiers}
 \label{ssec:identifiers}
 Identifiers are composed of an upper or lower-case letter immediately
 followed by any number of additional letters and/or digits. Identifiers
-are case sensitive, so ''foo`` and ''Foo`` are different identifiers.
-Identifiers cannot be keyworeds, and underscores are disallowed.
-
-\subsection{Keywords}
-\label{ssec:keywords}
-The reserved keywords in \sys{} are:
-Image, Import, Export, Kernel, Channel, 
-Int8, Int16, Int32, UInt8, UInt16, UInt32, Angle, and Float.
-
+are case sensitive, so ``foo'' and ``Foo'' are different identifiers.
+Identifiers cannot be keywords, and underscores are disallowed.
 
 \subsection{Constants}
 \label{ssec:constants}
@@ -37,33 +40,38 @@ constants, integers, angles, and floats.
 \subsubsection{Numeric Constants}
 \label{sssec:numericconstants}
 
-Integers are repesented by a series of number characters, with an
-optional negative sign in front.
+\emph{Integers} are repesented by a series of number characters.
+% the negative sign is dealt with by the unary '-' operator
 
 Angles are represented by a series of number characters with an
-optional period character, followed by a lower-case ''a``.
+optional period character, followed by a lower-case ``a''.
 
 Floats are represented by a series of number characters with an
-optional period character, followed by a lower-case ''f``.
+optional period character, followed by a lower-case ``f''.
 
 \subsubsection{Matrix Constants}
 \label{sssec:matrixconstants}
 Matrix constants are represented by an opening curly brace, followed
-by a series of integers separated by whitespace or pipe characters.
-The pipe characters represent the division between the rows of the
-matrix. Each row must have the same number of integers, but the
-matrix need not be square.
+by a series of \emph{numeric-expressions} separated by whitespace or
+comma characters. The comma  characters represents the division between
+the rows of the matrix. Each row must have the same number of
+\emph{numeric-expressions}, but the matrix need not be square.
 
 A matrix constant may also have an optional fraction preceding it,
 which indicates that every value in the matrix should be multiplied
 by that fraction. The fraction will be expressed as an opening
-bracket character, an integer representing the numerator, a pipe
-character, an integer representing the denominator, and a closing
-bracket character.
+bracket character, a \emph{numeric-expression} representing the
+numerator, a forward-slash character, a \emph{numeric-expression}
+representing the denominator, and a closing bracket character.
+
+\startsyn
+\texttt{\{} \emph{numeric-expr} \emph{numeric-expr} \ldots \texttt{,} \emph{numeric-expr} \emph{numeric-expr}\ldots \texttt{\}} \\
+\texttt{[}\emph{numeric-expr} \texttt{/} \emph{numeric-expr} \texttt{]}\texttt{\{} \emph{numeric-expr} \emph{numeric-expr} \ldots \texttt{,} \emph{numeric-expr} \emph{numeric-expr}\ldots \texttt{\}}
+\stopsyn
 
 The following is an example of a matrix constant.
 \begin{lstlisting}[language=CLAM,escapechar=\%]
-    Matrix sobelGy := [N | D]{R1C1 R1C2%\ldots% | R2C1 R2C2%\ldots% | R3C1 R3C2%\ldots%};
+    Matrix sobelGy := [1 / 9]{1 3 1 , 2 -5 2 , 1 3 1 }
 \end{lstlisting}
 
 \subsection{String Literals}
@@ -72,4 +80,6 @@ The following is an example of a matrix constant.
 String constants are demarcated by double quote characters or single
 quote characters. Consecutive string constants will be automatically
 appended together into a single string constant.
-
+\startsyn
+\texttt{"}\emph{string-constant}\texttt{"}
+\stopsyn
