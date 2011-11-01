@@ -3,9 +3,18 @@ A program in the \sys{} language is simply a sequence of statements which
 are executed in order.
 
 \section{Scope Rules}
-All identifiers in the \sys{} language are global.
-PROBABLY should mention how the escaped ``C'' syntax works with variable scoping\ldots
+All identifiers in the \sys{} language are global, except for the
+identifiers prefixed with an \texttt{@} symbol, which can only be
+accessed by their own calculation.
+
+In an escaped C block that defines a channel, the existing channels
+for an image will be in scope when the block is executed. Because
+this block will be executed on every pixel, the name of the channel
+will bind to the current pixel value for that channel. These bindings
+will be resolved when the channel is calculated; not when it is
+defined.
 
 \section{Declarations}
-All variables must be declared before they can be used.
-PROBABLY should clarify exactly when a variable/identifier is in scope (e.g. after semi-colon of declaration statement).
+All variables must be declared before they can be used. However,
+variable declarations can be made at any point in a program.
+
