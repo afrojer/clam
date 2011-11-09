@@ -8,12 +8,36 @@
  * Problem 3
  *)
 
-type operator = Add | Sub | Mul | Div
+type atom = Uint8 | Uint16 | Uint32 | Int8 | Int16 | Int32 | Angle
+
+type libfunc = ImgRead | ImgWrite
+
+type chanref = { image : string; channel : string; }
+
+type kerncalc = string list * string list
+
+type vdecl =
+    ImageT of string
+  | KernelT of string
+  | CalcT of string * atom
 
 type expr =
-    Binop of expr * operator * expr
-  | Lit of int
-  | Variable of int
-  | Assign of int * expr
-  | Seq of expr * expr
+    Id of string
+  | Integer of int
+  | LitStr of string
+  | CStr of string
+  | KernCalc of kerncalc
+  | ChanEval of chanref
+  | ChanRef of chanref
+  | Convolve of expr * expr
+  | Assign of string * expr
+  | ChanAssign of chanref * expr
+  | LibCall of libfunc * expr list
+
+type stmt =
+    Expr of expr
+  | VDecl of vdecl
+  | VDef of vdecl * expr
+
+type program = stmt list
 

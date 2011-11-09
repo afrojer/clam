@@ -11,6 +11,7 @@
  *
  *)
 open Printf
+open Clamtypes
 
 (* assume gcc is in the path *)
 let gcc_path = "gcc"

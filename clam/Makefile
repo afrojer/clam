@@ -6,7 +6,7 @@ OUT_BIN = *.clam
 LEX_SRC = scanner.mll
 YACC_SRC = parser.mly
 # NOTE: keep clam.ml at the back of the list!
-ML_SRC = clamsys.ml backend.ml clam.ml
+ML_SRC = clamtypes.ml clamsys.ml backend.ml clam.ml
 ML_INC = ast.mli
 
 # env config

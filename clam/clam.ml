@@ -16,7 +16,7 @@ let clambin_out = "bin.clam"
 let _ =
   try
     let lexbuf = Lexing.from_channel stdin in
-    let program = Parser.expr Scanner.token lexbuf in
+    let program = Parser.program Scanner.token lexbuf in
     let c_code = Backend.generate_c program in
     Clamsys.compile_c c_code clambin_out; exit 0
   with
