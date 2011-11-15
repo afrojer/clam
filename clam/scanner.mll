@@ -135,7 +135,8 @@ rule token = parse
 
 (* fancy string parsing from OCaml compiler code :-) *)
 and parse_string = parse
-    '"' { () }
+    '"'     { () }
+  | newline { Lexing.new_line lexbuf; parse_string lexbuf }
   | '\\' ("\010" | "\013" | "\013\010") ([' ' '\009'] * as spaces)
     { incr_loc lexbuf (String.length spaces);
       parse_string lexbuf }
@@ -170,8 +171,9 @@ and parse_string = parse
 
 (* handle escaped-C sequences *)
 and parse_cstr = parse
-    "]#" { () }
-  | eof  { raise (LexError("unterminated escaped-C string!")) }
+    "]#"    { () }
+  | newline { Lexing.new_line lexbuf; parse_cstr lexbuf }
+  | eof     { raise (LexError("unterminated escaped-C string!")) }
   | _ as c
     { store_string_char c;
       parse_cstr lexbuf }
@@ -179,9 +181,10 @@ and parse_cstr = parse
 and comment level = parse
     "*/"  { if level = 0 then token lexbuf
             else comment (level-1) lexbuf }
-  | "/*"  { comment (level+1) lexbuf }
-  | eof   { raise (LexError("unterminated comment!")) }
-  | _     { comment level lexbuf }
+  | newline { Lexing.new_line lexbuf; comment level lexbuf }
+  | "/*"    { comment (level+1) lexbuf }
+  | eof     { raise (LexError("unterminated comment!")) }
+  | _       { comment level lexbuf }
 
 and tokTail acc = parse
     eof { acc }

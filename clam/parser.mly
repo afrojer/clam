@@ -11,10 +11,6 @@
    *
    *)
 
-let string_of_position pos =
-  Printf.sprintf "Line %i, Col %i"
-    pos.Lexing.pos_lnum (pos.Lexing.pos_cnum - pos.Lexing.pos_bol) ;;
-
 open Clamtypes
 open Ast %}
 
