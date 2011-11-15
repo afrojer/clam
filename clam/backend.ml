@@ -18,42 +18,65 @@ module VarMap = Map.Make(struct
   let compare x y = Pervasives.compare x y
 end)
 
-let rec stmt_eval env = function
-    Expr(e) -> "expr", env
-  | VDecl(v) -> "vdecl", env
-  | VDef(v,e) -> "vdef", env
+let opstr = function
+    Eq -> "="
+  | OrEq -> "|="
+  | DefEq -> ":="
 
+let typestr = function
+    Uint8 -> "U8"
+  | Uint16 -> "U16"
+  | Uint32 -> "U32"
+  | Int8 -> "I8"
+  | Int16 -> "I16"
+  | Int32 -> "I32"
+  | Angle -> "Angle"
 
-(*
-let rec eval env = function
-    Lit(x) -> string_of_int(x), env
-  | Variable(x) ->
-      if VarMap.mem x env then
-        (string_of_int(VarMap.find x env)), env
-      else raise (Failure ("undeclared variable "^(string_of_int x)))
-  | Binop(e1, op, e2) ->
-      let v1, env = eval env e1 in
-      let v2, env = eval env e2 in
-      (match op with
-          Add -> (v1 ^ " + " ^ v2)
-        | Sub -> (v1 ^ " - " ^ v2)
-        | Mul -> (v1 ^ " * " ^ v2)
-        | Div -> (v1 ^ " / " ^ v2)), env
-  | Assign(x, e) ->
-      let v, env = eval env e in
-      v, (VarMap.add x (int_of_string v) env)
-  | Seq(e1, e2) ->
-      let v, env = eval env e1 in
-      let v, env = eval env e2 in
-      v, env
-*)
+let rec expr_eval env = function
+    Id(i) -> i, env
+  | Integer(BInt(i)) -> Printf.sprintf "%i" i, env
+  | LitStr(s) -> "\""^s^"\"", env
+  | CStr(s) -> "inline foo() { "^s^" }\n", env
+  | KernCalc(k) -> "[kerncalc]\n", env
+  | ChanEval(c) -> "$(chaneval)", env
+  | ChanMat(scale,rows) -> "[matrix]\n", env
+  | ChanRef(c) ->  "[chanref]\n", env
+  | Convolve(a,b) ->
+      let e1, env = expr_eval env a in
+      let e2, env = expr_eval env b in
+      "("^e1^"**"^e2^")", env
+  | Assign(i,op,v) ->
+      let e2, env = expr_eval env v in
+      "("^i^(opstr op)^e2^")\n", env
+  | ChanAssign(ref,v) -> "[chanassign]\n", env
+  | LibCall(f,args) -> let av, aenv =
+      (List.fold_left (fun (r,envO) s ->
+                        let v, env = expr_eval envO s in
+                        v^","^r, env)
+                      ("", env) args) in
+        "libcall("^av^")\n", aenv
+
+let vdecl_eval env = function
+    ImageT(img) -> img, env
+  | KernelT(k) -> k, env
+  | CalcT(nm,typ) -> nm^"<"^(typestr typ)^">", env
+
+let stmt_eval env = function
+    Expr(e) -> let s, env = expr_eval env e in
+      "expr:"^s^";\n", env
+  | VDecl(v) -> let vstr, env = vdecl_eval env v in
+      "vdecl:"^vstr^";\n", env
+  | VAssign(v,op,e) -> let vstr, env = vdecl_eval env v in
+      let ops = opstr op in
+      let ex, env = expr_eval env e in
+      "vassign:" ^ vstr ^ ops ^ ex, env
 
 (* empty shell for now... replace this with actual contents... *)
 let generate_c program = 
   let result, env = List.fold_left
-    (fun (r,e) s -> let v, env = stmt_eval e s in v ^ r, env)
+    (fun (r,envO) stmt -> let v, env = stmt_eval envO stmt in v ^ r, env)
     ("", VarMap.empty) program in
-      "static const char *pstr = \"" ^ result ^ "\";\n"^
+      "static const char *pstr = \"" ^ (String.escaped result) ^ "\";\n"^
       "#include <stdio.h>\n"^
       "int main(int argc, char *argv) {\n"^
       "  printf(\"Hello CLAM:\\n  output=%s\\n\", pstr);\n"^

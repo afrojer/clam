@@ -18,9 +18,9 @@ let string_of_position pos =
 open Clamtypes
 open Ast %}
 
-%token SEMI LPAREN DLPAREN RPAREN LTCHAR GTCHAR
-%token COLON COMMA
-%token CONVOP PIPE ATSYM UMINUS
+%token SEMI LPAREN DLPAREN RPAREN LTCHAR GTCHAR LBRKT RBRKT LBRACE RBRACE
+%token COLON COMMA FSLASH
+%token CONVOP PIPE ATSYM UMINUS UPLUS
 %token ASSIGN DEFINE OREQUAL
 %token IMAGET KERNELT CALCT CHANNELT
 %token UINT8T UINT16T UINT32T INT8T INT16T INT32T ANGLET
@@ -35,7 +35,7 @@ open Ast %}
 %left PIPE COMMA
 %left CONVOP
 %left COLON
-%right UMINUS ATSYM
+%right UMINUS UPLUS ATSYM
 
 %start program
 %type <Ast.program> program
@@ -62,6 +62,13 @@ libfunc:
 chanref:
     ID COLON ID { { image = $1; channel = $3; } }
 
+bareint:
+    INTEGER                      { BInt($1)  }
+  | UMINUS INTEGER               { BInt(-$2) }
+  | UPLUS INTEGER                { if $2 < 0 then
+                                     BInt(0-$2) else
+                                     BInt($2) }
+
 /* tuple:
  *   fst = list of IDs (channels) to calculate
  *   snd = list of IDs (channels) whose output is discarded
@@ -74,6 +81,19 @@ kerncalc:
   | kerncalc PIPE ID            { ($3 :: fst $1), snd $1 }
   | kerncalc PIPE ATSYM ID      { ($4 :: fst $1), ($4 :: snd $1) }
 
+matrix_scale:
+    LBRKT bareint FSLASH bareint RBRKT { ($2, $4) }
+
+matrix_row:
+    bareint { [$1] }
+  | matrix_row bareint { $2 :: $1 }
+
+matrix:
+    LBRACE matrix_row RBRACE    { [List.rev $2]       }
+  | LBRACE matrix_row COMMA     { [List.rev $2]       }
+  | matrix matrix_row COMMA     { (List.rev $2) :: $1 }
+  | matrix matrix_row RBRACE    { (List.rev $2) :: $1 }
+
 vdecl:
     IMAGET ID                   { ImageT($2) }
   | KERNELT ID                  { KernelT($2) }
@@ -82,15 +102,16 @@ vdecl:
 
 expr:
     ID                           { Id($1) }
-  | UMINUS INTEGER               { Integer(-$2) }
-  | INTEGER                      { Integer($1) }
+  | bareint                      { Integer($1) }
   | LITSTR                       { LitStr($1) }
   | CSTR                         { CStr($1) }
   | kerncalc                     { KernCalc($1) }
   | DLPAREN chanref RPAREN       { ChanEval($2) }
+  | matrix_scale matrix          { ChanMat($1, List.rev $2) }
   | chanref                      { ChanRef($1) }
   | expr CONVOP expr             { Convolve($1, $3) }
-  | ID ASSIGN expr               { Assign($1, $3) }
+  | ID ASSIGN expr               { Assign($1, Eq, $3) }
+  | ID OREQUAL expr              { Assign($1, OrEq, $3) }
   | chanref ASSIGN expr          { ChanAssign($1, $3) }
   | libfunc LPAREN libfunc_args RPAREN { LibCall($1, $3) }
 
@@ -101,5 +122,6 @@ libfunc_args:
 stmt:
     expr SEMI                    { Expr($1)     }
   | vdecl SEMI                   { VDecl($1)    }
-  | vdecl DEFINE expr SEMI       { VDef($1, $3) }
+  | vdecl DEFINE expr SEMI       { VAssign($1, DefEq, $3) }
+  | vdecl ASSIGN expr SEMI       { VAssign($1, Eq, $3) }
 

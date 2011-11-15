@@ -9,6 +9,7 @@
  *)
 
 type atom = Uint8 | Uint16 | Uint32 | Int8 | Int16 | Int32 | Angle
+type assign_op = Eq | OrEq | DefEq
 
 type libfunc = ImgRead | ImgWrite
 
@@ -21,22 +22,26 @@ type vdecl =
   | KernelT of string
   | CalcT of string * atom
 
+type bareint =
+    BInt of int
+
 type expr =
     Id of string
-  | Integer of int
+  | Integer of bareint
   | LitStr of string
   | CStr of string
   | KernCalc of kerncalc
   | ChanEval of chanref
+  | ChanMat of (bareint * bareint) * bareint list list
   | ChanRef of chanref
   | Convolve of expr * expr
-  | Assign of string * expr
+  | Assign of string * assign_op * expr
   | ChanAssign of chanref * expr
   | LibCall of libfunc * expr list
 
 type stmt =
     Expr of expr
   | VDecl of vdecl
-  | VDef of vdecl * expr
+  | VAssign of vdecl * assign_op * expr
 
 type program = stmt list
