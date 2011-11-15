@@ -1,0 +1,1 @@
+Image srcimg = imgread("someimage.jpg");
