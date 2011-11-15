@@ -1,0 +1,10 @@
+Image srcimg = imgread("somefile.jpg");
+Calc Lum := #[(3*Red + 6*Green + 1*Blue)/10]#;
+Calc sobelG<Uint8>:= #[sqrt(sobelGx*sobelGx + sobelGy*sobelGy)]#;
+Calc sobelTheta<Angle>:= #[arctan(sobelGy/sobelGx)]#;
+srcimg |= Lum; Calc sobelGx<Uint8> := [1 / 1]{ -1  0 +1 , -2  0 +2 , -1  0 +1 };
+Calc sobelGy<Uint8>:=[1 / 1]{ +1 +2 +1 ,  0  0  0 , -1 -2 -1 };
+Kernel sobel = @sobelGx | @sobelGy | sobelG; sobel |= sobelTheta;
+Image edges = $(srcimg:Lum) ** sobel;
+Image output; output:Red   = edges:sobelG; output:Green = edges:sobelG;output:Blue  = edges:sobelG;
+imgwrite( output, "jpg", "edges_of_someimage.jpg");
