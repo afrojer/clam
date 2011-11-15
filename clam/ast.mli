@@ -40,4 +40,3 @@ type stmt =
   | VDef of vdecl * expr
 
 type program = stmt list
-

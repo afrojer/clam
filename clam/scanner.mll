@@ -13,7 +13,8 @@
 { open Parser }
 
 rule token = parse
-  [' ' '\t' '\r' '\n'] { token lexbuf }
+    [' ' '\t']         { token lexbuf }
+  | ['\r' '\n']        { Lexing.new_line lexbuf; token lexbuf }
   | "/*"               { comment lexbuf }
   | ';'                { SEMI     }
   | ':'                { COLON    }
@@ -53,12 +54,17 @@ rule token = parse
 
   (* literals / identifiers *)
   | '"'_*'"' as litstr { LITSTR(litstr) }
-  | "#["_*"]#" as cstr  { CSTR(String.sub cstr 2 ((String.length cstr) - 4)) }
-  | ['0'-'9']+ as lit { INTEGER(int_of_string lit) }
+  | "#["_*"]#" as cstr { CSTR(String.sub cstr 2 ((String.length cstr) - 4)) }
+  | ['0'-'9']+ as lit  { INTEGER(int_of_string lit) }
   | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9']* as lit { ID(lit) }
-  | eof               { EOF }
-  | _ as char         { raise (Failure("illegal character " ^ Char.escaped char)) }
+  | eof                { EOF }
+  | _ as char          { raise (Failure("illegal character " ^ Char.escaped char)) }
 
 and comment = parse
   "*/"  { token lexbuf }
   | _   { comment lexbuf }
+
+and tokTail acc = parse
+  | eof { acc }
+  | _* as str { tokTail (acc ^ str) lexbuf }
+

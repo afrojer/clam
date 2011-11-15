@@ -18,7 +18,7 @@ module VarMap = Map.Make(struct
   let compare x y = Pervasives.compare x y
 end)
 
-let stmt_eval env = function
+let rec stmt_eval env = function
     Expr(e) -> "expr", env
   | VDecl(v) -> "vdecl", env
   | VDef(v,e) -> "vdef", env
@@ -53,9 +53,9 @@ let generate_c program =
   let result, env = List.fold_left
     (fun (r,e) s -> let v, env = stmt_eval e s in v ^ r, env)
     ("", VarMap.empty) program in
-  "#include <stdio.h>\n"^
-  "int main(int argc, char *argv) {\n"^
-  "  int val = (" ^ result ^ ");\n"^
-  "  printf(\"Hello CLAM: result=%d\\n\", val);\n"^
-  "}\n"
+      "static const char *pstr = \"" ^ result ^ "\";\n"^
+      "#include <stdio.h>\n"^
+      "int main(int argc, char *argv) {\n"^
+      "  printf(\"Hello CLAM:\\n  output=%s\\n\", pstr);\n"^
+      "}\n"
 

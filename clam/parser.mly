@@ -10,6 +10,12 @@
    * Yongxu Zhang <yz2419@columbia.edu>
    *
    *)
+
+let string_of_position pos =
+  Printf.sprintf "Line %i, Col %i"
+    pos.Lexing.pos_lnum (pos.Lexing.pos_cnum - pos.Lexing.pos_bol) ;;
+
+open Clamtypes
 open Ast %}
 
 %token SEMI LPAREN DLPAREN RPAREN LTCHAR GTCHAR
@@ -93,7 +99,7 @@ libfunc_args:
   | libfunc_args COMMA expr      { $3 :: $1 }
 
 stmt:
-    expr SEMI                    { Expr($1) }
-  | vdecl SEMI                   { VDecl($1) }
+    expr SEMI                    { Expr($1)     }
+  | vdecl SEMI                   { VDecl($1)    }
   | vdecl DEFINE expr SEMI       { VDef($1, $3) }
 
