@@ -65,7 +65,6 @@ prepdir = \
   $(shell mkdir -p $(OCAML_CINC:-I%=%) >/dev/null 2>&1; \
 	  if [ ! -d `dirname $(1)` ]; then \
 	    mkdir -p `dirname $(1)` >/dev/null 2>&1; fi \
-	  $(call add_dep,"","clear") \
    )
 
 ML_OBJ := $(ML_SRC:%.ml=$(OBJDIR)/%.cmo)
@@ -80,6 +79,7 @@ all: $(TGT)
 	@echo "done."
 
 $(OBJDIR)/lex/%.ml: %.mll
+	$(call add_dep,"","clear")
 	@echo "[OCAML  LEX] $*.mll"
 	@$(OCLEX) $(OCLEX_OPTS) -o $@ $<
 
