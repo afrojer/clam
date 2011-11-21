@@ -42,17 +42,17 @@ type calcT = {
 
 type imgT = {
   iname     : string;
-  ichannels : (string * calcT) list;
+  mutable ichannels : (string * calcT) list;
 }
 
 type kernelT = {
   kname     : string;
-  kchannels : (string * calcT) list;
+  kchannels : (string * calcT ref) list;
 }
 
 type envT = {
   calc    : calcT list;
-  images  : imgT list;
+  mutable images  : imgT list;
   kernels : kernelT list;
 }
 
