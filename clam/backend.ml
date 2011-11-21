@@ -39,7 +39,7 @@ let rec expr_eval env = function
   | CStr(s) -> "inline foo() { "^s^" }\n", env
   | KernCalc(k) -> "[kerncalc]\n", env
   | ChanEval(c) -> "$(chaneval)", env
-  | ChanMat(scale,rows) -> "[matrix]\n", env
+  | ChanMat(m) -> "[matrix]\n", env
   | ChanRef(c) ->  "[chanref]\n", env
   | Convolve(a,b) ->
       let e1, env = expr_eval env a in
@@ -72,10 +72,10 @@ let stmt_eval env = function
       "vassign:" ^ vstr ^ ops ^ ex, env
 
 (* empty shell for now... replace this with actual contents... *)
-let generate_c program = 
+let generate_c verifier_env program =
   let result, env = List.fold_left
     (fun (r,envO) stmt -> let v, env = stmt_eval envO stmt in v ^ r, env)
-    ("", VarMap.empty) program in
+    ("", verifier_env) program in
       "static const char *pstr = \"" ^ (String.escaped result) ^ "\";\n"^
       "#include <stdio.h>\n"^
       "int main(int argc, char *argv) {\n"^

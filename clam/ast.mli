@@ -25,6 +25,8 @@ type vdecl =
 type bareint =
     BInt of int
 
+type matrix = (bareint * bareint) * bareint list list
+
 type expr =
     Id of string
   | Integer of bareint
@@ -32,7 +34,7 @@ type expr =
   | CStr of string
   | KernCalc of kerncalc
   | ChanEval of chanref
-  | ChanMat of (bareint * bareint) * bareint list list
+  | ChanMat of matrix
   | ChanRef of chanref
   | Convolve of expr * expr
   | Assign of string * assign_op * expr
