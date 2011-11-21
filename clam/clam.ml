@@ -15,6 +15,8 @@ open Clamtypes
 
 let clamversion = "0.1"
 let clam_binout = ref "bin.clam"
+let clam_c_out  = ref "clam_gen.c"
+let clam_c_only = ref false
 let clam_srcin  = ref "-"
 
 let clam_usage =
@@ -25,10 +27,14 @@ let clam_usage =
   s1 ^ s2 ^ s3
 
 let set_clam_output s =
-  clam_binout := s
+  clam_binout := s;
+  clam_c_out := s
 
 let set_clam_input s =
   clam_srcin := s
+
+let set_clam_gen_c_only () =
+  clam_c_only := true
 
 let clam_anon_fcn = function
   | "-" -> clam_srcin := "-"
@@ -38,6 +44,7 @@ let _ =
   let args =
     [  "-o", Arg.String set_clam_output, "<filename> Specify the output file";
        "-i", Arg.String set_clam_input, "<filename> Specify the input file";
+       "-c", Arg.Unit set_clam_gen_c_only, "Output generated C only";
     ] in
   Arg.parse (Arg.align args) clam_anon_fcn clam_usage;
   try
@@ -46,7 +53,13 @@ let _ =
                   Parse_util.parse_file !clam_srcin in
     let (env, verified_prog) = Verifier.verify program in
     let c_code = Backend.generate_c env verified_prog in
-    Clamsys.compile_c c_code !clam_binout; exit 0
+    if !(clam_c_only) then
+      let ochan = Pervasives.open_out !(clam_c_out) in
+      let _ = Pervasives.output_string ochan c_code in
+      let _ = Pervasives.close_out ochan in
+      exit 0
+    else
+      Clamsys.compile_c c_code !clam_binout; exit 0
   with
       Failure(s)           -> prerr_endline ("Error: "^s); exit 1
     | ParseErr(e,s) as err -> print_clamerr err; exit 1
