@@ -1,2 +1,0 @@
-Calc Lum := #[(3*Red + 6*Green + 1*Blue)/10]#;
-

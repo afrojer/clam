@@ -1,0 +1,36 @@
+
+UNIT TEST README
+================
+
+
+## Sample Unit Test Template
+
+Unit tests should be named *.test, and have the form:
+
+    #!/bin/bash
+    TEST_NAME="Sample Unit Test Name" #change this
+    TEST_DESC="Description of the unit test goes here" #change this
+    . _buildup.sh
+
+    # Do whatever you want as your unit test.
+    # At the end of the test, set ERRORS=0 if
+    # there were not errors. Nonzero means fail.
+    ERRORS=1
+    error "This test auto-fails"
+
+    . _breakdown.sh
+
+
+## Helpful Functions
+
+The `_buildup.sh` script defines some helpful function:
+
+### error
+Works like echo but prints the string in orange.
+
+### compare
+Pass it two images and it compares them. For example:
+
+    compare "img1.jpg" "img2.jpg"
+    $FAILED=$?
+

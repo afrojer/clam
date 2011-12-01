@@ -15,7 +15,7 @@ in a;;
 
 (* 2D convolution *)
 (* Based on my understanding of 2D convolution, and practical usage into consideration*)
-(* I think our 2D convolution should has a output with a size exact same to the input*)
+(* I think our 2D convolution should have an output with a size exact same to the input*)
 (* But this could be discussed and modified if necessary *)
 
 let conv2D xm hm = 

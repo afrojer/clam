@@ -135,7 +135,7 @@ $(OBJDIR)/%.ml.dep: $(OBJDIR)/%.ml
 	$(shell $(OCAMLDEP) $(OCAML_COPTS) -impl $< |sed 's/$(OBJDIR)\///g; s#\([^. ]*\)\.\(cm[iox]\)#\1.\2#g;' > $@)
 
 test: $(TGT)
-	@./tester.sh
+	@./tests/all.test
 
 ifneq ($(MAKECMDGOALS),clean)
   ifneq ($(MAKECMDGOALS),distclean)
