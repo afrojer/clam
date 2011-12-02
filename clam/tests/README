@@ -2,10 +2,12 @@
 UNIT TEST README
 ================
 
+To run all the tests, run `all.test`.
 
 ## Sample Unit Test Template
 
 Unit tests should be named *.test, and have the form:
+
 
     #!/bin/bash
     TEST_NAME="Sample Unit Test Name" #change this
