@@ -6,8 +6,7 @@
  * CLAM Project
  * Jeremy C. Andrus <jeremya@cs.columbia.edu>
  * Robert Martin <rdm2128@columbia.edu>
- * Kevin Sun <kfs2110@columbia.edu>
- * Yongxu Zhang <yz2419@columbia.edu>
+ * Kevin Sun <kfs2110@columbia.edu> * Yongxu Zhang <yz2419@columbia.edu>
  *
  *)
 
@@ -17,6 +16,7 @@ let clamversion = "0.1"
 let clam_binout = ref "bin.clam"
 let clam_c_out  = ref "clam_gen.c"
 let clam_c_only = ref false
+let clam_print_ast = ref false
 let clam_srcin  = ref "-"
 
 let clam_usage =
@@ -36,6 +36,9 @@ let set_clam_input s =
 let set_clam_gen_c_only () =
   clam_c_only := true
 
+let set_clam_print_ast () =
+  clam_print_ast := true
+
 let clam_anon_fcn = function
   | "-" -> clam_srcin := "-"
   | filename -> clam_srcin := filename
@@ -45,12 +48,14 @@ let _ =
     [  "-o", Arg.String set_clam_output, "<filename> Specify the output file";
        "-i", Arg.String set_clam_input, "<filename> Specify the input file";
        "-c", Arg.Unit set_clam_gen_c_only, "Output generated C only";
+       "-t", Arg.Unit set_clam_print_ast, "Print AST debugging information";
     ] in
   Arg.parse (Arg.align args) clam_anon_fcn clam_usage;
   try
     let program = if clam_srcin = ref "-" then
                   Parse_util.parse_stdin () else
                   Parse_util.parse_file !clam_srcin in
+    let _ = if !(clam_print_ast) then Printer.print_ast (List.rev program) else () in
     let (env, verified_prog) = Verifier.verify program in
     let c_code = Backend.generate_c env verified_prog in
     if !(clam_c_only) then
