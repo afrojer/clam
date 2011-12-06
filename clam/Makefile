@@ -1,7 +1,7 @@
 TGT = clam
 
 # Binaries created by clam compiler (for 'make clean' to remove)
-OUT_BIN = *.clam
+OUT_BIN = *.out
 
 # The top-level OCaml source file
 ML_TOP   = clam.ml

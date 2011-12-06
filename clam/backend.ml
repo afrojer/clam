@@ -57,8 +57,35 @@ let stmt_eval env = function
       let ex, env = expr_eval env e in
       "vassign:" ^ vstr ^ ops ^ ex, env
 
-(* empty shell for now... replace this with actual contents... *)
-let generate_c verifier_env program =
+
+
+let generate_preamble_c env ast =
+  "#include <stdio.h>\n"
+
+let generate_definitions_c env ast =
+  "char *ast = \"" ^ (String.escaped (Printer.string_of_ast ast)) ^ "\";\n"
+
+let generate_main_c env ast =
+  "int main(int argc, char *argv) {\n" ^
+  "  printf(\"The AST that generated this binary was:\\n%s\\n\", ast);\n" ^
+  "  return 0;\n" ^
+  "}\n"
+
+
+
+let generate_c env ast =
+  let c_source =
+    "\n/* CLAM: PREAMBLE */\n" ^
+    (generate_preamble_c env ast) ^
+    "\n/* CLAM: DEFINITIONS */\n" ^
+    (generate_definitions_c env ast) ^
+    "\n/* CLAM: MAIN */\n" ^
+    (generate_main_c env ast)
+  in
+  c_source
+
+
+(*
   let result, env = List.fold_left
     (fun (r,envO) stmt -> let v, env = stmt_eval envO stmt in v ^ r, env)
     ("", verifier_env) program in
@@ -67,4 +94,5 @@ let generate_c verifier_env program =
       "int main(int argc, char *argv) {\n"^
       "  printf(\"Hello CLAM:\\n  output=%s\\n\", pstr);\n"^
       "}\n"
+*)
 

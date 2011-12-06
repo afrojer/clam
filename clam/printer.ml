@@ -120,10 +120,13 @@ let tree_of_ast ast =
   let children = List.map tree_of_stmt ast in
   Node("Abstract Syntax Tree", children)
 
-let rec print_tree prefix tree =
-  match tree with
-    Node(str, ch) -> print_endline(prefix ^ " * " ^ str); List.iter (print_tree (prefix ^ "    ")) ch
+let rec string_of_tree prefix = function Node(str, ch) ->
+  let string_of_children =
+    let prepend str1 str2 = str2 ^ str1 in
+    List.fold_left prepend "" (List.map (string_of_tree (prefix ^ "    ")) ch)
+  in
+  prefix ^ " * " ^ str ^ "\n" ^ string_of_children
 
-let print_ast ast =
-  print_tree "" (tree_of_ast ast)
+let string_of_ast ast =
+  string_of_tree "" (tree_of_ast ast)
 

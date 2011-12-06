@@ -13,7 +13,7 @@
 open Clamtypes
 
 let clamversion = "0.1"
-let clam_binout = ref "bin.clam"
+let clam_binout = ref "a.out"
 let clam_c_out  = ref "clam_gen.c"
 let clam_c_only = ref false
 let clam_print_ast = ref false
@@ -55,7 +55,7 @@ let _ =
     let program = if clam_srcin = ref "-" then
                   Parse_util.parse_stdin () else
                   Parse_util.parse_file !clam_srcin in
-    let _ = if !(clam_print_ast) then Printer.print_ast (List.rev program) else () in
+    let _ = if !(clam_print_ast) then print_endline (Printer.string_of_ast (List.rev program)) else () in
     let (env, verified_prog) = Verifier.verify program in
     let c_code = Backend.generate_c env verified_prog in
     if !(clam_c_only) then
