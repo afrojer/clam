@@ -122,8 +122,7 @@ let tree_of_ast ast =
 
 let rec string_of_tree prefix = function Node(str, ch) ->
   let string_of_children =
-    let prepend str1 str2 = str2 ^ str1 in
-    List.fold_left prepend "" (List.map (string_of_tree (prefix ^ "    ")) ch)
+    List.fold_left (^) "" (List.map (string_of_tree (prefix ^ "    ")) ch)
   in
   prefix ^ " * " ^ str ^ "\n" ^ string_of_children
 
