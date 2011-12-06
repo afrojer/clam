@@ -13,6 +13,7 @@
 
 open Ast
 open Clamtypes
+open Environ
 
 let find_image env imgnm = List.find
   (fun i -> if i.iname = imgnm then true else false)
