@@ -47,8 +47,8 @@ let _ =
   let args =
     [  "-o", Arg.String set_clam_output, "<filename> Specify the output file";
        "-i", Arg.String set_clam_input, "<filename> Specify the input file";
-       "-c", Arg.Unit set_clam_gen_c_only, "Output generated C only";
-       "-t", Arg.Unit set_clam_print_ast, "Print AST debugging information";
+       "-c", Arg.Unit set_clam_gen_c_only, " Output generated C only";
+       "-t", Arg.Unit set_clam_print_ast, " Print AST debugging information";
     ] in
   Arg.parse (Arg.align args) clam_anon_fcn clam_usage;
   try
