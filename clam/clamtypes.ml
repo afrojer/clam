@@ -16,21 +16,6 @@ open ExtString
 
 exception ParseErr of exn * (string * int * int * string * string)
 
-let print_clamerr = function
-    ParseErr(exn,(file,line,cnum,tok,tail)) ->
-      let extra = Printexc.to_string exn in
-      let fname = if file = "" then "<stdin>" else file in
-      let estr =
-        if tok = "" then
-          Printf.sprintf "%s" extra
-        else
-          Printf.sprintf "%s at %s:%u:%u near \"%s%s\""
-            extra fname line cnum tok (String.slice ~last:32 tail)
-        in
-      prerr_endline estr;
-  | _ -> ()
-
-
 type calcT = {
   cname    : string;
   ctype    : Ast.atom;

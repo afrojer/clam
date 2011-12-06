@@ -47,7 +47,7 @@ let rec var_add env = function
                  cmatrix = (BInt(1),BInt(1)),[[BInt(1)]];} ]
       | hd :: tl -> if hd.cname = nm then
                       raise (Failure("CalcT redefined: "
-                      ^nm^"<"^(Backend.typestr t)^">"))
+                      ^nm^"<"^(Printer.string_of_type t)^">"))
                     else hd :: add_unique_calc tl
       in
       let env1 = { env with calc = add_unique_calc env.calc } in

@@ -67,7 +67,7 @@ let _ =
       Clamsys.compile_c c_code !clam_binout; exit 0
   with
       Failure(s)           -> prerr_endline ("Error: "^s); exit 1
-    | ParseErr(e,s) as err -> print_clamerr err; exit 1
+    | ParseErr(e,s) as err -> Printer.print_clamerr err; exit 1
     | Sys_error(s)         -> prerr_endline 
                               ("System error - check permissions on '"^
                                 Filename.temp_dir_name^"': "^s); exit 1

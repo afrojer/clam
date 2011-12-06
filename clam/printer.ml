@@ -11,10 +11,50 @@
  *
  *)
 
+open ExtString
 open Ast
 open Clamtypes
 
+(*
+ * Strings that represent CLAM things
+ *)
+let string_of_op = function
+    Eq -> "="
+  | OrEq -> "|="
+  | DefEq -> ":="
 
+let string_of_type = function
+    Uint8 -> "U8"
+  | Uint16 -> "U16"
+  | Uint32 -> "U32"
+  | Int8 -> "I8"
+  | Int16 -> "I16"
+  | Int32 -> "I32"
+  | Angle -> "Angle"
+
+
+
+(*
+ * Printing CLAM compiler messages
+ *)
+let print_clamerr = function
+    ParseErr(exn,(file,line,cnum,tok,tail)) ->
+      let extra = Printexc.to_string exn in
+      let fname = if file = "" then "<stdin>" else file in
+      let estr =
+        if tok = "" then
+          Printf.sprintf "%s" extra
+        else
+          Printf.sprintf "%s at %s:%u:%u near \"%s%s\""
+            extra fname line cnum tok (String.slice ~last:32 tail)
+        in
+      prerr_endline estr;
+  | _ -> ()
+
+
+(*
+ * CLAM AST Printing
+ *)
 type 'a ptree = Node of 'a * ('a ptree list)
 
 let tree_of_atom a =
