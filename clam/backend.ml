@@ -11,23 +11,80 @@
  *
  *)
 
+open String
+open Clamtypes
 open Ast
 
+(*
+ * C placeholders and identifiers
+ *)
+let c_ident_of_ImgT imgT =
+  "_Img_" ^ imgT.iname
 
 
+(*
+ * C type definitions
+ *)
+let c_def_ImgT =
+  "typedef struct {\n" ^
+  "  char *iname;\n" ^
+  "} _ImageT;\n"
+
+
+(*
+ * C variable declarations
+ *)
+let c_decl_of_ImgT imgT =
+  "_ImageT " ^ (c_ident_of_ImgT imgT) ^ " = {\n" ^
+  "  .iname = \"" ^ (escaped imgT.iname) ^ "\"\n" ^
+  "};\n"
+
+
+(*
+ * C Code Generation
+ *)
+
+let c_of_vdecl = function
+    ImageT(id) -> "/* Declare ImageT "^id^" */"
+  | KernelT(id) -> "/* Declare KernelT "^id^" */"
+  | CalcT(id,atom) -> "/* Declare CalcT "^id^" of type "^(Printer.string_of_type atom)^" */"
+
+let c_of_assign op e =
+  "/* Assignment */"
+
+let c_of_libf libf elist =
+   "/* Libf */"
+
+let c_of_expr = function
+    LibCall(libf,elist) -> (c_of_libf libf elist)
+  | _ -> "/* Unknown Expression */"
+
+let c_of_stmt stmt =
+  let c_stmt = match stmt with
+      Expr(e) -> (c_of_expr e)
+    | VDecl(v) -> (c_of_vdecl v)
+    | VAssign(v,op,e) -> (c_of_vdecl v) ^ (c_of_assign op e)
+  in
+  c_stmt ^ ";\n"
+
+
+
+
+(*
+ * Splicing Code Together
+ *)
 let generate_preamble_c env ast =
-  "#include <stdio.h>\n"
+  "#include <stdio.h>\n" ^
+  c_def_ImgT
 
 let generate_definitions_c env ast =
-  "char *ast = \"" ^ (String.escaped (Printer.string_of_ast ast)) ^ "\";\n"
+  (List.fold_left (^) "" (List.map c_decl_of_ImgT env.images))
 
 let generate_main_c env ast =
   "int main(int argc, char *argv) {\n" ^
-  "  printf(\"The AST that generated this binary was:\\n%s\\n\", ast);\n" ^
+  (List.fold_left (^) "" (List.map c_of_stmt ast)) ^
   "  return 0;\n" ^
   "}\n"
-
-
 
 let generate_c env ast =
   let c_source =
@@ -39,51 +96,4 @@ let generate_c env ast =
     (generate_main_c env ast)
   in
   c_source
-
-(*
-module VarMap = Map.Make(struct
-  type t = int
-  let compare x y = Pervasives.compare x y
-end)
-
-let rec expr_eval env = function
-    Id(i) -> i, env
-  | Integer(BInt(i)) -> Printf.sprintf "%i" i, env
-  | LitStr(s) -> "\""^s^"\"", env
-  | CStr(s) -> "inline foo() { "^s^" }\n", env
-  | KernCalc(k) -> "[kerncalc]\n", env
-  | ChanEval(c) -> "$(chaneval)", env
-  | ChanMat(m) -> "[matrix]\n", env
-  | ChanRef(c) ->  "[chanref]\n", env
-  | Convolve(a,b) ->
-      let e1, env = expr_eval env a in
-      let e2, env = expr_eval env b in
-      "("^e1^"**"^e2^")", env
-  | Assign(i,op,v) ->
-      let e2, env = expr_eval env v in
-      "("^i^(Printer.string_of_op op)^e2^")\n", env
-  | ChanAssign(ref,v) -> "[chanassign]\n", env
-  | LibCall(f,args) -> let av, aenv =
-      (List.fold_left (fun (r,envO) s ->
-                        let v, env = expr_eval envO s in
-                        v^","^r, env)
-                      ("", env) args) in
-        "libcall("^av^")\n", aenv
-
-let vdecl_eval env = function
-    ImageT(img) -> img, env
-  | KernelT(k) -> k, env
-  | CalcT(nm,typ) -> nm^"<"^(Printer.string_of_type typ)^">", env
-
-let stmt_eval env = function
-    Expr(e) -> let s, env = expr_eval env e in
-      "expr:"^s^";\n", env
-  | VDecl(v) -> let vstr, env = vdecl_eval env v in
-      "vdecl:"^vstr^";\n", env
-  | VAssign(v,op,e) -> let vstr, env = vdecl_eval env v in
-      let ops = Printer.string_of_op op in
-      let ex, env = expr_eval env e in
-      "vassign:" ^ vstr ^ ops ^ ex, env
-*)
-
 
