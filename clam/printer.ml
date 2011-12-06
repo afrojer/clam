@@ -32,6 +32,9 @@ let string_of_type = function
   | Int32 -> "I32"
   | Angle -> "Angle"
 
+let string_of_libf = function
+    ImgRead -> "ImgRead"
+  | ImgWrite -> "ImgWrite"
 
 
 (*
@@ -58,24 +61,10 @@ let print_clamerr = function
 type 'a ptree = Node of 'a * ('a ptree list)
 
 let tree_of_atom a =
-  let str = match a with
-      Uint8  -> "Uint8"
-    | Uint16 -> "Uint16"
-    | Uint32 -> "Uint32"
-    | Int8   -> "Int8"
-    | Int16  -> "Int16"
-    | Int32  -> "Int32"
-    | Angle  -> "Angle"
-  in
-  Node("Atomic '" ^ str ^ "'", [])
+  Node("Atomic Type '" ^ (string_of_type a) ^ "'", [])
 
 let tree_of_assign_op op =
-  let str = match op with
-      Eq    -> "Eq"
-    | OrEq  -> "OrEq"
-    | DefEq -> "DefEq"
-  in
-  Node("Assignment Op '" ^ str ^ "'", [])
+  Node("Assignment Op '" ^ (string_of_op op) ^ "'", [])
 
 let tree_of_bareint bi =
   match bi with
@@ -94,11 +83,7 @@ let tree_of_chanmat mat =
   Node("? ChanMat", [])
 
 let tree_of_libf libf =
-  let str = match libf with
-      ImgRead -> "ImgRead"
-    | ImgWrite -> "ImgWrite"
-  in
-  Node("Library Function: " ^ str, [])
+  Node("Library Function: " ^ (string_of_libf libf), [])
   
 let tree_of_vdecl vdecl =
   match vdecl with
