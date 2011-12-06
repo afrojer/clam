@@ -143,10 +143,11 @@ operator (see section~\ref{sssec:equalop}). The resulting \texttt{Image}
 object has 3 \texttt{Channel}s named \emph{Red}, \emph{Green}, and
 \emph{Blue}. Each of the channels correspond to the red, green, and blue
 image data read into the \texttt{Image} object. This expression is invoked
-as a ``C'' style function, and expects 1 parameter: the path of the image
-file to read.
+as a ``C'' style function, and expects 1 parameter: either the path of the
+image file to read (expressed as a string constant); or the number of the
+command-line argument, an integer 1 or greater.
 \startsyn
-\texttt{imgread(} \emph{string-constant} \texttt{)}
+\texttt{imgread(} \emph{string-constant} \texttt{|} \emph{integer} \texttt{)}
 \stopsyn
 
 \subsubsection{\texttt{imgwrite} expression}
@@ -157,9 +158,10 @@ image format. It requires that the \texttt{Image} object has at least 3 named
 This expression has no type (null type), and is invoked as a ``C'' style function.
 It expects 3 parameters: the first parameter is an \texttt{Image} identifier, the
 second is the image format, and the the third is the path to which the image
-should be written.
+should be written (or an integer which represents a command-line argument, as for
+\texttt{imgread}).
 \startsyn
-\texttt{imgwrite(} \emph{image-identifier} \texttt{,} \emph{string-constant} \texttt{,} \emph{string-constant} \texttt{)}
+\texttt{imgwrite(} \emph{image-identifier} \texttt{,} \emph{string-constant} \texttt{,} \emph{string-constant} \texttt{|} \emph{integer} \texttt{)}
 \stopsyn
 
 \subsection{Assignment Expressions}
