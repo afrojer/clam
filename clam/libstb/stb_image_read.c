@@ -191,6 +191,7 @@
 #endif
 
 #include <stdio.h>
+#include "clam.h"
 #endif
 
 #define STBI_VERSION 1
@@ -569,6 +570,39 @@ unsigned char *stbi_load_from_file(FILE *f, int *x, int *y, int *comp, int req_c
    stbi s;
    start_file(&s,f);
    return stbi_load_main(&s,x,y,comp,req_comp);
+}
+
+/*
+ * CLAM Interface: imgread
+ *
+ */
+clam_img * imgread(char *filename)
+{
+	clam_img *img;
+	int x, y, comp;
+	unsigned char *pixels;
+
+	if (!filename) {
+		fprintf(stderr, "imgread: Invalid filename!\n");
+		return NULL;
+	}
+
+	pixels = stbi_load(filename, &x, &y, &comp, 3);
+	if (!pixels) {
+		fprintf(stderr, "imgread: %s\n", stbi_failure_reason());
+		return NULL;
+	}
+
+	img = clam_img_alloc();
+	if ( !img ) {
+		fprintf(stderr, "imgread: couldn't allocate image struct!\n");
+		return NULL;
+	}
+
+	img->p = pixels;
+	img->width = x;
+	img->height = y;
+	return img;
 }
 #endif //!STBI_NO_STDIO
 

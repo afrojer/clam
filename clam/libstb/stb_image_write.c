@@ -58,9 +58,13 @@ USAGE:
 extern "C" {
 #endif
 
+#include "clam.h"
+
 extern int stbi_write_png(char const *filename, int w, int h, int comp, const void *data, int stride_in_bytes);
 extern int stbi_write_bmp(char const *filename, int w, int h, int comp, const void *data);
 extern int stbi_write_tga(char const *filename, int w, int h, int comp, const void *data);
+
+extern int imgwrite(const clam_img *img, const char *fmt, const char *filename);
 
 #ifdef __cplusplus
 }
@@ -498,6 +502,39 @@ int stbi_write_png(char const *filename, int x, int y, int comp, const void *dat
    fclose(f);
    free(png);
    return 1;
+}
+
+/*
+ * CLAM Interface: imgwrite
+ *
+ */
+int imgwrite(const clam_img *img, const char *fmt, const char *filename)
+{
+	int ok = 0;
+	if (!filename || !fmt || !img) {
+		fprintf(stderr, "imgwrite: Invalid parameters!\n");
+		return -1;
+	}
+
+	/* this is dirty... */
+	if (!strncmp("png",fmt,3)) {
+		ok = stbi_write_png(filename, img->width, img->height, 3, img->p, img->width);
+		if (!ok)
+			fprintf(stderr, "imgwrite: Error writing to '%s'\n", filename);
+	} else if (!strncmp("bmp",fmt,3)) {
+		ok = stbi_write_bmp(filename, img->width, img->height, 3, img->p);
+		if (!ok)
+			fprintf(stderr, "imgwrite: Error writing to '%s'\n", filename);
+	} else if (!strncmp("tga",fmt,3)) {
+		ok = stbi_write_tga(filename, img->width, img->height, 3, img->p);
+		if (!ok)
+			fprintf(stderr, "imgwrite: Error writing to '%s'\n", filename);
+	} else {
+		fprintf(stderr, "imgwrite: Unsupported output format '%s'\n", fmt);
+		ok = -1;
+	}
+
+	return ok;
 }
 #endif // STB_IMAGE_WRITE_IMPLEMENTATION
 
