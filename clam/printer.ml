@@ -11,31 +11,69 @@
  *
  *)
 
+open ExtString
 open Ast
 open Clamtypes
 
+(*
+ * Strings that represent CLAM things
+ *)
+let string_of_op = function
+    Eq -> "="
+  | OrEq -> "|="
+  | DefEq -> ":="
 
+let string_of_atom = function
+    Uint8 -> "U8"
+  | Uint16 -> "U16"
+  | Uint32 -> "U32"
+  | Int8 -> "I8"
+  | Int16 -> "I16"
+  | Int32 -> "I32"
+  | Angle -> "Angle"
+
+let string_of_libf = function
+    ImgRead -> "ImgRead"
+  | ImgWrite -> "ImgWrite"
+
+let string_of_type = function
+    ImageT(nm) -> "Image("^nm^")"
+  | KernelT(nm) -> "Kernel("^nm^")"
+  | CalcT(nm,t) -> "Calc("^nm^")"
+  | StrT(t, s) -> if t = ":cstr"
+                  then "C["^s^"]"
+                  else "String("^s^")"
+  | BareT(s) -> s
+
+
+(*
+ * Printing CLAM compiler messages
+ *)
+let print_clamerr = function
+    ParseErr(exn,(file,line,cnum,tok,tail)) ->
+      let extra = Printexc.to_string exn in
+      let fname = if file = "" then "<stdin>" else file in
+      let estr =
+        if tok = "" then
+          Printf.sprintf "%s" extra
+        else
+          Printf.sprintf "%s at %s:%u:%u near \"%s%s\""
+            extra fname line cnum tok (String.slice ~last:32 tail)
+        in
+      prerr_endline estr;
+  | _ -> ()
+
+
+(*
+ * CLAM AST Printing
+ *)
 type 'a ptree = Node of 'a * ('a ptree list)
 
 let tree_of_atom a =
-  let str = match a with
-      Uint8  -> "Uint8"
-    | Uint16 -> "Uint16"
-    | Uint32 -> "Uint32"
-    | Int8   -> "Int8"
-    | Int16  -> "Int16"
-    | Int32  -> "Int32"
-    | Angle  -> "Angle"
-  in
-  Node("Atomic '" ^ str ^ "'", [])
+  Node("Atomic Type '" ^ (string_of_atom a) ^ "'", [])
 
 let tree_of_assign_op op =
-  let str = match op with
-      Eq    -> "Eq"
-    | OrEq  -> "OrEq"
-    | DefEq -> "DefEq"
-  in
-  Node("Assignment Op '" ^ str ^ "'", [])
+  Node("Assignment Op '" ^ (string_of_op op) ^ "'", [])
 
 let tree_of_bareint bi =
   match bi with
@@ -54,17 +92,15 @@ let tree_of_chanmat mat =
   Node("? ChanMat", [])
 
 let tree_of_libf libf =
-  let str = match libf with
-      ImgRead -> "ImgRead"
-    | ImgWrite -> "ImgWrite"
-  in
-  Node("Library Function: " ^ str, [])
+  Node("Library Function: " ^ (string_of_libf libf), [])
   
 let tree_of_vdecl vdecl =
   match vdecl with
       ImageT(id) -> Node("Variable Declaration [Image Type]", [tree_of_ident id])
     | KernelT(id) -> Node("Variable Declaration [Kernel Type]", [tree_of_ident id])
     | CalcT(id, a) -> Node("Variable Declaration [Calc Type]", [tree_of_ident id; tree_of_atom a])
+    | StrT(t,s) -> Node("INVALID String["^t^":"^s^"]", [])
+    | BareT(s) -> Node("INVALID BareT["^s^"]", [])
 
 let rec tree_of_expr expr =
   let tupl = match expr with
@@ -95,10 +131,12 @@ let tree_of_ast ast =
   let children = List.map tree_of_stmt ast in
   Node("Abstract Syntax Tree", children)
 
-let rec print_tree prefix tree =
-  match tree with
-    Node(str, ch) -> print_endline(prefix ^ " * " ^ str); List.iter (print_tree (prefix ^ "    ")) ch
+let rec string_of_tree prefix = function Node(str, ch) ->
+  let string_of_children =
+    List.fold_left (^) "" (List.map (string_of_tree (prefix ^ "    ")) ch)
+  in
+  prefix ^ " * " ^ str ^ "\n" ^ string_of_children
 
-let print_ast ast =
-  print_tree "" (tree_of_ast ast)
+let string_of_ast ast =
+  string_of_tree "" (tree_of_ast ast)
 

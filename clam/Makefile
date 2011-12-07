@@ -1,13 +1,13 @@
 TGT = clam
 
 # Binaries created by clam compiler (for 'make clean' to remove)
-OUT_BIN = *.clam
+OUT_BIN = *.out
 
 # The top-level OCaml source file
 ML_TOP   = clam.ml
 
 # The rest of the source files
-ML_SRC   = clamtypes.ml clamsys.ml backend.ml parse_util.ml verifier.ml printer.ml
+ML_SRC   = clamtypes.ml environ.ml clamsys.ml backend.ml parse_util.ml verifier.ml printer.ml
 ML_INC   = ast.mli
 LEX_SRC  = scanner.mll
 YACC_SRC = parser.mly

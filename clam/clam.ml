@@ -13,7 +13,7 @@
 open Clamtypes
 
 let clamversion = "0.1"
-let clam_binout = ref "bin.clam"
+let clam_binout = ref "a.out"
 let clam_c_out  = ref "clam_gen.c"
 let clam_c_only = ref false
 let clam_print_ast = ref false
@@ -47,15 +47,15 @@ let _ =
   let args =
     [  "-o", Arg.String set_clam_output, "<filename> Specify the output file";
        "-i", Arg.String set_clam_input, "<filename> Specify the input file";
-       "-c", Arg.Unit set_clam_gen_c_only, "Output generated C only";
-       "-t", Arg.Unit set_clam_print_ast, "Print AST debugging information";
+       "-c", Arg.Unit set_clam_gen_c_only, " Output generated C only";
+       "-t", Arg.Unit set_clam_print_ast, " Print AST debugging information";
     ] in
   Arg.parse (Arg.align args) clam_anon_fcn clam_usage;
   try
     let program = if clam_srcin = ref "-" then
                   Parse_util.parse_stdin () else
                   Parse_util.parse_file !clam_srcin in
-    let _ = if !(clam_print_ast) then Printer.print_ast (List.rev program) else () in
+    let _ = if !(clam_print_ast) then print_endline (Printer.string_of_ast (List.rev program)) else () in
     let (env, verified_prog) = Verifier.verify program in
     let c_code = Backend.generate_c env verified_prog in
     if !(clam_c_only) then
@@ -67,7 +67,7 @@ let _ =
       Clamsys.compile_c c_code !clam_binout; exit 0
   with
       Failure(s)           -> prerr_endline ("Error: "^s); exit 1
-    | ParseErr(e,s) as err -> print_clamerr err; exit 1
+    | ParseErr(e,s) as err -> Printer.print_clamerr err; exit 1
     | Sys_error(s)         -> prerr_endline 
                               ("System error - check permissions on '"^
                                 Filename.temp_dir_name^"': "^s); exit 1

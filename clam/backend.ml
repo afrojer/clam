@@ -11,76 +11,91 @@
  *
  *)
 
+open String
+open Clamtypes
 open Ast
 
-module VarMap = Map.Make(struct
-  type t = int
-  let compare x y = Pervasives.compare x y
-end)
+(*
+ * C placeholders and identifiers
+ *)
+let c_ident_of_ImgT imgT =
+  "_Img_" ^ imgT.iname
 
-let opstr = function
-    Eq -> "="
-  | OrEq -> "|="
-  | DefEq -> ":="
 
-let atomstr = function
-    Uint8 -> "U8"
-  | Uint16 -> "U16"
-  | Uint32 -> "U32"
-  | Int8 -> "I8"
-  | Int16 -> "I16"
-  | Int32 -> "I32"
-  | Angle -> "Angle"
+(*
+ * C type definitions
+ *)
+let c_def_ImgT =
+  "typedef struct {\n" ^
+  "  char *iname;\n" ^
+  "} _ImageT;\n"
 
-let rec expr_eval env = function
-    Id(i) -> i, env
-  | Integer(BInt(i)) -> Printf.sprintf "%i" i, env
-  | LitStr(s) -> "\""^s^"\"", env
-  | CStr(s) -> "inline foo() { "^s^" }\n", env
-  | KernCalc(k) -> "[kerncalc]\n", env
-  | ChanEval(c) -> "$(chaneval)", env
-  | ChanMat(m) -> "[matrix]\n", env
-  | ChanRef(c) ->  "[chanref]\n", env
-  | Convolve(a,b) ->
-      let e1, env = expr_eval env a in
-      let e2, env = expr_eval env b in
-      "("^e1^"**"^e2^")", env
-  | Assign(i,op,v) ->
-      let e2, env = expr_eval env v in
-      "("^i^(opstr op)^e2^")\n", env
-  | ChanAssign(ref,v) -> "[chanassign]\n", env
-  | LibCall(f,args) -> let av, aenv =
-      (List.fold_left (fun (r,envO) s ->
-                        let v, env = expr_eval envO s in
-                        v^","^r, env)
-                      ("", env) args) in
-        "libcall("^av^")\n", aenv
 
-let vdecl_eval env = function
-    ImageT(img) -> img, env
-  | KernelT(k) -> k, env
-  | CalcT(nm,typ) -> nm^"<"^(atomstr typ)^">", env
-  | StrT(t,s) -> "", env
-  | BareT(s) -> "", env (* only used for type checking... *)
+(*
+ * C variable declarations
+ *)
+let c_decl_of_ImgT imgT =
+  "_ImageT " ^ (c_ident_of_ImgT imgT) ^ " = {\n" ^
+  "  .iname = \"" ^ (escaped imgT.iname) ^ "\"\n" ^
+  "};\n"
 
-let stmt_eval env = function
-    Expr(e) -> let s, env = expr_eval env e in
-      "expr:"^s^";\n", env
-  | VDecl(v) -> let vstr, env = vdecl_eval env v in
-      "vdecl:"^vstr^";\n", env
-  | VAssign(v,op,e) -> let vstr, env = vdecl_eval env v in
-      let ops = opstr op in
-      let ex, env = expr_eval env e in
-      "vassign:" ^ vstr ^ ops ^ ex, env
 
-(* empty shell for now... replace this with actual contents... *)
-let generate_c verifier_env program =
-  let result, env = List.fold_left
-    (fun (r,envO) stmt -> let v, env = stmt_eval envO stmt in v ^ r, env)
-    ("", verifier_env) program in
-      "static const char *pstr = \"" ^ (String.escaped result) ^ "\";\n"^
-      "#include <stdio.h>\n"^
-      "int main(int argc, char *argv) {\n"^
-      "  printf(\"Hello CLAM:\\n  output=%s\\n\", pstr);\n"^
-      "}\n"
+(*
+ * C Code Generation
+ *)
+
+let c_of_vdecl = function
+    ImageT(id) -> "/* Declare ImageT "^id^" */"
+  | KernelT(id) -> "/* Declare KernelT "^id^" */"
+  | CalcT(id,atom) -> "/* Declare CalcT "^id^" of type "^(Printer.string_of_atom atom)^" */"
+  | StrT(_,_) | BareT(_) -> (raise (Failure("Internal error [internal type used
+in vdecl)")))
+
+let c_of_assign op e =
+  "/* Assignment */"
+
+let c_of_libf libf elist =
+   "/* Libf */"
+
+let c_of_expr = function
+    LibCall(libf,elist) -> (c_of_libf libf elist)
+  | _ -> "/* Unknown Expression */"
+
+let c_of_stmt stmt =
+  let c_stmt = match stmt with
+      Expr(e) -> (c_of_expr e)
+    | VDecl(v) -> (c_of_vdecl v)
+    | VAssign(v,op,e) -> (c_of_vdecl v) ^ (c_of_assign op e)
+  in
+  c_stmt ^ ";\n"
+
+
+
+
+(*
+ * Splicing Code Together
+ *)
+let generate_preamble_c env ast =
+  "#include <stdio.h>\n" ^
+  c_def_ImgT
+
+let generate_definitions_c env ast =
+  (List.fold_left (^) "" (List.map c_decl_of_ImgT env.images))
+
+let generate_main_c env ast =
+  "int main(int argc, char *argv) {\n" ^
+  (List.fold_left (^) "" (List.map c_of_stmt ast)) ^
+  "  return 0;\n" ^
+  "}\n"
+
+let generate_c env ast =
+  let c_source =
+    "\n/* CLAM: PREAMBLE */\n" ^
+    (generate_preamble_c env ast) ^
+    "\n/* CLAM: DEFINITIONS */\n" ^
+    (generate_definitions_c env ast) ^
+    "\n/* CLAM: MAIN */\n" ^
+    (generate_main_c env ast)
+  in
+  c_source
 

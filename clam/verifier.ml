@@ -13,6 +13,8 @@
 
 open Ast
 open Clamtypes
+open Environ
+open Printer
 
 (*
  * Find an image by name from the environment
@@ -73,17 +75,17 @@ let check_assignment env rhs op = function (* passes in LHS *)
     ImageT(nm) ->
         let optype rhs = function
             DefEq -> (raise (Failure("Cannot define "^
-                                     (typestr (ImageT(nm)))^" with ':='")))
+                                     (string_of_type (ImageT(nm)))^" with ':='")))
           | Eq -> if not (rhs = ImageT(":i")) then
-                    (raise (Failure("Can't assign '"^(typestr rhs)^
-                                    "' to "^(typestr (ImageT(nm)))^":"^
+                    (raise (Failure("Can't assign '"^(string_of_type rhs)^
+                                    "' to "^(string_of_type (ImageT(nm)))^":"^
                                     "you can only assign Images to Images")))
                   else env
           | OrEq ->
                 let chk_chan_add = function
                     CalcT(nm,t) -> nm, t
                   | _ as t -> (raise (Failure("Can't assign "^
-                               (typestr t)^" to "^(typestr (ImageT(nm)))^
+                               (string_of_type t)^" to "^(string_of_type (ImageT(nm)))^
                                ": Invalid image channel for |=")))
                 in
                 let chname, chtype = chk_chan_add rhs in
