@@ -23,7 +23,7 @@ let opstr = function
   | OrEq -> "|="
   | DefEq -> ":="
 
-let typestr = function
+let atomstr = function
     Uint8 -> "U8"
   | Uint16 -> "U16"
   | Uint32 -> "U32"
@@ -59,7 +59,9 @@ let rec expr_eval env = function
 let vdecl_eval env = function
     ImageT(img) -> img, env
   | KernelT(k) -> k, env
-  | CalcT(nm,typ) -> nm^"<"^(typestr typ)^">", env
+  | CalcT(nm,typ) -> nm^"<"^(atomstr typ)^">", env
+  | StrT(t,s) -> "", env
+  | BareT(s) -> "", env (* only used for type checking... *)
 
 let stmt_eval env = function
     Expr(e) -> let s, env = expr_eval env e in

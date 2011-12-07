@@ -88,24 +88,25 @@ let rec var_add env = function
                  cmatrix = (BInt(1),BInt(1)),[[BInt(1)]];} ]
       | hd :: tl -> if hd.cname = nm then
                       raise (Failure("CalcT redefined: "
-                      ^nm^"<"^(Backend.typestr t)^">"))
+                      ^nm^"<"^(Backend.atomstr t)^">"))
                     else hd :: add_unique_calc tl
       in
       let env1 = { env with calc = add_unique_calc env.calc } in
       env1
+  | StrT(t,s) -> env
+  | BareT(s) -> env
 
 (* Find the type of the named variable:
  * raises a "Failure" exception if it's undefined
  *)
-let type_of varname env =
-        (* replace List.mem with List.exists ...) *)
+let type_of env varname =
     if (List.exists
          (fun c -> if c.cname = varname then true else false)
          env.calc)
     then
       let cval = List.find
          (fun c -> if c.cname = varname then true else false)
-         env.calc in CalcT(varname,cval.ctype)
+         env.calc in CalcT(varname, cval.ctype)
     else if (List.exists
               (fun i -> if i.iname = varname then true else false)
               env.images) then ImageT(varname)
@@ -113,3 +114,40 @@ let type_of varname env =
               (fun k -> if k.kname = varname then true else false)
               env.kernels) then KernelT(varname)
     else (raise (Failure("Undefined variable: "^varname)))
+
+
+let rec type_of_expr env = function
+    Id(i) -> type_of env i
+  | Integer(BInt(i)) -> BareT("INT")
+  | LitStr(s) -> StrT(":litstr", s)
+  | CStr(s) -> StrT(":cstr", s)
+  | KernCalc(nm) -> KernelT(":k")
+  | ChanEval(c) -> CalcT(c.channel, Uint8)
+  | ChanMat(m) -> CalcT(":c", Uint8)
+  | ChanRef(c) -> CalcT(c.channel, Uint8)
+  | Convolve(a,b) -> ImageT(":i")
+  | Assign(i,op,v) -> type_of_expr env v
+  | ChanAssign(ref,v) -> type_of_expr env v
+  | LibCall(f,args) ->
+        let ctype = function
+            ImgRead -> ImageT(":i")
+          | ImgWrite -> BareT("VOID") in
+        ctype f
+
+
+let type_of_vdecl = function
+    ImageT(nm) -> ImageT(nm)
+  | KernelT(nm) -> KernelT(nm)
+  | CalcT(nm,t) -> CalcT(nm, t)
+  | StrT(t, s) -> StrT(t, s)
+  | BareT(s) -> BareT(s)
+
+let typestr = function
+    ImageT(nm) -> "Image("^nm^")"
+  | KernelT(nm) -> "Kernel("^nm^")"
+  | CalcT(nm,t) -> "Calc("^nm^")"
+  | StrT(t, s) -> if t = ":cstr"
+                  then "C["^s^"]"
+                  else "String("^s^")"
+  | BareT(s) -> s
+

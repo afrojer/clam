@@ -21,6 +21,8 @@ type vdecl =
     ImageT of string
   | KernelT of string
   | CalcT of string * atom
+  | StrT of string * string
+  | BareT of string (* used in typechecking: see type_of_expr *)
 
 type bareint =
     BInt of int
