@@ -1,45 +1,39 @@
 #!/bin/bash
-TEST_NAME="Image Copy"
 TEST_DESC="Copy an image to a new location."
 . _buildup.sh
 
+INPUT_IMG="ucla.jpg"
+OUTPUT_IMG="ucla_out.jpg"
 
 FAILED=0
 # Compile the imgcopy program
-$CLAM_BINARY -i imgcopy.clam -o imgcopy.bin
-if [ $? -ne 0 ]; then
-	FAILED=1
-	error "Error: Could not compile imgcopy.clam"
-fi
-
-# Run the resulting binary
-if [ $FAILED -eq 0 ]; then
-	./imgcopy.bin
-	if [ $? -ne 0 ]; then
-		FAILED=1
-		error "Error: Binary did not exit normally"
+compile_it
+if [ $ERRORS -eq 0 ]; then
+	run_it "$INPUT_IMG" "$OUTPUT_IMG"
+	if [ ! $ERRORS -eq 0 ]; then
+		error "$RUN_OUTPUT"
 	fi
+else
+	error "$COMPILE_OUTPUT"
 fi
-rm -f "imgcopy.bin"
 
 # Verify that it produced an output file
-if [ $FAILED -eq 0 ]; then
-	if [ ! -f "ucla_imgcopy_produced.jpg" ]; then
-		FAILED=1
-		error "Error: No output image file produced"
+if [ $ERRORS -eq 0 ]; then
+	if [ ! -f "$OUTPUT_IMG" ]; then
+		ERRORS=1
+		error "No output image file produced"
 	fi
 fi
 
 # Verify the file is identical to the input
-if [ $FAILED -eq 0 ]; then
-	compare "ucla.jpg" "ucla_imgcopy_produced.jpg"
-	if [ $? -ne 0 ]; then
-		FAILED=1
-		error "Error: image produced is not identical to original image"
-	else
-		rm -f "ucla_imgcopy_produced.jpg"
+if [ $ERRORS -eq 0 ]; then
+	compare "$INPUT_IMG" "$OUTPUT_IMG"
+	ERRORS=$?
+	if [ $ERRORS -ne 0 ]; then
+		error "Image produced is not identical to original image"
 	fi
+
+	rm -f "$OUTPUT_IMG"
 fi
 
-ERRORS=$FAILED
 . _breakdown.sh

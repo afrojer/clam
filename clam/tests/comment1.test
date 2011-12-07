@@ -1,22 +1,16 @@
 #!/bin/bash
-TEST_NAME="Comment 1"
 TEST_DESC="Write an empty program with a comment and make sure it works."
 . _buildup.sh
 
-
-$CLAM_BINARY -i comment1.clam -o comment1.bin
-ERRORS=$?
-
+compile_it
 if [ $ERRORS -eq 0 ]; then
-	./comment1.bin
+	run_it
 	ERRORS=$?
 	if [ $ERRORS -ne 0 ]; then
-		error "Error: Binary did not exit normally: $ERRORS"
+		error "Binary did not exit normally: $ERRORS: $RUN_OUTPUT"
 	fi
 else
-	error "Error: Could not compile comment1.clam"
+	error $COMPILE_OUTPUT
 fi
-rm -f "comment1.bin"
-
 
 . _breakdown.sh

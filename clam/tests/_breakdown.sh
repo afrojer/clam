@@ -1,11 +1,14 @@
 #!/bin/bash
+
+rm -f ${TEST_NAME}.bin 2>&1
+
 echo "---------------------------------------"
 if [ $ERRORS -eq 0 ]; then
-	echo -e "$TEST_NAME: [ \e[00;32mPASS\e[00m ]"
+	echo -e "$TEST_NAME: [ \033[00;32mPASS\033[00m ]"
 	echo
 	exit 0
 else
-	echo -e "$TEST_NAME: [ \e[00;31mFAIL\e[00m ]"
+	echo -e "$TEST_NAME: [ \033[00;31mFAIL\033[00m ]"
 	echo
 	exit 1
 fi

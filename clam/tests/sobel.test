@@ -1,36 +1,28 @@
 #!/bin/bash
-TEST_NAME="Sobel"
 TEST_DESC="Compile and test the Sobel filter"
 . _buildup.sh
 
-FAILED=0
+INPUT_IMG="ucla.jpg"
+OUTPUT_IMG="ucal_sobel.jpg"
 
-NAME="sobel"
-$CLAM_BINARY -i $NAME.clam -o $NAME.bin
-FAILED=$?
-
-if [ ! $FAILED ]; then
-	./$NAME.bin
-	FAILED=$?
-	if [ $FAILED -ne 0 ]; then
-		error "Error: Binary did not exit normally: $FAILED"
+compile_it
+if [ $ERRORS -eq 0 ]; then
+	run_it "$INPUT_IMG" "$OUTPUT_IMG"
+	if [ ! $ERRORS -eq 0 ]; then
+		error "$RUN_OUTPUT"
 	fi
-	rm -f "$NAME.bin"
 else
-	error "Error: Could not compile $NAME.clam"
+	error "$COMPILE_OUTPUT"
 fi
 
-if [ ! $FAILED ]; then
-	EXPECTED="ucla_$(NAME)_expected.jpg"
-	PRODUCED="ucla_$NAME.jpg"
-	compare $PRODUCED $EXPECTED
-	FAILED=$?
-	if [ $FAILED ]; then
-		error "Error: output image $PRODUCED does not match $EXPECTED"
+if [ $ERRORS -eq 0 ]; then
+	EXPECTED="ucla_sobel_expected.jpg"
+	compare "$OUTPUT_IMG" "$EXPECTED"
+	ERRORS=$?
+	if [ ! $ERRORS -eq 0 ]; then
+		error "Output image $OUTPUT_IMG  does not match $EXPECTED"
 	fi
+	rm "$OUTPUT_IMG"
 fi
-	
-
-ERRORS=$FAILED
 
 . _breakdown.sh
