@@ -16,6 +16,8 @@ YACC_SRC = parser.mly
 ML_SRC += extlib/enum.ml extlib/std.ml extlib/extString.ml
 ML_INC += extlib/enum.mli extlib/std.mli extlib/extString.mli
 
+STBLIB_SRC = libstb/stb_image_write.c libstb/stb_image_read.c
+
 # env config
 OBJDIR = obj
 OCC = $(shell which ocamlc)
@@ -28,9 +30,15 @@ OCAML_LOPTS = unix.cma
 OCLEX_OPTS  = -q
 OYACC_OPTS  =
 
+CC = $(shell which gcc)
+CFLAGS = -O3 -fomit-frame-pointer -fast -fPIC -DSTB_IMAGE_WRITE_IMPLEMENTATION
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ###
 ###              STOP: DO NOT EDIT BELOW THIS LINE              ###
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ###
+
+all: $(TGT)
+	@echo "done."
 
 OCAML_CINC  += -I $(OBJDIR) -I $(OBJDIR)/lex -I $(OBJDIR)/yacc -I $(OBJDIR)/extlib
 OCAML_COPTS += $(OCAML_CINC)
@@ -41,6 +49,8 @@ YACC_MLI := $(YACC_SRC:%.mly=$(OBJDIR)/yacc/%.mli)
 
 ML_OINC  := $(ML_INC:%.mli=$(OBJDIR)/%.cmi)
 ML_OINC  += $(YACC_MLI:%.mli=%.cmi)
+
+STBLIB_OBJ := $(STBLIB_SRC:%.c=$(OBJDIR)/%.o)
 
 LORDER_FILE = $(OBJDIR)/link_order
 
@@ -75,9 +85,6 @@ ML_OBJ += $(filter-out $(ML_OBJ),$(ML_TOP:%.ml=$(OBJDIR)/%.cmo))
 ML_DEP     = $(ML_OINC:%.cmi=%.mli.dep)
 ML_DEP    += $(ML_OBJ:%.cmo=%.ml.dep)
 
-all: $(TGT)
-	@echo "done."
-
 $(OBJDIR)/lex/%.ml: %.mll
 	$(call add_dep,"","clear")
 	@echo "[OCAML  LEX] $*.mll"
@@ -97,7 +104,16 @@ $(OBJDIR)/%.cmo %.cmo: %.ml
 	@$(call add_dep,$@)
 	@$(OCC) $(OCAML_COPTS) -c -o $@ $<
 
-$(TGT): $(ML_DEP) $(ML_OINC) $(ML_OBJ)
+$(OBJDIR)/%.o: %.c
+	$(call prepdir,$@)
+	@echo "[CC        ] $<"
+	@$(CC) $(CFLAGS) -c -o $@ $<
+
+$(TGT).a: $(STBLIB_OBJ)
+	@echo "[AR        ] $@"
+	@$(AR) -rs $@ $(STBLIB_OBJ)
+
+$(TGT): $(TGT).a $(ML_DEP) $(ML_OINC) $(ML_OBJ)
 	@echo "[OCAML    L] $(TGT)"
 	@$(OCC) -o $(TGT) $(OCAML_LOPTS) $(call get_link_order)
 
@@ -109,6 +125,7 @@ clean:
 	@rm -f $(ML_DEP)
 	@rm -f $(LEX_ML)
 	@rm -f $(YACC_ML) $(YACC_MLI)
+	@rm -f $(STBLIB_OBJ)
 	@rm -f $(ML_OBJ:%.cmo=%.cmi)
 	@rm -f $(ML_OBJ:%.cmo=%.cmx)
 	@rm -f $(ML_OBJ:%.cmo=%.o)
@@ -116,6 +133,7 @@ clean:
 distclean: clean
 	@echo "  RM    $(TGT)"
 	@rm -rf "$(OBJDIR)"
+	@rm -rf "$(TGT).a"
 	@rm -f "$(TGT)"
 
 $(OBJDIR)/%.mli.dep: %.mli

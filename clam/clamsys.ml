@@ -18,7 +18,7 @@ let gcc_path = "gcc"
 
 (* will be something like "clamlib.o" - need to hook in auto compilation during
  * compiler build before we actually set this variable *)
-let clam_extralib = ""
+let clam_extralib = "clam.a"
 
 exception Compile_error of string
 
@@ -55,8 +55,10 @@ let compile_c code oname =
   let fname, ochan = Filename.open_temp_file "clam-cc-" ".c" in
   let _ = Pervasives.output_string ochan code in
   let _ = Pervasives.close_out ochan in
+  let lpath = Filename.dirname (Array.get Sys.argv 0) in
   let _, _ = syscall (sprintf "%s -c -o %s.o %s" gcc_path fname fname) in
-  let _, _ = syscall (sprintf "%s -o %s -L./ -L/usr/local/clam/lib %s.o %s"
-                               gcc_path oname fname clam_extralib) in
+  let _, _ = syscall (sprintf "%s -o %s -L. %s/%s %s.o"
+                               gcc_path oname lpath
+                               clam_extralib fname) in
   Sys.remove fname; Sys.remove (fname^".o");
   ()

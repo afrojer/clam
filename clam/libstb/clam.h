@@ -2,6 +2,8 @@
  * CLAM C Interface Header
  *
  */
+#include <string.h>
+#include <stdlib.h>
 
 typedef struct clam_img {
 	unsigned char *p;
