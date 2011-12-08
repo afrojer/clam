@@ -57,7 +57,7 @@ function run_it() {
 		RUN_OUTPUT="Missing binary!"
 		ERRORS=1
 	fi
-	RUN_OUTPUT=$(./$TEST_BIN 2>&1)
+	RUN_OUTPUT=$(./$TEST_BIN $@ 2>&1)
 	ERRORS=$?
 }
 

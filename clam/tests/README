@@ -4,35 +4,65 @@ UNIT TEST README
 
 To run all the tests, run `all.test`.
 
-## Sample Unit Test Template
+### Sample Unit Test Template
 
-Unit tests should be named *.test, and have the form:
-
+Unit tests should be named *.test, have a corresponding *.clam source file, and have the form:
 
     #!/bin/bash
-    TEST_NAME="Sample Unit Test Name" #change this
     TEST_DESC="Description of the unit test goes here" #change this
     . _buildup.sh
 
-    # Do whatever you want as your unit test.
+    # This will compile the test CLAM source file
+    # setting ERRORS to the compiler's return value
+    compile_it
+
+    if [ $ERRORS -eq 0 ]; then
+        # This runs the compiled output, accepts
+        # any command-line arguments, and sets ERRORS
+        # to the return value of the new binary
+        run_it ARG1 ARG2 ...
+        # STDOUT/STDERR are put into "$RUN_OUTPUT"
+        if [ $ERRORS -neq 0 ]; then
+            error "Problem running this test!"
+        fi
+    else
+        # compilation errors are here, and you can print them
+        # using the "error" function
+        error $COMPILER_OUTPUT
+    fi
+    
     # At the end of the test, set ERRORS=0 if
-    # there were not errors. Nonzero means fail.
+    # there were no errors. Nonzero means fail.
     ERRORS=1
     error "This test auto-fails"
 
     . _breakdown.sh
 
+### See examples such as "sobel" and "invalid1" for additional detail
 
-## Helpful Functions
+### Helpful Functions ###
 
-The `_buildup.sh` script defines some helpful function:
+The `_buildup.sh` script defines some helpful functions:
 
-### error
-Works like echo but prints the string in orange.
+function: error
+  Works like echo but prints the string in orange (yellow on some terminals)
+  (prefixes the output with "ERROR ")
 
-### compare
-Pass it two images and it compares them. For example:
+function: msgok
+  similar to error, but output is in blue and prefixed by "OK "
 
+function: compare
+  Pass it two images and it compares them. For example:
     compare "img1.jpg" "img2.jpg"
     $FAILED=$?
+
+function: compile_it
+  Compiles the *.clam source file associated with your test
+  Sets ERRORS to compiler return value
+  Puts stdout/stderr into COMPILER_OUTPUT
+
+function: run_it [args...]
+  Runs the binary output by the compile_it function
+  Sets ERRORS to the program's return value
+  Puts stdout/stderr into RUN_OUTPUT
 
