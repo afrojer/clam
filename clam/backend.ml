@@ -48,7 +48,8 @@ let c_of_vdecl = function
     ImageT(id) -> "/* Declare ImageT "^id^" */"
   | KernelT(id) -> "/* Declare KernelT "^id^" */"
   | CalcT(id,atom) -> "/* Declare CalcT "^id^" of type "^(Printer.string_of_atom atom)^" */"
-  | StrT(_,_) | BareT(_) -> (raise (Failure("Internal error [internal type used
+  | ConvT(_,_) | KCalcT(_) | StrT(_,_) | BareT(_) ->
+        (raise (Failure("Internal error [internal type used
 in vdecl)")))
 
 let c_of_assign op e =

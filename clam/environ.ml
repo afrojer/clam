@@ -30,7 +30,7 @@ let rec var_add env = function
       env1
   | KernelT(nm) -> let rec add_unique_kernel = function
         [] -> [ { kname = nm;
-                  kchannels = []; } ]
+                  kallcalc = []; kunusedcalc = []; } ]
       | hd :: tl -> if hd.kname = nm then
                       raise (Failure("KernelT redefined: "^nm))
                     else hd :: add_unique_kernel tl
@@ -51,7 +51,7 @@ let rec var_add env = function
       in
       let env1 = { env with calc = add_unique_calc env.calc } in
       env1
-  | StrT(_,_) | BareT(_) -> env
+  | ConvT(_,_) | KCalcT(_) | StrT(_,_) | BareT(_) -> env
 
 (* Find the type of the named variable:
  * raises a "Failure" exception if it's undefined
@@ -78,11 +78,11 @@ let rec type_of_expr env = function
   | Integer(BInt(i)) -> BareT("INT")
   | LitStr(s) -> StrT(":litstr", s)
   | CStr(s) -> StrT(":cstr", s)
-  | KernCalc(nm) -> KernelT(":k")
+  | KernCalc(k) -> KCalcT(k)
   | ChanEval(c) -> CalcT(c.channel, Uint8)
   | ChanMat(m) -> CalcT(":c", Uint8)
   | ChanRef(c) -> CalcT(c.channel, Uint8)
-  | Convolve(a,b) -> ImageT(":i")
+  | Convolve(a,b) -> ConvT(a,b)
   | Assign(i,op,v) -> type_of_expr env v
   | ChanAssign(ref,v) -> type_of_expr env v
   | LibCall(f,args) ->
@@ -95,7 +95,9 @@ let rec type_of_expr env = function
 let type_of_vdecl = function
     ImageT(nm) -> ImageT(nm)
   | KernelT(nm) -> KernelT(nm)
+  | KCalcT(k) -> KCalcT(k)
   | CalcT(nm,t) -> CalcT(nm, t)
   | StrT(t, s) -> StrT(t, s)
   | BareT(s) -> BareT(s)
+  | ConvT(a,b) -> ConvT(a,b)
 

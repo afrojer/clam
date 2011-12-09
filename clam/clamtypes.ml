@@ -31,13 +31,14 @@ type imgT = {
 }
 
 type kernelT = {
-  kname     : string;
-  kchannels : (string * calcT ref) list;
+  kname       : string;
+  mutable kallcalc    : string list;
+  mutable kunusedcalc : string list;
 }
 
 type envT = {
   calc    : calcT list;
-  mutable images  : imgT list;
+  images  : imgT list;
   kernels : kernelT list;
 }
 

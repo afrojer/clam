@@ -36,14 +36,21 @@ let string_of_libf = function
     ImgRead -> "ImgRead"
   | ImgWrite -> "ImgWrite"
 
-let string_of_type = function
+let rec string_of_type = function
     ImageT(nm) -> "Image("^nm^")"
   | KernelT(nm) -> "Kernel("^nm^")"
+  | KCalcT(k) -> "KCalc("^(List.fold_left (^) "" k.allcalc)^")"
   | CalcT(nm,t) -> "Calc("^nm^")"
   | StrT(t, s) -> if t = ":cstr"
                   then "C["^s^"]"
                   else "String("^s^")"
   | BareT(s) -> s
+  | ConvT(a,b) -> "[Convolution]"
+  (* This causes a circular dependency... oh well...
+                  ((string_of_type (Environ.type_of_expr a))^
+                   "**"^
+                   (string_of_type (Environ.type_of_expr b)))
+   *)
 
 
 (*
@@ -101,6 +108,8 @@ let tree_of_vdecl vdecl =
     | CalcT(id, a) -> Node("Variable Declaration [Calc Type]", [tree_of_ident id; tree_of_atom a])
     | StrT(t,s) -> Node("INVALID String["^t^":"^s^"]", [])
     | BareT(s) -> Node("INVALID BareT["^s^"]", [])
+    | KCalcT(k) -> Node("INVALID use of KCalcT", [])
+    | ConvT(_,_) -> Node("INVALID use of ConvT", [])
 
 let rec tree_of_expr expr =
   let tupl = match expr with

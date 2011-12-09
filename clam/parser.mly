@@ -70,12 +70,15 @@ bareint:
  *   snd = list of IDs (channels) whose output is discarded
  */
 kerncalc:
-    ID PIPE ID                  { ($3 :: [$1]), [] }
-  | ID PIPE ATSYM ID            { ($4 :: [$1]), [$4] }
-  | ATSYM ID PIPE ID            { ($4 :: [$2]), [$2] }
-  | ATSYM ID PIPE ATSYM ID      { ($5 :: [$2]), ($5 :: [$2]) }
-  | kerncalc PIPE ID            { ($3 :: fst $1), snd $1 }
-  | kerncalc PIPE ATSYM ID      { ($4 :: fst $1), ($4 :: snd $1) }
+    ID PIPE ID                  { { allcalc = ($3 :: [$1]); unusedcalc = [] } }
+  | ID PIPE ATSYM ID            { { allcalc = ($4 :: [$1]); unusedcalc = [$4] } }
+  | ATSYM ID PIPE ID            { { allcalc = ($4 :: [$2]); unusedcalc = [$2] } }
+  | ATSYM ID PIPE ATSYM ID      { { allcalc = ($5 :: [$2]);
+                                    unusedcalc = ($5 :: [$2]) } }
+  | kerncalc PIPE ID            { { allcalc = ($3 :: ($1).allcalc);
+                                    unusedcalc = ($1).unusedcalc } }
+  | kerncalc PIPE ATSYM ID      { { allcalc = ($4 :: ($1).allcalc);
+                                    unusedcalc = ($4 :: ($1).unusedcalc) } }
 
 matrix_scale:
     LBRKT bareint FSLASH bareint RBRKT { ($2, $4) }
