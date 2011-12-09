@@ -25,8 +25,9 @@ OCLEX = $(shell which ocamllex)
 OYACC = $(shell which ocamlyacc)
 OCAMLDEP = $(shell which ocamldep)
 OCAML_CINC  = -I extlib
-OCAML_COPTS =
-OCAML_LOPTS = unix.cma
+OCAML_COPTS = -g
+OCAML_DEPOPTS = $(OCAML_CINC)
+OCAML_LOPTS = -g unix.cma
 OCLEX_OPTS  = -q
 OYACC_OPTS  =
 
@@ -138,19 +139,19 @@ distclean: clean
 
 $(OBJDIR)/%.mli.dep: %.mli
 	$(call prepdir,$@)
-	$(shell $(OCAMLDEP) $(OCAML_COPTS) -intf $< |sed 's/$(OBJDIR)\///g; s#\([^. ]*\)\.\(cm[iox]\)#$(OBJDIR)/\1.\2#g;' > $@)
+	$(shell $(OCAMLDEP) $(OCAML_DEPOPTS) -intf $< |sed 's/$(OBJDIR)\///g; s#\([^. ]*\)\.\(cm[iox]\)#$(OBJDIR)/\1.\2#g;' > $@)
 
 $(OBJDIR)/%.mli.dep: $(OBJDIR)/%.mli
 	$(call prepdir,$@)
-	$(shell $(OCAMLDEP) $(OCAML_COPTS) -intf $< |sed 's/$(OBJDIR)\///g; s#\([^. ]*\)\.\(cm[iox]\)#\1.\2#g;' > $@)
+	$(shell $(OCAMLDEP) $(OCAML_DEPOPTS) -intf $< |sed 's/$(OBJDIR)\///g; s#\([^. ]*\)\.\(cm[iox]\)#\1.\2#g;' > $@)
 
 $(OBJDIR)/%.ml.dep: %.ml
 	$(call prepdir,$@)
-	$(shell $(OCAMLDEP) $(OCAML_COPTS) -impl $< |sed 's/$(OBJDIR)\///g; s#\([^. ]*\)\.\(cm[iox]\)#$(OBJDIR)/\1.\2#g;' > $@)
+	$(shell $(OCAMLDEP) $(OCAML_DEPOPTS) -impl $< |sed 's/$(OBJDIR)\///g; s#\([^. ]*\)\.\(cm[iox]\)#$(OBJDIR)/\1.\2#g;' > $@)
 
 $(OBJDIR)/%.ml.dep: $(OBJDIR)/%.ml
 	$(call prepdir,$@)
-	$(shell $(OCAMLDEP) $(OCAML_COPTS) -impl $< |sed 's/$(OBJDIR)\///g; s#\([^. ]*\)\.\(cm[iox]\)#\1.\2#g;' > $@)
+	$(shell $(OCAMLDEP) $(OCAML_DEPOPTS) -impl $< |sed 's/$(OBJDIR)\///g; s#\([^. ]*\)\.\(cm[iox]\)#\1.\2#g;' > $@)
 
 test: $(TGT)
 	@./tests/all.test
