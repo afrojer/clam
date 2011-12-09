@@ -32,7 +32,7 @@ OCLEX_OPTS  = -q
 OYACC_OPTS  =
 
 CC = $(shell which gcc)
-CFLAGS = -O3 -fomit-frame-pointer -fast -fPIC -DSTB_IMAGE_WRITE_IMPLEMENTATION
+CFLAGS = -O3 -fomit-frame-pointer -fPIC -DSTB_IMAGE_WRITE_IMPLEMENTATION
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ###
 ###              STOP: DO NOT EDIT BELOW THIS LINE              ###
