@@ -13,7 +13,6 @@
 
 open ExtString
 open Ast
-open Clamtypes
 
 (*
  * Strings that represent CLAM things
@@ -57,7 +56,7 @@ let rec string_of_type = function
  * Printing CLAM compiler messages
  *)
 let print_clamerr = function
-    ParseErr(exn,(file,line,cnum,tok,tail)) ->
+    Parse_util.ParseErr(exn,(file,line,cnum,tok,tail)) ->
       let extra = Printexc.to_string exn in
       let fname = if file = "" then "<stdin>" else file in
       let estr =

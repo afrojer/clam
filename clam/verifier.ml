@@ -12,7 +12,6 @@
  *)
 
 open Ast
-open Clamtypes
 open Environ
 open Printer
 

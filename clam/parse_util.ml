@@ -17,6 +17,8 @@
 
 open Scanner
 
+exception ParseErr of exn * (string * int * int * string * string)
+
 let parse_buf_exn lexbuf fname =
   try
     lexbuf.Lexing.lex_curr_p <- {
@@ -34,7 +36,7 @@ let parse_buf_exn lexbuf fname =
       let cnum = curr.Lexing.pos_cnum - curr.Lexing.pos_bol in
       let tok = Lexing.lexeme lexbuf in
       let tail = Scanner.tokTail "" lexbuf in
-      raise (Clamtypes.ParseErr (exn,(file,line,cnum,tok,tail)))
+      raise (ParseErr (exn,(file,line,cnum,tok,tail)))
     end
 
 let parse_stdin () = parse_buf_exn (Lexing.from_channel stdin) "<stdin>"

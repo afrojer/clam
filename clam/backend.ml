@@ -12,7 +12,7 @@
  *)
 
 open String
-open Clamtypes
+open Environ
 open Ast
 
 (*

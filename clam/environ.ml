@@ -11,8 +11,36 @@
  *
  *)
 
-open Clamtypes
 open Ast
+
+(* Environment Types *)
+type calcT = {
+  cname    : string;
+  ctype    : Ast.atom;
+  cisvalid : bool;
+  cismat   : bool; (* if true, use 'matrix' else use 'cfunc' *)
+  cfunc    : string;
+  cmatrix  : Ast.matrix;
+}
+
+type imgT = {
+  iname     : string;
+  mutable ichannels : (string * calcT) list;
+}
+
+type kernelT = {
+  kname       : string;
+  mutable kallcalc    : string list;
+  mutable kunusedcalc : string list;
+}
+
+type envT = {
+  calc    : calcT list;
+  images  : imgT list;
+  kernels : kernelT list;
+}
+
+
 
 (* Add a variable definition to the environment:
  * raises a "Failure" exception if the name isn't unique
