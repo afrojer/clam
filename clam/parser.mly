@@ -11,7 +11,6 @@
    *
    *)
 
-open Clamtypes
 open Ast %}
 
 %token SEMI LPAREN DLPAREN RPAREN LTCHAR GTCHAR LBRKT RBRKT LBRACE RBRACE
