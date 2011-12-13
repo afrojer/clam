@@ -106,7 +106,6 @@ $(OBJDIR)/%.cmo %.cmo: %.ml
 	@$(OCC) $(OCAML_COPTS) -c -o $@ $<
 
 $(OBJDIR)/%.o: %.c
-	$(call prepdir,$@)
 	@echo "[CC        ] $<"
 	@$(CC) $(CFLAGS) -c -o $@ $<
 
@@ -153,12 +152,20 @@ $(OBJDIR)/%.ml.dep: $(OBJDIR)/%.ml
 	$(call prepdir,$@)
 	$(shell $(OCAMLDEP) $(OCAML_DEPOPTS) -impl $< |sed 's/$(OBJDIR)\///g; s#\([^. ]*\)\.\(cm[iox]\)#\1.\2#g;' > $@)
 
+$(OBJDIR)/%.cdep: %.c
+	$(call prepdir,$@)
+	@$(CC) -M $(CFLAGS) $< > $@.$$$$;                                    \
+	__TGT=`basename $*`;                                                 \
+	sed "s,\($${__TGT}\)\.o[ :]*,$(OBJDIR)/$*.o $@ : ,g" < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
 test: $(TGT)
 	@./tests/all.test
 
 ifneq ($(MAKECMDGOALS),clean)
   ifneq ($(MAKECMDGOALS),distclean)
     -include $(ML_DEP)
+    -include $(STBLIB_SRC:%.c=$(OBJDIR)/%.cdep)
   endif
 endif
 

@@ -506,12 +506,44 @@ int stbi_write_png(char const *filename, int x, int y, int comp, const void *dat
  * CLAM Interface: imgwrite
  *
  */
-int imgwrite(const clam_img *img, const char *fmt, const char *filename)
+int imgwrite(clam_img *img, const char *fmt, const char *filename)
 {
 	int ok = 0;
-	if (!filename || !fmt || !img) {
+	int pix, sz;
+	int r, g, b;
+	unsigned char *pixels;
+
+	if (!filename || !fmt || !img || img->num_chan <= 0) {
 		fprintf(stderr, "imgwrite: Invalid parameters!\n");
 		return -1;
+	}
+
+	if (img->num_chan < 3) {
+		r = 0;
+		g = (img->num_chan > 1) ? 1 : 0;
+		b = (img->num_chan > 2) ? 2 : 0;
+
+	} else {
+		r = 0; g = 1; b = 2;
+	}
+
+	/* re-interleave the Red/Green/Blue channels */
+	sz = img->width * img->height;
+	if (!img->p) {
+		img->p = malloc(sz*3);
+		if (!img->p) {
+			fprintf(stderr,"imgwrite: out of memory\n");
+			return -1;
+		}
+	}
+	pixels = img->p;
+	clam_img_setup_calc(img);
+	for ( pix = 0; pix < sz; ++pix ) {
+		pixels[0] = clam_img_pix(uint8_t,img->curr_p,r);
+		pixels[1] = clam_img_pix(uint8_t,img->curr_p,g);
+		pixels[2] = clam_img_pix(uint8_t,img->curr_p,b);
+		pixels += 3;
+		clam_img_next_pix(img);
 	}
 
 	/* this is dirty... */

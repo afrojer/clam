@@ -579,7 +579,8 @@ unsigned char *stbi_load_from_file(FILE *f, int *x, int *y, int *comp, int req_c
 clam_img * imgread(const char *filename)
 {
 	clam_img *img;
-	int x, y, comp;
+	clam_imgchan *ch;
+	int x, y, pix, sz, comp;
 	unsigned char *pixels;
 
 	if (!filename) {
@@ -599,10 +600,34 @@ clam_img * imgread(const char *filename)
 		return NULL;
 	}
 
+	/* we'll need this array if we write the image back out, so
+	 * let's keep it around */
 	img->p = pixels;
+
 	img->width = x;
 	img->height = y;
+	sz = x * y;
+
+	/* separate the channels */
+	clam_imgchan_add(img, NULL, UINT8, "Red");
+	clam_imgchan_add(img, NULL, UINT8, "Green");
+	clam_imgchan_add(img, NULL, UINT8, "Blue");
+
+	clam_img_setup_calc(img);
+	for ( pix = 0; pix < sz; ++pix ) {
+		clam_img_pix(uint8_t,img->curr_p,0) = pixels[0];
+		clam_img_pix(uint8_t,img->curr_p,1) = pixels[1];
+		clam_img_pix(uint8_t,img->curr_p,2) = pixels[2];
+		pixels += 3;
+		clam_img_next_pix(img);
+	}
+
 	return img;
+
+out_err:
+	clam_img_free(img);
+	fprintf(stderr, "imgread: internal error\n");
+	return NULL;
 }
 #endif //!STBI_NO_STDIO
 
