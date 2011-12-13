@@ -64,8 +64,6 @@ extern int stbi_write_png(char const *filename, int w, int h, int comp, const vo
 extern int stbi_write_bmp(char const *filename, int w, int h, int comp, const void *data);
 extern int stbi_write_tga(char const *filename, int w, int h, int comp, const void *data);
 
-extern int imgwrite(const clam_img *img, const char *fmt, const char *filename);
-
 #ifdef __cplusplus
 }
 #endif
@@ -518,7 +516,7 @@ int imgwrite(const clam_img *img, const char *fmt, const char *filename)
 
 	/* this is dirty... */
 	if (!strncmp("png",fmt,3)) {
-		ok = stbi_write_png(filename, img->width, img->height, 3, img->p, img->width);
+		ok = stbi_write_png(filename, img->width, img->height, 3, img->p, img->width * 3);
 		if (!ok)
 			fprintf(stderr, "imgwrite: Error writing to '%s'\n", filename);
 	} else if (!strncmp("bmp",fmt,3)) {

@@ -576,7 +576,7 @@ unsigned char *stbi_load_from_file(FILE *f, int *x, int *y, int *comp, int req_c
  * CLAM Interface: imgread
  *
  */
-clam_img * imgread(char *filename)
+clam_img * imgread(const char *filename)
 {
 	clam_img *img;
 	int x, y, comp;

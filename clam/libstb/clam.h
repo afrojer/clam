@@ -29,3 +29,8 @@ static inline void clam_img_free(clam_img *img)
 	free(img->p);
 	free(img);
 }
+
+/* Functional interface */
+extern clam_img *imgread(const char *filename);
+extern int imgwrite(const clam_img *img, const char *type, const char *filename);
+
