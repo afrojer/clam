@@ -1,0 +1,2 @@
+s = imgread("ucla.jpg");
+Image s;
