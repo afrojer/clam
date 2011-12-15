@@ -1,0 +1,16 @@
+#!/bin/bash
+TEST_DESC="Matrix w/o scale"
+. _buildup.sh
+
+
+compile_it
+if [ $ERRORS -eq 0 ]; then
+	run_it
+	if [ ! $ERRORS -eq 0 ]; then
+		error "$RUN_OUTPUT"
+	fi
+else
+	error "$COMPILE_OUTPUT"
+fi
+
+. _breakdown.sh

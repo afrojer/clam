@@ -105,6 +105,7 @@ expr:
   | CSTR                         { CStr(fst $1,snd $1) }
   | kerncalc                     { KernCalc($1) }
   | matrix_scale matrix          { ChanMat($1, List.rev $2) }
+  | matrix			 { ChanMat((BInt(1),BInt(1)), List.rev $1) }
   | chanref                      { ChanRef($1) }
   | expr CONVOP expr             { Convolve($1, $3) }
   | ID ASSIGN expr               { Assign($1, Eq, $3) }

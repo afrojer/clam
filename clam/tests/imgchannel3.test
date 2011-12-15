@@ -1,5 +1,5 @@
 #!/bin/bash
-TEST_DESC="Append undefined channel" #change this
+TEST_DESC="Append/Assign matrix channel" #change this
 . _buildup.sh
 
 # This will compile the test CLAM source file
@@ -11,7 +11,7 @@ if [ $ERRORS -eq 0 ]; then
     # any command-line arguments, and sets ERRORS
     # to the return value of the new binary
     ERRORS=1
-    error "Added undefined channel to image!"
+    error "Added matrix Calc to Image!"
 else
     # compilation errors are here, and you can print them
     # using the "error" function
