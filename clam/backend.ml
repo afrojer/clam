@@ -22,53 +22,38 @@ let c_ident_of_ImgT imgT =
   "_Img_" ^ imgT.iname
 
 
-(*
- * C type definitions
- *)
-let c_def_ImgT =
-  "typedef struct {\n" ^
-  "  char *iname;\n" ^
-  "} _ImageT;\n"
 
 
-(*
- * C variable declarations
- *)
-let c_decl_of_ImgT imgT =
-  "_ImageT " ^ (c_ident_of_ImgT imgT) ^ " = {\n" ^
-  "  .iname = \"" ^ (escaped imgT.iname) ^ "\"\n" ^
-  "};\n"
 
 
-(*
- * C Code Generation
- *)
-
-let c_of_vdecl = function
-    ImageT(id) -> "/* Declare ImageT "^id^" */"
-  | KernelT(id) -> "/* Declare KernelT "^id^" */"
-  | CalcT(id,atom) -> "/* Declare CalcT "^id^" of type "^(Printer.string_of_atom atom)^" */"
+(* NOTE: We are not required to declare Calc, Kernel, or Image
+ * in the same place that the CLAM programmer did it. This
+ * section can do nothing as long as these variables are
+ * listed in the 'env' variable and can therefore be
+ * declared as global variables in the C source...         *)
+let c_of_vdecl v = match v with
+    ImageT(id)     -> "/* Declare ImageT: "^id^", */\n"
+  | KernelT(id)    -> "/* Declare KernelT "^id^" */\n"
+  | CalcT(id,atom) -> "/* Declare CalcT "^id^" of type "^(Printer.string_of_atom atom)^" */\n"
   | ConvT(_,_) | KCalcT(_) | StrT(_,_) | BareT(_) ->
-        (raise (Failure("Internal error [internal type used
-in vdecl)")))
+        raise (Failure("Internal error [internal type used in vdecl)"))
 
 let c_of_assign op e =
-  "/* Assignment */"
+  "printf(\"Assignment operation\\n\");\n"
 
 let c_of_libf libf elist =
-   "/* Libf */"
+   "printf(\"Libf Call\\n\");\n"
 
-let c_of_expr = function
+let c_of_expr expr = match expr with
     LibCall(libf,elist) -> (c_of_libf libf elist)
-  | _ -> "/* Unknown Expression */"
+(* TODO: Lots more expressions to match with here! *)
+  | _ -> "printf(\"Expression\\n\");\n"
 
 let c_of_stmt stmt =
-  let c_stmt = match stmt with
+  match stmt with
       Expr(e) -> (c_of_expr e)
     | VDecl(v) -> (c_of_vdecl v)
     | VAssign(v,op,e) -> (c_of_vdecl v) ^ (c_of_assign op e)
-  in
-  c_stmt ^ ";\n"
 
 
 
@@ -76,27 +61,37 @@ let c_of_stmt stmt =
 (*
  * Splicing Code Together
  *)
-let generate_preamble_c env ast =
+
+let generate_preamble_c =
   "#include <stdio.h>\n" ^
-  c_def_ImgT
+  "/* Dump the contents of our clam.h file here */\n"
 
-let generate_definitions_c env ast =
-  (List.fold_left (^) "" (List.map c_decl_of_ImgT env.images))
+let generate_declarations_c env =
+  "/* Generate declarations for our variables here, using the environment\n" ^
+  " * variable (env). This will probable include:\n" ^
+  " *   - Calc definition (using #define)\n" ^
+  " *   - Global variables corresponding to ImageT pointers\n" ^
+  " *   - Global variables corresponding to KernelT pointers\n"
 
-let generate_main_c env ast =
-  "int main(int argc, char *argv) {\n" ^
-  (List.fold_left (^) "" (List.map c_of_stmt ast)) ^
-  "  return 0;\n" ^
-  "}\n"
+let generate_main_c ast =
+  "/* Strategy: Map each statement in the AST to its corresponding C source code.\n" ^
+  " *           Then, append this text together (using ^ aka strcat).\n" ^
+  " */\n" ^
+  (List.fold_left (^) "" (List.map c_of_stmt ast))
+  
 
 let generate_c env ast =
   let c_source =
     "\n/* CLAM: PREAMBLE */\n" ^
-    (generate_preamble_c env ast) ^
+    (generate_preamble_c)  ^
     "\n/* CLAM: DEFINITIONS */\n" ^
-    (generate_definitions_c env ast) ^
+    (generate_declarations_c env) ^
     "\n/* CLAM: MAIN */\n" ^
-    (generate_main_c env ast)
+    "int main(int argc, char *argv) {\n" ^
+    (generate_main_c ast) ^
+    "\n" ^
+    "  return 0;\n" ^
+    "}\n"
   in
   c_source
 
