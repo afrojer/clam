@@ -2,8 +2,8 @@
 TEST_DESC="Compile and test the Sobel filter"
 . _buildup.sh
 
-INPUT_IMG="ucla.jpg"
-OUTPUT_IMG="ucla_sobel.jpg"
+INPUT_IMG="ucla.png"
+OUTPUT_IMG="ucla_sobel.png"
 
 compile_it
 if [ $ERRORS -eq 0 ]; then
@@ -16,7 +16,7 @@ else
 fi
 
 if [ $ERRORS -eq 0 ]; then
-	EXPECTED="ucla_sobel_expected.jpg"
+	EXPECTED="ucla_sobel_expected.png"
 	compare "$OUTPUT_IMG" "$EXPECTED"
 	ERRORS=$?
 	if [ ! $ERRORS -eq 0 ]; then

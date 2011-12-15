@@ -1,5 +1,5 @@
 /* read an image into the 'srcimg' variable */
-Image srcimg = imgread("someimage.jpg");
+Image srcimg = imgread("ucla.png");
 
 /* define a luninance channel for this image
  * (Red, Green, and Blue channels are implicit from imgread)
