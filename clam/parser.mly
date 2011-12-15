@@ -13,7 +13,7 @@
 
 open Ast %}
 
-%token SEMI LPAREN DLPAREN RPAREN LTCHAR GTCHAR LBRKT RBRKT LBRACE RBRACE
+%token SEMI LPAREN RPAREN LTCHAR GTCHAR LBRKT RBRKT LBRACE RBRACE
 %token COLON COMMA FSLASH
 %token CONVOP PIPE ATSYM UMINUS UPLUS
 %token ASSIGN DEFINE OREQUAL
@@ -21,7 +21,7 @@ open Ast %}
 %token UINT8T UINT16T UINT32T INT8T INT16T INT32T ANGLET
 %token IMGREAD IMGWRITE
 %token <string> LITSTR
-%token <string> CSTR
+%token <string * string list> CSTR
 %token <int> INTEGER
 %token <string> ID
 %token EOF
@@ -102,9 +102,8 @@ expr:
     ID                           { Id($1) }
   | bareint                      { Integer($1) }
   | LITSTR                       { LitStr($1) }
-  | CSTR                         { CStr($1) }
+  | CSTR                         { CStr(fst $1,snd $1) }
   | kerncalc                     { KernCalc($1) }
-  | DLPAREN chanref RPAREN       { ChanEval($2) }
   | matrix_scale matrix          { ChanMat($1, List.rev $2) }
   | chanref                      { ChanRef($1) }
   | expr CONVOP expr             { Convolve($1, $3) }

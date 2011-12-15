@@ -205,9 +205,11 @@ let rec check_expr env = function
     Id(i) -> let _ = type_of env i in env, Id(i)
   | Integer(BInt(i)) -> env, Integer(BInt(i))
   | LitStr(s) -> env, LitStr(s)
-  | CStr(s) -> env, CStr(s)
+  | CStr(s,idl) -> env, CStr(s,idl)
   | KernCalc(k) -> env, KernCalc(k)
+(*
   | ChanEval(c) -> check_chanref env c false; env, ChanEval(c)
+ *)
   | ChanMat(m) -> env, ChanMat(m)
   | ChanRef(c) -> check_chanref env c false; env, ChanRef(c)
   | Convolve(a,b) ->
@@ -228,14 +230,14 @@ let rec check_expr env = function
              if s = "NOCHAN" then
                let get_channame = function
                      CStr(_) | ChanMat(_) -> ref.channel
-                   | ChanRef(c) | ChanEval(c) -> c.channel
+                   | ChanRef(c) -> c.channel
                    | _ as t -> (raise (Failure("Cannot assign "^
                                                (string_of_type (type_of_expr
                                                env1 t))^" to "^
                                                ref.image^":"^ref.channel)))
                in
                let get_chandef = function
-                   CStr(s) -> true, s, false, ((BInt(1),BInt(1)),[[BInt(1)]])
+                   CStr(s,idl) -> true, s, false, ((BInt(1),BInt(1)),[[BInt(1)]])
                  | ChanMat(m) -> true, "", true, m
                  | _ -> false, "", false, ((BInt(1),BInt(1)),[[BInt(1)]])
                in

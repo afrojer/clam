@@ -105,9 +105,8 @@ let rec type_of_expr env = function
     Id(i) -> type_of env i
   | Integer(BInt(i)) -> BareT("INT")
   | LitStr(s) -> StrT(":litstr", s)
-  | CStr(s) -> StrT(":cstr", s)
+  | CStr(s,idl) -> StrT(":cstr", s)
   | KernCalc(k) -> KCalcT(k)
-  | ChanEval(c) -> CalcT(c.channel, Uint8)
   | ChanMat(m) -> CalcT(":c", Uint8)
   | ChanRef(c) -> CalcT(c.channel, Uint8)
   | Convolve(a,b) -> ConvT(a,b)
