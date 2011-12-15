@@ -8,7 +8,7 @@ ML_TOP   = clam.ml
 
 # The rest of the source files
 ML_SRC   = environ.ml clamsys.ml backend.ml parse_util.ml verifier.ml printer.ml
-ML_INC   = ast.mli
+ML_INC   = ast.mli vast.mli
 LEX_SRC  = scanner.mll
 YACC_SRC = parser.mly
 
