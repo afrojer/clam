@@ -10,12 +10,14 @@ if [ $ERRORS -eq 0 ]; then
     # This runs the compiled output, accepts
     # any command-line arguments, and sets ERRORS
     # to the return value of the new binary
-    ERRORS=1
-    error "Compiles with invalid C!"
+	run_it "$INPUT_IMG" "$OUTPUT_IMG"
+	if [ ! $ERRORS -eq 0 ]; then
+		error "$RUN_OUTPUT"
+	fi
 else
     # compilation errors are here, and you can print them
     # using the "error" function
-    error $COMPILER_OUTPUT
+	error "$COMPILE_OUTPUT"
 fi
 
 # At the end of the test, set ERRORS=0 if
