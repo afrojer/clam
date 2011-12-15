@@ -1,5 +1,5 @@
 #!/bin/bash
-TEST_DESC="Test undefined identifiers"
+TEST_DESC="Assign calcs with Uints of different lengths"
 . _buildup.sh
 
 compile_it
