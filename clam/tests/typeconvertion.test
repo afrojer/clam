@@ -5,7 +5,7 @@ TEST_DESC="Test undefined identifiers"
 compile_it
 if [ $ERRORS -eq 0 ]; then
 	ERRORS=1
-	error "Compiled with an invalid identifier!"
+	error "different length Uints are not checked"
 else
 	# we purposely succeed b/c this test was
 	# designed to fail!
