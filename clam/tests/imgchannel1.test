@@ -1,5 +1,5 @@
 #!/bin/bash
-TEST_DESC="Assign one channel to another" #change this
+TEST_DESC="Manipulate default RGB channels" #change this
 . _buildup.sh
 
 # This will compile the test CLAM source file
