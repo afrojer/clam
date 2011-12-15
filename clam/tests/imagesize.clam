@@ -1,0 +1,5 @@
+
+Image img;
+img = imgread("ucla.png");
+imgwrite(img, "png", "ucla_out.png");
+
