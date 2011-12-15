@@ -1,5 +1,5 @@
 
 Image img;
-img = imgread("ucla.jpg");
-imgwrite(img, "jpg", "ucla_imgcopy_produced.jpg");
+img = imgread("ucla.png");
+imgwrite(img, "png", "ucla_out.png");
 

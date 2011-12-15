@@ -53,7 +53,7 @@ function: msgok
 
 function: compare
   Pass it two images and it compares them. For example:
-    compare "img1.jpg" "img2.jpg"
+    compare "img1.png" "img2.png"
     $FAILED=$?
 
 function: compile_it

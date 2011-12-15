@@ -2,8 +2,8 @@
 TEST_DESC="Copy an image to a new location."
 . _buildup.sh
 
-INPUT_IMG="ucla.jpg"
-OUTPUT_IMG="ucla_out.jpg"
+INPUT_IMG="ucla.png"
+OUTPUT_IMG="ucla_out.png"
 
 FAILED=0
 # Compile the imgcopy program
