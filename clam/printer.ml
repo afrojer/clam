@@ -13,6 +13,7 @@
 
 open ExtString
 open Ast
+open Vast
 
 (*
  * Strings that represent CLAM things
@@ -35,21 +36,12 @@ let string_of_libf = function
     ImgRead -> "ImgRead"
   | ImgWrite -> "ImgWrite"
 
-let rec string_of_type = function
-    ImageT(nm) -> "Image("^nm^")"
-  | KernelT(nm) -> "Kernel("^nm^")"
-  | KCalcT(k) -> "KCalc("^(List.fold_left (^) "" k.allcalc)^")"
-  | CalcT(nm,t) -> "Calc("^nm^")"
-  | StrT(t, s) -> if t = ":cstr"
-                  then "C["^s^"]"
-                  else "String("^s^")"
-  | BareT(s) -> s
-  | ConvT(a,b) -> "[Convolution]"
-  (* This causes a circular dependency... oh well...
-                  ((string_of_type (Environ.type_of_expr a))^
-                   "**"^
-                   (string_of_type (Environ.type_of_expr b)))
-   *)
+let string_of_type = function
+    CalcType(t) -> "Calc<" ^ (string_of_atom t) ^ ">"
+  | KernelType -> "Kernel"
+  | ImageType -> "Image"
+  | ChanRefType -> "ChanRef"
+  | VoidType -> "Void"
 
 
 (*

@@ -1,6 +1,6 @@
 (*
  * File: environ.ml
- * Date: 2011-11-09
+ * Date: 2011-10-16
  *
  * PLT Fall 2011
  * CLAM Project
@@ -11,120 +11,64 @@
  *
  *)
 
-open Ast
+open Vast
 
-(* Environment Types *)
-type calcT = {
-  cname    : string;
-  ctype    : Ast.atom;
-  cisvalid : bool;
-  cismat   : bool; (* if true, use 'matrix' else use 'cfunc' *)
-  cfunc    : string;
-  cmatrix  : Ast.matrix;
-}
+let check_assign env ident_string typ =
+  let id =
+    let has_id x = (x.id == ident_string && x.init == false) in
+      try
+        List.find has_id env.ids
+      with Not_found -> raise(Failure("Assignment to undeclared variable: " ^ ident_string))
+  in
+  if
+    (id.typ != typ)
+  then
+    raise(Failure("Assigning identifier " ^ ident_string ^ " (" ^ (Printer.string_of_type id.typ) ^ ") to an expression of type " ^ (Printer.string_of_type typ)))
+  else
+    id.init <- true;
+    env
+ 
+(*
+let assign_chan env img_ident_string chan_ident_string =
+  let env = check_assign env img_ident_string in
+    let img_has_id imgT = (imgT.iid == img_ident_string) in
+      let img =
+        try
+          List.find img_has_id env.imgs
+        with Not_found -> raise(Failure("Assignment to a channel of an undefined image: " ^ img_ident_string))
+  in
+  if
+    (List.find ((==) chan_ident_string) img.chans)
+  then
+    raise(Failure("Assignment to a channel that already exists in an image: " ^ img_ident_string ^ "." ^ chan_ident_string))
+  else
+    img.chans <- chan_ident_string :: img.chans;
+    env
 
-type imgT = {
-  iname     : string;
-  mutable ichannels : (string * calcT) list;
-}
+(* Update the environment to know that we have assigned
+ * an expression of type "typ" to identifier ident_string.
+ * Throw an exception if this is bad *)
+let assign_var env ident_string typ = match typ with
+    VoidType -> (raise Failure("Cannot assign a void type"))
+  | ChanRefType -> (raise Failure("Improperly assigning to a Channel Reference"))
+  | _ -> (check_assign env ident_string typ)
 
-type kernelT = {
-  kname       : string;
-  mutable kallcalc    : string list;
-  mutable kunusedcalc : string list;
-}
+(* Declare a variable name. If it is an image, add it to our list
+ * of currently defined images so we can keep track of which channels
+ * currently exist *)
+let declare_var env ident_string typ =
+  if (List.exists ((==) ident_string) env.ids) then
+    (raise Failure("Identifier " ^ ident_string ^ " was declared twice."))
+  else
+    let new_ids =
+      ({ id = ident_string; typ = typ; init = false; } :: env.ids)
+    in
+    let new_imgs = match typ with
+          ImageType -> (({ iid = ident_string; chan = []; }) :: env.imgs)
+        | _      -> env.imgs
+    in
+    { ids = new_ids; imgs = new_imgs; }
+      
+*)
 
-type envT = {
-  calc    : calcT list;
-  images  : imgT list;
-  kernels : kernelT list;
-}
-
-
-
-(* Add a variable definition to the environment:
- * raises a "Failure" exception if the name isn't unique
- *)
-let rec var_add env = function
-    ImageT(nm) -> let rec add_unique_img = function
-        [] -> [ { iname = nm;
-                  (* XXX: add default channels here! *)
-                  ichannels = []; } ]
-      | hd :: tl -> if hd.iname = nm then
-                      raise (Failure("ImageT redefined: "^nm))
-                    else hd :: add_unique_img tl
-      in
-      let env1 = { env with images = add_unique_img env.images } in
-      env1
-  | KernelT(nm) -> let rec add_unique_kernel = function
-        [] -> [ { kname = nm;
-                  kallcalc = []; kunusedcalc = []; } ]
-      | hd :: tl -> if hd.kname = nm then
-                      raise (Failure("KernelT redefined: "^nm))
-                    else hd :: add_unique_kernel tl
-      in
-      let env1 = { env with kernels = add_unique_kernel env.kernels } in
-      env1
-  | CalcT(nm,t) -> let rec add_unique_calc = function
-       [] -> [ { cname = nm;
-                 ctype = t;
-                 cisvalid = false;
-                 cismat = false;
-                 cfunc = "";
-                 cmatrix = (BInt(1),BInt(1)),[[BInt(1)]];} ]
-      | hd :: tl -> if hd.cname = nm then
-                      raise (Failure("CalcT redefined: "
-                      ^nm^"<"^(Printer.string_of_atom t)^">"))
-                    else hd :: add_unique_calc tl
-      in
-      let env1 = { env with calc = add_unique_calc env.calc } in
-      env1
-  | ConvT(_,_) | KCalcT(_) | StrT(_,_) | BareT(_) -> env
-
-(* Find the type of the named variable:
- * raises a "Failure" exception if it's undefined
- *)
-let type_of env varname =
-    if (List.exists
-         (fun c -> if c.cname = varname then true else false)
-         env.calc)
-    then
-      let cval = List.find
-         (fun c -> if c.cname = varname then true else false)
-         env.calc in CalcT(varname, cval.ctype)
-    else if (List.exists
-              (fun i -> if i.iname = varname then true else false)
-              env.images) then ImageT(varname)
-    else if (List.exists
-              (fun k -> if k.kname = varname then true else false)
-              env.kernels) then KernelT(varname)
-    else (raise (Failure("Undefined variable: "^varname)))
-
-(* Find the type of an expression i.e. the expression _results_ in this type *)
-let rec type_of_expr env = function
-    Id(i) -> type_of env i
-  | Integer(BInt(i)) -> BareT("INT")
-  | LitStr(s) -> StrT(":litstr", s)
-  | CStr(s,idl) -> StrT(":cstr", s)
-  | KernCalc(k) -> KCalcT(k)
-  | ChanMat(m) -> CalcT(":c", Uint8)
-  | ChanRef(c) -> CalcT(c.channel, Uint8)
-  | Convolve(a,b) -> ConvT(a,b)
-  | Assign(i,op,v) -> type_of_expr env v
-  | ChanAssign(ref,v) -> type_of_expr env v
-  | LibCall(f,args) ->
-        let ctype = function
-            ImgRead -> ImageT(":i")
-          | ImgWrite -> BareT("VOID") in
-        ctype f
-
-(* Find the type of a variable declaration *)
-let type_of_vdecl = function
-    ImageT(nm) -> ImageT(nm)
-  | KernelT(nm) -> KernelT(nm)
-  | KCalcT(k) -> KCalcT(k)
-  | CalcT(nm,t) -> CalcT(nm, t)
-  | StrT(t, s) -> StrT(t, s)
-  | BareT(s) -> BareT(s)
-  | ConvT(a,b) -> ConvT(a,b)
 

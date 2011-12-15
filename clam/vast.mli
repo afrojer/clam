@@ -11,12 +11,34 @@
  *)
 
 
+
+(* Environment Objects *)
+type typeT = CalcType of Ast.atom
+           | KernelType
+           | ImageType
+           | ChanRefType
+           | VoidType
+type identT = {
+  id: string;
+  typ: typeT;
+  mutable init: bool;
+}
+type imageT = {
+  iid: string;
+  mutable chans: string list;
+}
+type envT = {
+  ids: identT list;
+  imgs: imageT list;
+}
+
+
 (* Identifiers *)
-type calcId = string
-type kernId = string
-type imgId = string
-type filenameId = Const of string | Arg of int
+type calcId = { cid: string; }
+type kernId = { kid: string; }
+type imgId = { iid: string; }
 type chanRefId = imgId * calcId
+type filenameId = Const of string | Arg of int
 
 (* Assignment to a Calc *)
 type calcAssign = { lhs: calcId; rhs: calcEx; }
@@ -51,5 +73,5 @@ and chanRefEx =
 
 (* Output images *)
 type imgType = Png
-type imgWrite = { im: imgEx; fil: filenameId; typ: imgType; }
+type imgWrite = { im: imgEx; fil: filenameId; otype: imgType; }
 
