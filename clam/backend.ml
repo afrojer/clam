@@ -38,16 +38,21 @@ let c_of_vdecl v = match v with
   | ConvT(_,_) | KCalcT(_) | StrT(_,_) | BareT(_) ->
         raise (Failure("Internal error [internal type used in vdecl)"))
 
-let c_of_assign op e =
-  "printf(\"Assignment operation\\n\");\n"
-
 let c_of_libf libf elist =
-   "printf(\"Libf Call\\n\");\n"
+  match libf with
+      ImgRead -> ("printf(\"ImgRead: \\n\");\n")
+    | ImgWrite -> ("printf(\"ImgWrite: \\n\");\n")
 
 let c_of_expr expr = match expr with
     LibCall(libf,elist) -> (c_of_libf libf elist)
 (* TODO: Lots more expressions to match with here! *)
-  | _ -> "printf(\"Expression\\n\");\n"
+  | _ -> "printf(\"Unknown Expression\\n\");\n"
+
+let c_of_assign op e =
+  match op with
+         Eq -> ("printf(\"Equality assignment op: \");\n" ^ c_of_expr e)
+    |  OrEq -> ("printf(\"OrEquals assignment op: \");\n" ^ c_of_expr e)
+    | DefEq -> ("printf(\"DefEquals assignment op: \");\n" ^ c_of_expr e)
 
 let c_of_stmt stmt =
   match stmt with
