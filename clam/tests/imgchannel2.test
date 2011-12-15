@@ -1,5 +1,5 @@
 #!/bin/bash
-TEST_DESC="Append/Assign undefined channel" #change this
+TEST_DESC="Append undefined channel" #change this
 . _buildup.sh
 
 # This will compile the test CLAM source file
@@ -10,15 +10,12 @@ if [ $ERRORS -eq 0 ]; then
     # This runs the compiled output, accepts
     # any command-line arguments, and sets ERRORS
     # to the return value of the new binary
-    run_it
-    # STDOUT/STDERR are put into "$RUN_OUTPUT"
-    if [ ! $ERRORS -eq 0 ]; then
-        error "Problem running this test!"
-    fi
+    ERRORS=1
+    error "Added undefined channel to image!"
 else
     # compilation errors are here, and you can print them
     # using the "error" function
-    error $COMPILER_OUTPUT
+    ERRORS=0
 fi
 
 # At the end of the test, set ERRORS=0 if

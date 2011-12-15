@@ -1,5 +1,0 @@
-Image s = imgread("ucla.png");
-Calc C = #[1]#;
-s |= C;
-Image t;
-t:Red = s:C;
