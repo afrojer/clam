@@ -210,7 +210,8 @@ let rec check_expr env = function
 (*
   | ChanEval(c) -> check_chanref env c false; env, ChanEval(c)
  *)
-  | ChanMat(m) -> env, ChanMat(m)
+  | ChanMat(m) -> if (snd(fst(m)) <> BInt(0)) then (env, ChanMat(m))
+			else raise(Failure("Divide by zero"))
   | ChanRef(c) -> check_chanref env c false; env, ChanRef(c)
   | Convolve(a,b) ->
         let env1, va = check_expr env a in
