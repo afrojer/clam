@@ -1,0 +1,3 @@
+Image s = imgread("ucla.png");
+Image t;
+t:Red = s:Green;
