@@ -128,14 +128,24 @@ static inline int list_empty(const struct list_head *head)
 
 
 typedef enum clam_atom_e {
-	UINT8 = 1,
+	UINT8 = 0,
 	UINT16,
 	UINT32,
 	INT8,
 	INT16,
 	INT32,
 	ANGLE,
+	CLAM_NUMTYPES,
 } clam_atom;
+
+#define clam_type_union \
+	uint8_t  u8;  \
+	uint16_t u16; \
+	uint32_t u32; \
+	int8_t   s8;  \
+	int16_t  s16; \
+	int32_t  s32; \
+	float    f32;
 
 static inline clam_atom_sz(clam_atom a) {
 	switch (a) {
@@ -170,25 +180,20 @@ typedef struct clam_img {
 } clam_img;
 
 /* clam matrix (for kernel computation) */
-#define clam_matrix_def(type) \
-	struct clam_mat_ ## type { \
-		int32_t rows, cols; \
-		type num, denom; \
-		type m[]; \
-	}
 typedef struct clam_matrix {
 	int32_t rows, cols;
-	clam_atom type;
-	union {
-		clam_matrix_def(uint8_t)  u8;
-		clam_matrix_def(uint16_t) u16;
-		clam_matrix_def(uint32_t) u32;
-		clam_matrix_def(int8_t)   s8;
-		clam_matrix_def(int16_t)  s16;
-		clam_matrix_def(int32_t)  s32;
-		clam_matrix_def(float)    f32;
-	} t;
+	union { clam_type_union } num;
+	union { clam_type_union } denom;
+	void *d;
 } clam_matrix;
+
+#define clam_calc_setmatrix(_calc, _type, _rows, _cols, _num, _denom, _data...) \
+	(_calc)->m.rows = _rows; \
+	(_calc)->m.cols = _cols; \
+	*((_type *)(&(_calc)->m.num)) = _num; \
+	*((_type *)(&(_calc)->m.denom)) = _denom; \
+	static _type _calc ## _matdata [_rows][_cols] = _data; \
+	(_calc)->m.d = & _calc ## _matdata
 
 /* Calc functor */
 struct clam_calc;
@@ -197,13 +202,15 @@ typedef void (*clam_calcFunc)(unsigned char **pp,
 
 /* CalcT */
 typedef struct clam_calc {
-	clam_calcFunc  f;
-	clam_matrix   *m;
+	clam_atom    type;
+	int          ismat;
+	clam_matrix  m;
 } clam_calc;
 
 /* elements of a KernelT */
 typedef struct clam_kcalc {
-	struct list_head list;
+	struct list_head all;
+	struct list_head unused;
 	clam_calc *calc;
 } clam_kcalc;
 
@@ -227,6 +234,8 @@ typedef struct clam_imgchan {
 /* internal (compiler) API     */
 /* --- --- --- --- --- --- --- */
 
+#define clam_alloc_check(var) \
+	if (!var) bail("out of memory for " #var)
 
 static inline clam_img *clam_img_alloc(void)
 {
@@ -293,44 +302,62 @@ static inline void clam_img_setup_calc(clam_img *img)
 #define clam_img_pix(type, pp, chidx) \
 	(*((type *)((pp)[chidx])))
 
-static inline clam_matrix *clam_matrix_alloc(int32_t rows, int32_t cols,
-					     clam_atom type)
-{
-	clam_matrix *m;
-	size_t t_sz;
-	size_t sz;
-
-	if (rows <= 0 || cols <= 0)
-		return NULL;
-
-	t_sz = clam_atom_sz(type);
-	if (!t_sz)
-		return NULL;
-
-	sz = sizeof(*m) + (t_sz*rows*cols);
-
-	m = (clam_matrix *)malloc(sz);
-	if (!m)
-		return NULL;
-
-	memset(m, 0, sz);
-	m->rows = rows;
-	m->cols = cols;
-	m->type = type;
-}
-
-static inline void clam_matrix_free(clam_matrix *m)
-{
-	free(m);
-}
-
-static inline clam_calc *clam_calc_alloc(void)
+static inline clam_calc *clam_calc_alloc(clam_atom type, int ismat)
 {
 	clam_calc *c;
 	c = (clam_calc *)malloc(sizeof(*c));
 	if (!c)
 		return NULL;
+	memset(c, 0, sizeof(*c));
+	c->type = type;
+	c->ismat;
 	return c;
+}
+
+static inline clam_kernel *clam_kernel_alloc(void)
+{
+	clam_kernel *k;
+	k = (clam_kernel *)malloc(sizeof(*k));
+	if (!k)
+		return NULL;
+	memset(k, 0, sizeof(*k));
+	INIT_LIST_HEAD(&k->allcalc);
+	INIT_LIST_HEAD(&k->unused_calc);
+	return k;
+}
+
+static inline void clam_kernel_free(clam_kernel *kern)
+{
+	struct list_head *pos, *tmp;
+	clam_kcalc *kc;
+	if (!kern) return;
+
+	list_for_each_safe(pos, tmp, &kern->allcalc) {
+		kc = list_entry(pos, typeof(*kc), all);
+		list_del(pos);
+		free(kc);
+	}
+
+	free(kern);
+}
+
+static void clam_kernel_addcalc(clam_kernel *kern, clam_calc *calc, int used)
+{
+	clam_kcalc *kc;
+	kc = malloc(sizeof(*kc));
+	if (!kc) {
+		fprintf(stderr, "out of memory\n");
+		return;
+	}
+	INIT_LIST_HEAD(&kc->all);
+	INIT_LIST_HEAD(&kc->unused);
+	kc->calc = calc;
+
+	list_add(&kc->all, &kern->allcalc);
+	if (!used)
+		list_add(&kc->unused, &kern->unused_calc);
+
+	return;
 }
 
 /* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
@@ -339,8 +366,11 @@ static inline clam_calc *clam_calc_alloc(void)
 /* (implemented in generated C file)                               */
 /*                                                                 */
 /* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
-extern void clam_imgchan_add(clam_img *img, clam_calcFunc f,
-			     clam_atom type, const char *name);
+#define clam_imgchan_add(IMG, CHAN, SHOULDALLOC) \
+	__clam_imgchan_add(IMG, (CHAN)->type, #CHAN, SHOULDALLOC)
+
+#define clam_imgchan_add_empty(IMG, NAME, TYPE) \
+	__clam_imgchan_add(IMG, TYPE, #NAME, 0)
 
 extern clam_imgchan *clam_imgchan_ref(clam_img *img, const char *name);
 
@@ -349,6 +379,7 @@ extern void clam_imgchan_assign(clam_img *dimg, const char *dname,
 
 extern void clam_imgchan_eval(clam_img *img, const char *name);
 
+extern clam_img *clam_convolve(clam_imgchan *ch, clam_kernel *k);
 
 /* Functional interface */
 extern clam_img *imgread(const char *filename);

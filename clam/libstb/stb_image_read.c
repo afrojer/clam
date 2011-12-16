@@ -609,9 +609,9 @@ clam_img * imgread(const char *filename)
 	sz = x * y;
 
 	/* separate the channels */
-	clam_imgchan_add(img, NULL, UINT8, "Red");
-	clam_imgchan_add(img, NULL, UINT8, "Green");
-	clam_imgchan_add(img, NULL, UINT8, "Blue");
+	clam_imgchan_add_empty(img, Red, UINT8);
+	clam_imgchan_add_empty(img, Green, UINT8);
+	clam_imgchan_add_empty(img, Blue, UINT8);
 
 	clam_img_setup_calc(img);
 	for ( pix = 0; pix < sz; ++pix ) {
