@@ -17,6 +17,9 @@ open Ast
 open Sast
 
 
+(*
+ * Variable Declarations
+ *)
 let c_of_imgDecl imgT =
   "/* Declare ImageIdent: " ^ imgT.iname ^ " */\n"
 
@@ -26,8 +29,27 @@ let c_of_kernDecl kernT =
 let c_of_calcDecl calcT =
   "/* Declare CalcIdent: " ^ calcT.cname ^ " */\n"
 
-let c_of_calcEx ce =
-  "/* C of Calc Expression */\n"
+(*
+ * Variable Definitions
+ *)
+
+(* TODO: Initialize the Calc variables *)
+
+
+(*
+ * Main C Functions
+ *)
+let rec c_of_calcAssign ca =
+  let c_of_rhs = c_of_calcEx ca.c_rhs in
+    "/* Calc Assignment: Prepare RHS */\n" ^
+    (c_of_rhs) ^
+    "/* Calc Assignment: Store in: " ^ ca.c_lhs.cid ^ "*/\n"
+
+and c_of_calcEx ce = match ce with
+    CMatrix(m) -> "/* C Matrix */\n"
+  | CRaw(s,ids) -> "/* C String: '" ^ s ^ "' */\n"
+  | CChain(ca) -> c_of_calcAssign ca
+  | CIdent(id) -> "/* C Calc ID: " ^ id.cid ^ " */\n"
 
 let c_of_kernEx ke =
   "/* C of Kernel Expression */\n"
