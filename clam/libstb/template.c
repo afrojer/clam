@@ -119,8 +119,17 @@ void clam_imgchan_copy(clam_img *dst, const char *dname,
 {
 }
 
-clam_img *clam_convolve(clam_imgchan *ch, clam_kernel *k)
+void clam_convolve_matrix(clam_img *outimg, clam_imgchan *ch,
+			  clam_calc *calc, int used)
 {
+	uint8_t *chanpix, *p;
+
+	if (!calc->ismat)
+		return;
+}
+
+#define clam_convolve_cfunc(OUTIMG, CHAN, USED, CFUNC...) \
+{ \
 }
 
 /* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
@@ -169,24 +178,24 @@ int main(int argc, char **argv)
 	clam_alloc_check(srcimg);
 
 	/* Calc Lum := ... */
-	Lum = clam_calc_alloc(UINT8, 0); /* type, ismatrix */
+	Lum = clam_calc_alloc("Lum", UINT8, 0); /* type, ismatrix */
 	clam_alloc_check(Lum);
 
 	/* Calc sobelG := ... */
-	sobelG = clam_calc_alloc(UINT8, 0);
+	sobelG = clam_calc_alloc("sobelG", UINT8, 0);
 	clam_alloc_check(sobelG);
 
-	sobelTheta = clam_calc_alloc(ANGLE, 0);
+	sobelTheta = clam_calc_alloc("sobelTheta", ANGLE, 0);
 	clam_alloc_check(sobelTheta);
 
 	/* srcimg |= Lum */
 	clam_imgchan_add(srcimg, Lum, 0);
 
-	sobelGx = clam_calc_alloc(UINT8, 0);
+	sobelGx = clam_calc_alloc("sobelGx", UINT8, 0);
 	clam_alloc_check(sobelGx);
 	clam_calc_setmatrix(sobelGx, uint8_t, 3, 3, 1, 1, { {-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1} });
 
-	sobelGy = clam_calc_alloc(UINT8, 0);
+	sobelGy = clam_calc_alloc("sobelGy", UINT8, 0);
 	clam_alloc_check(sobelGy);
 	clam_calc_setmatrix(sobelGy, uint8_t, 3, 3, 1, 1, { {1, 2, 1}, {0, 0, 0}, {-1 ,-2, -3} });
 
@@ -201,6 +210,7 @@ int main(int argc, char **argv)
 	{
 		/* srcimg:Lum */
 		clam_imgchan *CONVCHAN = clam_imgchan_ref(srcimg, "Lum");
+		clam_kcalc *kc;
 		#define Red   clam_img_pix(uint8_t,pp,0)
 		#define Green clam_img_pix(uint8_t,pp,1)
 		#define Blue  clam_img_pix(uint8_t,pp,2)
@@ -212,8 +222,49 @@ int main(int argc, char **argv)
 		#undef Blue
 
 		/* Image edges = srcimg:Lum ** sobel */
-		edges = clam_convolve(CONVCHAN, sobel);
+		edges = clam_img_alloc();
 		clam_alloc_check(edges);
+		/* The OCaml will have to do a bit more work here due to
+		 * the way the escaped-C strings work...
+		 */
+		list_for_each_entry(kc, &sobel->allcalc, list) {
+			int __isused = kc->used;
+			clam_calc *__c = kc->calc;
+			if (__c->ismat) {
+				clam_convolve_matrix(edges, CONVCHAN,
+						     __c, __isused);
+			} else {
+				/* switch on name, jump to calculation */
+				if (strcmp(__c->name,"sobelG") == 0)
+					goto do_edges_srcimg_Lum_sobel_sobelG;
+				else if (strcmp(__c->name,"sobelTheta") == 0)
+					goto do_edges_srcimg_Lum_sobel_sobelTheta;
+				else
+					goto continue_edges_srcimg_Lum_sobel0;
+
+			do_edges_srcimg_Lum_sobel_sobelG:
+				#define sobelGx clam_img_pix(uint8_t,pp,0)
+				#define sobelGy clam_img_pix(uint8_t,pp,1)
+				#define cfunc ( sqrt(sobelGx*sobelGx + sobelGy*sobelGy) )
+				clam_convolve_cfunc(edges, CONVCHAN, __isused, cfunc)
+				#undef cfunc
+				#undef sobelGx
+				#undef sobelGy
+				goto continue_edges_srcimg_Lum_sobel0;
+			do_edges_srcimg_Lum_sobel_sobelTheta:
+				#define sobelGx clam_img_pix(uint8_t,pp,0)
+				#define sobelGy clam_img_pix(uint8_t,pp,1)
+				#define cfunc ( arctan(sobelGy/sobelGx) )
+				clam_convolve_cfunc(edges, CONVCHAN, __isused, cfunc)
+				#undef cfunc
+				#undef sobelGx
+				#undef sobelGy
+				goto continue_edges_srcimg_Lum_sobel0;
+
+			}
+			continue_edges_srcimg_Lum_sobel0:
+			continue;
+		}
 	}
 
 	output = clam_img_alloc();

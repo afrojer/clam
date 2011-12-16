@@ -202,6 +202,7 @@ typedef void (*clam_calcFunc)(unsigned char **pp,
 
 /* CalcT */
 typedef struct clam_calc {
+	const char  *name;
 	clam_atom    type;
 	int          ismat;
 	clam_matrix  m;
@@ -209,8 +210,8 @@ typedef struct clam_calc {
 
 /* elements of a KernelT */
 typedef struct clam_kcalc {
-	struct list_head all;
-	struct list_head unused;
+	struct list_head list;
+	int used;
 	clam_calc *calc;
 } clam_kcalc;
 
@@ -302,13 +303,15 @@ static inline void clam_img_setup_calc(clam_img *img)
 #define clam_img_pix(type, pp, chidx) \
 	(*((type *)((pp)[chidx])))
 
-static inline clam_calc *clam_calc_alloc(clam_atom type, int ismat)
+static inline clam_calc *clam_calc_alloc(const char *name,
+					 clam_atom type, int ismat)
 {
 	clam_calc *c;
 	c = (clam_calc *)malloc(sizeof(*c));
 	if (!c)
 		return NULL;
 	memset(c, 0, sizeof(*c));
+	c->name = name;
 	c->type = type;
 	c->ismat;
 	return c;
@@ -333,7 +336,7 @@ static inline void clam_kernel_free(clam_kernel *kern)
 	if (!kern) return;
 
 	list_for_each_safe(pos, tmp, &kern->allcalc) {
-		kc = list_entry(pos, typeof(*kc), all);
+		kc = list_entry(pos, typeof(*kc), list);
 		list_del(pos);
 		free(kc);
 	}
@@ -349,13 +352,10 @@ static void clam_kernel_addcalc(clam_kernel *kern, clam_calc *calc, int used)
 		fprintf(stderr, "out of memory\n");
 		return;
 	}
-	INIT_LIST_HEAD(&kc->all);
-	INIT_LIST_HEAD(&kc->unused);
+	INIT_LIST_HEAD(&kc->list);
 	kc->calc = calc;
-
-	list_add(&kc->all, &kern->allcalc);
-	if (!used)
-		list_add(&kc->unused, &kern->unused_calc);
+	kc->used = used;
+	list_add(&kc->list, &kern->allcalc);
 
 	return;
 }
@@ -377,9 +377,8 @@ extern clam_imgchan *clam_imgchan_ref(clam_img *img, const char *name);
 extern void clam_imgchan_assign(clam_img *dimg, const char *dname,
 				clam_img *simg, const char *sname);
 
-extern void clam_imgchan_eval(clam_img *img, const char *name);
-
-extern clam_img *clam_convolve(clam_imgchan *ch, clam_kernel *k);
+extern void clam_imgchan_copy(clam_img *dst, const char *dname,
+			      clam_img *src, const char *sname);
 
 /* Functional interface */
 extern clam_img *imgread(const char *filename);
