@@ -1,2 +1,3 @@
 Image s = imgread("ucla.png");
-Image t |= s;
+Image t = imgread("ucla2.png");
+t |= s; /* should work because same size */

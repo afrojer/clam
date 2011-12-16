@@ -1,0 +1,7 @@
+Image a;
+Image b;
+Image src = imgread("ucla.png");
+
+a = b = src;
+
+a:Red;
