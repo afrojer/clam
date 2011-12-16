@@ -13,7 +13,7 @@
 
 open Ast
 open Sast
-open Environ
+open Env
 open Printer
 
 (* Strategy:

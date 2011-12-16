@@ -12,7 +12,7 @@
  *)
 
 open String
-open Environ
+open Env
 open Ast
 open Sast
 
