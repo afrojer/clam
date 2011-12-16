@@ -1,0 +1,3 @@
+Image a = imgread("flatiron.jpg");
+Image b = imgread("ucla.png");
+a:Red = b:Red;	/* Should fail because of size difference*/
