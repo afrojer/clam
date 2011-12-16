@@ -1,7 +1,5 @@
-Image a;
-
-Calc c := #[0]#;
-
-a |= c;
-
-imgwrite(a, "png", "output.png");
+Image a = imgread("ucla.png");
+Image b;
+b:Red = a:Red;
+b:Blue = a:Blue;
+imgwrite(b, "png", "fail.png");
