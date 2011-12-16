@@ -108,28 +108,25 @@ let trans_chanRefId ch = ( { iid = ch.image }, { cid = ch.channel } )
 (* Returns: vExpr *)
 let trans_imgread elist = ImageEx(ImRead(filenameId_of_expr (List.hd elist)))
 
-
 (* Returns: vExpr *)
-let rec trans_libf libf elist =
-  match libf with
-     ImgRead -> trans_imgread elist
-   | ImgWrite -> trans_imgwrite elist
-
-(* Returns: vExpr *)
-and trans_imgwrite elist =
+let rec imgwrite_of_elist elist =
   match elist with
-      img_expr :: raw_format :: raw_filename :: [] -> (
+      fname_expr :: fmt_expr :: img_expr :: [] -> ( (* Yes. They're in the list backwards. *)
         let imgEx =
-          let vexpr = trans_expr img_expr in
-            match vexpr with
-                ImageEx(imgExpr) -> imgExpr
-              | _ -> raise(SemanticFailure("1st argument to ImgWrite must be an Image expression"))
+          let ve = trans_expr img_expr in
+            match ve with ImageEx(ie) -> ie | _ -> raise(SemanticFailure("ImgWrite not passed an image?"))
         in
-        let fmt = fmtType_of_expr raw_format in
-          let file = filenameId_of_expr raw_filename in
-            ImgWriteEx(imgEx, fmt, file)
+        let fmtType = fmtType_of_expr fmt_expr in
+        let filenameId = filenameId_of_expr fname_expr in
+        ImgWriteEx(imgEx, fmtType, filenameId)
       )
     | _ -> raise(SemanticFailure("Wrong number of arguments supplied to imgwrite function"))
+
+(* Returns: vExpr *)
+and trans_libf libf elist =
+  match libf with
+     ImgRead -> trans_imgread elist
+   | ImgWrite -> (imgwrite_of_elist elist)
 
 (* Returns: ImConv *)
 and trans_conv e1 e2 =
@@ -157,6 +154,8 @@ and trans_conv e1 e2 =
 (* Returns: vExpr *)
 and trans_expr = function
     Id(s) -> trans_id s
+  | Integer(bi) -> Debug("Ignoring integer expression: " ^ (string_of_int (int_of_BInt bi)))
+  | LitStr(s) -> Debug("Ignoring String literal: " ^ s)
   | CStr(s,ids) -> CalcEx(CRaw(s, (List.map (fun s -> { cid = s; }) ids)))
   | KernCalc(kc) -> KernelEx(KCalcList((List.map (fun x -> {cid = x}) kc.allcalc)))
   | ChanMat(m) -> CalcEx(cMatrix_of_matrix m)
@@ -170,7 +169,6 @@ and trans_expr = function
                                 | _ -> raise(SemanticFailure("Must assign Channel to a channel type"))
                          )
   | LibCall(libf, elist) -> trans_libf libf elist
-  | _ -> raise(SemanticFailure("Encountered AST Expression node that we didnt know how to verify"))
 
 (* Returns: vExpr *)
 and trans_eq_assign s e =
