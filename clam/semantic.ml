@@ -13,7 +13,8 @@
 
 open Ast
 open Sast
-open Env
+open Envtypes
+open Environ
 open Printer
 
 (* Strategy:
@@ -25,7 +26,7 @@ open Printer
  *   5) Return (ENV, VAST)
  *)
 
-let scope = ref { ids = []; }
+let scope = ref { venv = { calc = []; images = []; kernels = [] }; }
 
 let type_of_vdecl = function
     ImageT(s) -> ImageType
@@ -54,6 +55,9 @@ let ident_of_vdecl = function
   | ConvT(e1,e2)-> raise(Failure("Convolution does not have an associated identifier string"))
   | _ -> raise(Failure("Invalid use of internal type!"))
 
+let type_of_ident scope s = 
+  type_of_vdecl (Environ.type_of !scope.venv s)
+
 let int_of_BInt = function
   BInt(i) -> i
 
@@ -78,7 +82,7 @@ let trans_format_expr = function
 
 (* Returns: vExpr *)
 let trans_id s =
-  let typ = env_type_of_ident scope s in
+  let typ = type_of_ident scope s in
     match typ with
         CalcType(t) -> CalcEx(CIdent({ cid = s; }))
       | KernelType  -> KernelEx(KIdent({ kid = s; }))
@@ -101,14 +105,10 @@ let trans_mat m =
 
 
 (* Returns: chanRefId *)
-let trans_chanRefIdLval ch =
-  env_assign_chan scope ch;
-  ( { iid = ch.image }, { cid = ch.channel } )
+let trans_chanRefIdLval ch = ( { iid = ch.image }, { cid = ch.channel } )
 
 (* Returns: chanRefId *)
-let trans_chanRefId ch =
-  env_exists_chan scope ch;
-  ( { iid = ch.image }, { cid = ch.channel } )
+let trans_chanRefId ch = ( { iid = ch.image }, { cid = ch.channel } )
 
 (* Returns: vExpr *)
 let trans_imgread elist = ImageEx(ImRead(trans_filenameId_expr (List.hd elist)))
@@ -167,19 +167,16 @@ and trans_expr = function
   | ChanMat(m) -> CalcEx(trans_mat m)
   | ChanRef(ch) -> ChanRefEx(ChanIdent(trans_chanRefId ch))
   | Convolve(e1,e2) -> ImageEx(trans_conv e1 e2)
-  | Assign(s,op,e) -> (match (env_type_of_ident scope s) with
-                           CalcType(t) -> (env_assign scope s (CalcType t);
-                                           let ve = trans_expr e in match ve with
+  | Assign(s,op,e) -> (match (type_of_ident scope s) with
+                           CalcType(t) -> (let ve = trans_expr e in match ve with
                                                CalcEx(calcEx) -> CalcEx(CChain({ c_lhs = {cid = s}; c_rhs = calcEx; }))
                                              | _ -> raise(Failure("Must assign Calc type to calc identifier"))
                                           )
-                         | KernelType  -> (env_assign scope s KernelType;
-                                           let ve = trans_expr e in match ve with
+                         | KernelType  -> (let ve = trans_expr e in match ve with
                                                KernelEx(kernEx) -> KernelEx(KChain({ k_lhs = {kid = s}; k_rhs = kernEx; }))
                                              | _ -> raise(Failure("Must assign Kernel type to kernel identifier"))
                                           )
-                         | ImageType   -> (env_assign scope s ImageType;
-                                           let ve = trans_expr e in match ve with
+                         | ImageType   -> (let ve = trans_expr e in match ve with
                                                ImageEx(imgEx) -> ImageEx(ImChain({ i_lhs = {iid = s}; i_rhs = imgEx; }))
                                              | _ -> raise(Failure("Must assign Image type to image identifier"))
                                           )
@@ -195,27 +192,27 @@ and trans_expr = function
   | _ -> raise(Failure("Encountered AST Expression node that we didnt know how to verify"))
 
 let trans_eq_assign s e =
-  let ve = trans_expr e in
-    env_assign scope s (type_of_vexpr ve);
+  let _ = trans_expr e in
     (* TODO: Create Sast for '=' operator *)
     Debug("Assign to " ^ s)
 
 let trans_or_assign s e =
   let ve = trans_expr e in
     match ve with
-        CalcEx(c) -> (match (env_type_of_ident scope s) with
+        CalcEx(c) -> (match (type_of_ident scope s) with
                   KernelType -> KernelEx(KAppend({ ka_lhs = { kid = s }; ka_rhs = c; }))
                 | ImageType -> ImageEx(ImAppend({ ia_lhs = { iid = s }; ia_rhs = c; }))
                 | _ -> raise(Failure("OrEq operation must have Kernel or Image as its L-Value"))
               )
       | _ -> raise(Failure("Unexpected expression is an R-Value for OrEq operation"))
 
-let trans_def_assign s e =
-  let ve = trans_expr e in
-    match ve with
-        CalcEx(c) -> env_assign scope s (type_of_vexpr ve); CalcEx(c)
-      | _ -> raise(Failure("Can only DefAssign a Calc"))
 
+(* Returns: vExpr *)
+let trans_def_assign s e = match (trans_expr e) with
+    CalcEx(cexp) -> CalcEx(CChain({ c_lhs = { cid=s }; c_rhs = cexp; }))
+  | _ -> raise(Failure("DefEq to something not a Calc expression"))
+
+(* Returns: vExpr *)
 let trans_assign s op e =
   match op with
       Eq -> trans_eq_assign s e
@@ -223,16 +220,17 @@ let trans_assign s op e =
     | DefEq -> trans_def_assign s e
 
 let trans_vdecl = function
-    ImageT(s)  -> env_declare scope s ImageType; Debug("Declare Image")
-  | KernelT(s) -> env_declare scope s KernelType; Debug("Declare Kernel")
-  | CalcT(s,t) -> env_declare scope s (CalcType(t)); Debug("Declare Calc")
+    ImageT(s)  -> Debug("Declare Image")
+  | KernelT(s) -> Debug("Declare Kernel")
+  | CalcT(s,t) -> Debug("Declare Calc")
   | _ -> raise(Failure("A variable declaration did not have a recognizable type"))
 
+(* Returns: vExpr *)
 let trans_action_expr = function
     Assign(s,op,e) -> trans_assign s op e
   | ChanAssign(chref,e) -> Debug("ChanAssign")
   | LibCall(libf,elist) -> Debug("LibCall")
-  | _ -> Debug("Expression result ignored!")
+  | _ -> Debug("Expression result ignored!") (* TODO: Can side effects be hiding in the expression? *)
 
 let trans_stmt = function
     Expr(e) -> trans_action_expr e
@@ -242,7 +240,8 @@ let trans_stmt = function
         trans_assign (ident_of_vdecl v) op e
     )
 
-let translate_ast ast =
+let translate_ast env ast =
+  scope.contents <- { venv = env; };
   let gather nodes stmt = (trans_stmt stmt) :: nodes in
     let nodelist = List.fold_left gather [] ast in
       (!scope, List.rev nodelist)

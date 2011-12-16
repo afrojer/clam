@@ -59,9 +59,9 @@ let _ =
     (* print out the AST if requested *)
     let _ = if !clam_print_ast then
               print_endline (Printer.string_of_ast program) else () in
-    let _, verified_ast = Verifier.verify program in
-    let (env, sast) = Semantic.translate_ast verified_ast in
-    let c_code = Backend.generate_c env sast in
+    let (env, verified_ast) = Verifier.verify program in
+    let (scope, sast) = Semantic.translate_ast env verified_ast in
+    let c_code = Backend.generate_c scope sast in
     if !clam_c_only then
       let ochan = Pervasives.open_out !clam_c_out in
       let _ = Pervasives.output_string ochan c_code in
