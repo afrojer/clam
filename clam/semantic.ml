@@ -92,17 +92,12 @@ let trans_id s =
       | _ -> raise(SemanticFailure("Environment claimed identifier was non-standard type"))
 
 (* Returns: CMatrix *)
-let trans_mat m =
+let cMatrix_of_matrix m =
   let ((bNum, bDen), bColRow) = m in
     let num = int_of_BInt bNum in
     let den = int_of_BInt bDen in
     let colRow = List.map (List.map int_of_BInt) bColRow in
-    let _ = if (den = 0) then raise(SemanticFailure("Division by zero in matrix denominator"))
-      else match (List.map List.length colRow) with
-          [] -> raise(SemanticFailure("Cannot have an empty matrix"))
-        | hd :: tl -> List.fold_left (fun x y -> if (x = y && x > 0) then x else raise(SemanticFailure("Uneven matrix row lengths"))) hd tl
-    in
-    CMatrix((num, den), colRow)
+      CMatrix((num, den), colRow)
 
 
 
@@ -166,7 +161,7 @@ and trans_expr = function
     Id(s) -> trans_id s
   | CStr(s,ids) -> CalcEx(CRaw(s, (List.map (fun s -> { cid = s; }) ids)))
   | KernCalc(kc) -> KernelEx(KCalcList((List.map (fun x -> {cid = x}) kc.allcalc)))
-  | ChanMat(m) -> CalcEx(trans_mat m)
+  | ChanMat(m) -> CalcEx(cMatrix_of_matrix m)
   | ChanRef(ch) -> ChanRefEx(ChanIdent(trans_chanRefId ch))
   | Convolve(e1,e2) -> ImageEx(trans_conv e1 e2)
   | Assign(s,op,e) -> (match (type_of_ident scope s) with
