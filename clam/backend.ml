@@ -57,7 +57,6 @@ let c_of_vExpr = function
   | ImageEx(ie) -> c_of_imgEx ie
   | ChanRefEx(che) -> c_of_chanRefEx che
   | ImgWriteEx(ie,fmt,fid) -> c_of_imgWrite ie fmt fid
-  | _ -> "/* Unhandled VExpr */\n"
 
 let generate_c scope vast =
   "\n/* GENERATED ENVIRONMENT C */\n" ^

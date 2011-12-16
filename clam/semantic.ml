@@ -43,8 +43,6 @@ let type_of_vexpr = function
   | KernelEx(e) -> KernelType
   | ImageEx(e) -> ImageType
   | ChanRefEx(e) -> ChanRefType
-  | FilenameEx(f) -> FilenameType
-  | FormatEx(f) -> FormatType
   | ImgWriteEx(im,f,fi) -> VoidType
   | Debug(s) -> print_endline("XXX: pretending Debug is a type CalcType(Unknown)"); CalcType(Unknown)
 
