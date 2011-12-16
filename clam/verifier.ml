@@ -328,14 +328,11 @@ let rec check_expr env = function
  *   our statement checker (invokes the expression checker)
  *)
 let check_stmt env = function
-    Expr(e) -> print_endline ("Expr...");
-        let env1, vexpr = check_expr env e in
+    Expr(e) -> let env1, vexpr = check_expr env e in
           env1, Expr(vexpr)
-  | VDecl(v) -> print_endline ("VDecl...");
-        let env1 = var_add env v in
+  | VDecl(v) -> let env1 = var_add env v in
           env1, VDecl(v)
   | VAssign(v,op,e) ->
-        print_endline ("VAssign...");
         (* NOTE: order is important here!
          *       the variable is not declared "in scope" until the end
          *       of the statement (i.e. you can't reference the variable
