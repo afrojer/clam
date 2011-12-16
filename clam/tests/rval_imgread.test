@@ -1,5 +1,5 @@
 #!/bin/bash
-TEST_DESC="Image or-equals same-size image" #change this
+TEST_DESC="Unassigned imgread" #change this
 . _buildup.sh
 
 # This will compile the test CLAM source file

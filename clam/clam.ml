@@ -59,9 +59,9 @@ let _ =
     (* print out the AST if requested *)
     let _ = if !clam_print_ast then
               print_endline (Printer.string_of_ast program) else () in
-    let _, verified_ast = Verifier.verify program in
-    let (env, sast) = Semantic.translate_ast verified_ast in
-    let c_code = Backend.generate_c env sast in
+    let (env, verified_ast) = Verifier.verify program in
+    let (scope, sast) = Semantic.translate_ast env verified_ast in
+    let c_code = Backend.generate_c scope sast in
     if !clam_c_only then
       let ochan = Pervasives.open_out !clam_c_out in
       let _ = Pervasives.output_string ochan c_code in
@@ -71,6 +71,7 @@ let _ =
       Clamsys.compile_c c_code !clam_binout; exit 0
   with
       Failure(s)           -> prerr_endline ("Error: "^s); exit 1
+    | Semantic.SemanticFailure(s) -> prerr_endline ("Semantic Error: "^s); exit 1
     | Parse_util.ParseErr(e,s) as err -> Printer.print_clamerr err; exit 1
     | Sys_error(s)         -> prerr_endline 
                               ("System error - check permissions on '"^

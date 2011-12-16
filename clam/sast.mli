@@ -1,5 +1,5 @@
 (*
- * File: vast.ml
+ * File: sast.ml
  * Date: 2011-10-16
  *
  * PLT Fall 2011
@@ -29,8 +29,8 @@ type identT = {
   chans: string list; (* Only relevant for image identifiers *)
 }
 
-type envT = {
-  ids: identT list;
+type scopeT = {
+  venv: Envtypes.envT;
 }
 
 
@@ -84,8 +84,6 @@ type vExpr =
   | KernelEx of kernEx
   | ImageEx of imgEx
   | ChanRefEx of chanRefEx
-  | FilenameEx of filenameId
-  | FormatEx of fmtType
   | ImgWriteEx of imgEx * fmtType * filenameId
   | Debug of string
  

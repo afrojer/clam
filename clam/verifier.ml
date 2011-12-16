@@ -12,6 +12,7 @@
  *)
 
 open Ast
+open Envtypes
 open Environ
 open Printer
 

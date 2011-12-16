@@ -1,0 +1,5 @@
+Image a = imgread("ucla.png");
+Image b;
+b:Red = a:Red;
+b:Blue = a:Blue;
+imgwrite(b, "png", "fail.png");
