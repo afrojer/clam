@@ -67,13 +67,13 @@ let int_of_BInt = function
  *)
 
 (* Returns: filenameId *)
-let trans_filenameId_expr = function
-    Integer(bi) -> let ix = match bi with BInt(i) -> i in Arg(ix)
+let filenameId_of_expr = function
+    Integer(bi) -> let i = int_of_BInt(bi) in Arg(i)
   | LitStr(s) -> Const(s)
   | _ -> raise(Failure("Filenames can only be a string or an integer"))
 
 (* Returns fmtType *)
-let trans_format_expr = function
+let fmtType_of_expr = function
     LitStr(s) -> (match s with
         "png" -> Png
       | _ -> raise(Failure("Unknown image format: " ^ s))
@@ -111,7 +111,7 @@ let trans_chanRefIdLval ch = ( { iid = ch.image }, { cid = ch.channel } )
 let trans_chanRefId ch = ( { iid = ch.image }, { cid = ch.channel } )
 
 (* Returns: vExpr *)
-let trans_imgread elist = ImageEx(ImRead(trans_filenameId_expr (List.hd elist)))
+let trans_imgread elist = ImageEx(ImRead(filenameId_of_expr (List.hd elist)))
 
 
 (* Returns: vExpr *)
@@ -130,8 +130,8 @@ and trans_imgwrite elist =
                 ImageEx(imgExpr) -> imgExpr
               | _ -> raise(Failure("1st argument to ImgWrite must be an Image expression"))
         in
-        let fmt = trans_format_expr raw_format in
-          let file = trans_filenameId_expr raw_filename in
+        let fmt = fmtType_of_expr raw_format in
+          let file = filenameId_of_expr raw_filename in
             ImgWriteEx(imgEx, fmt, file)
       )
     | _ -> raise(Failure("Wrong number of arguments supplied to imgwrite function"))
