@@ -268,9 +268,6 @@ let rec check_expr env = function
   | LitStr(s) -> env, LitStr(s)
   | CStr(s,idl) -> env, CStr(s,idl)
   | KernCalc(k) -> env, KernCalc(k)
-(*
-  | ChanEval(c) -> check_chanref env c false; env, ChanEval(c)
- *)
   | ChanMat(m) -> let denom = (snd (fst m)) in
                   let matrix = snd m in
                   if (denom <> BInt(0)) then
@@ -331,11 +328,14 @@ let rec check_expr env = function
  *   our statement checker (invokes the expression checker)
  *)
 let check_stmt env = function
-    Expr(e) -> let env1, vexpr = check_expr env e in
-                env1, Expr(vexpr)
-  | VDecl(v) -> let env1 = var_add env v in
-                env1, VDecl(v)
+    Expr(e) -> print_endline ("Expr...");
+        let env1, vexpr = check_expr env e in
+          env1, Expr(vexpr)
+  | VDecl(v) -> print_endline ("VDecl...");
+        let env1 = var_add env v in
+          env1, VDecl(v)
   | VAssign(v,op,e) ->
+        print_endline ("VAssign...");
         (* NOTE: order is important here!
          *       the variable is not declared "in scope" until the end
          *       of the statement (i.e. you can't reference the variable
@@ -357,7 +357,7 @@ let verify program =
                              check_stmt envO s in env, vstmt :: slist)
     ( {calc = [];
        images = [];
-       kernels = []}, [] ) (List.rev program))
+       kernels = []}, [] ) program)
   in
   venv, vslist
 

@@ -44,7 +44,6 @@ type envT = {
 let default_matrix () = (BInt(1),BInt(1)),[[BInt(1)]]
 
 let default_image nm =
-  (* XXX: add default channels here! *)
   { iname = nm;
     ichannels =
     [
