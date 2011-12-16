@@ -1,4 +1,3 @@
 Image x;
 Calc x;
 Kernel x;
-x = imgread("ucla.png");
