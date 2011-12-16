@@ -8,7 +8,7 @@
  * Problem 3
  *)
 
-type atom = Uint8 | Uint16 | Uint32 | Int8 | Int16 | Int32 | Angle
+type atom = Uint8 | Uint16 | Uint32 | Int8 | Int16 | Int32 | Angle | Unknown
 type assign_op = Eq | OrEq | DefEq
 
 type libfunc = ImgRead | ImgWrite
@@ -42,7 +42,7 @@ type vdecl =
   | ConvT of expr * expr
   | CalcT of string * atom
   | StrT of string * string
-  | BareT of string (* used in typechecking: see type_of_expr *)
+  | BareT of string
 
 type stmt =
     Expr of expr

@@ -1,5 +1,5 @@
 Image s;
-Calc C;
+Calc C = #[Red + Blue]#;
 s |= C;
 Image t;
 t:Red = s:C;

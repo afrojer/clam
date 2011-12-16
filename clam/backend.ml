@@ -12,15 +12,37 @@
  *)
 
 open String
-open Environ
+open Env
 open Ast
+open Sast
 
 
+let fold_c c_of_x =
+  List.fold_left (fun src x -> src ^ (c_of_x x)) ""
+
+let c_of_idT idT =
+  "/* Declare: '" ^ idT.id ^ "' of type " ^ (Printer.string_of_type idT.typ) ^ ": " ^ (if idT.init then "Used" else "Unused") ^ " */\n"
+ 
+
+let c_of_env env =
+  fold_c c_of_idT env.ids
+  
+
+let c_of_aItem = function
+    Debug(s) -> "/* DEBUG: " ^ s ^ " */\n"
+  | _ -> "/* ACTION ITEM */\n"
+
+let generate_c env vast =
+  "/* Generated Environment C */\n" ^
+  (c_of_env env) ^
+  "/* Generated Syntax Tree C */\n" ^
+  "int main(int argc, char **argv) {\n" ^
+  (fold_c c_of_aItem vast) ^
+  "  return 0;\n" ^
+  "}\n"
 
 
-
-
-
+(*
 (* NOTE: We are not required to declare Calc, Kernel, or Image
  * in the same place that the CLAM programmer did it. This
  * section can do nothing as long as these variables are
@@ -158,4 +180,4 @@ let generate_c env ast =
     "}\n"
   in
   c_source
-
+*)

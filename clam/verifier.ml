@@ -146,7 +146,7 @@ let check_assignment env rhs rhse op = function (* passes in LHS *)
     ImageT(nm) ->
         let optype rhs = function
             DefEq -> (raise (Failure("Cannot define "^
-                                     (string_of_type (ImageT(nm)))^
+                                     (string_of_vdecl (ImageT(nm)))^
                                      " with ':='")))
           | Eq ->
                 let chk_img_assign = function
@@ -161,8 +161,8 @@ let check_assignment env rhs rhse op = function (* passes in LHS *)
                         envNew
                   | ImageT(nm) -> env
                   | _ as t -> (raise (Failure("Can't assign '"^
-                                         (string_of_type t)^
-                                         "' to "^(string_of_type (ImageT(nm)))^
+                                         (string_of_vdecl t)^
+                                         "' to "^(string_of_vdecl (ImageT(nm)))^
                                          ": Image = Image; only!")))
                 in
                 let env1 = chk_img_assign rhs in
@@ -183,8 +183,8 @@ let check_assignment env rhs rhse op = function (* passes in LHS *)
                                             cnm^"' to an image channel")))
                           else cnm, t
                   | _ as t -> (raise (Failure("Can't assign "^
-                               (string_of_type t)^" to "^
-                               (string_of_type (ImageT(nm)))^
+                               (string_of_vdecl t)^" to "^
+                               (string_of_vdecl (ImageT(nm)))^
                                ": Invalid image channel in |=")))
                 in
                 let chname, chtype = chk_chan_add rhs in
@@ -199,11 +199,11 @@ let check_assignment env rhs rhse op = function (* passes in LHS *)
             | _ -> (raise (Failure("Internal Error."))) in
         let optype rhs = function
             DefEq -> (raise (Failure("Cannot define "^
-                                     (string_of_type (KernelT(nm)))^
+                                     (string_of_vdecl (KernelT(nm)))^
                                      " with ':='")))
           | Eq -> if not (rhs = KCalcT(kcalc rhs))
-                  then (raise (Failure("Can't assign "^(string_of_type rhs)^
-                                       " to "^(string_of_type (KernelT(nm)))^
+                  then (raise (Failure("Can't assign "^(string_of_vdecl rhs)^
+                                       " to "^(string_of_vdecl (KernelT(nm)))^
                                        ": Kernel = Kernel only!")))
                   else
                     let kc = kcalc rhs in
@@ -213,8 +213,8 @@ let check_assignment env rhs rhse op = function (* passes in LHS *)
                           CalcT(cnm,t) -> [cnm], []
                         | KCalcT(k) -> k.allcalc, k.unusedcalc
                         | _ as t -> (raise (Failure("Can't add "^
-                                             (string_of_type t)^" to "^
-                                             (string_of_type (KernelT(nm)))^
+                                             (string_of_vdecl t)^" to "^
+                                             (string_of_vdecl (KernelT(nm)))^
                                              ": Invalid CalcT!")))
                     in
                     let allC, unusedC = chk_calc_add rhs in
@@ -228,14 +228,14 @@ let check_assignment env rhs rhse op = function (* passes in LHS *)
                   | ChanMat(m) -> calc_set_matrix env nm m
                   | CStr(s,idl) -> calc_set_cfunc env nm (s,idl)
                   | _ as e -> (raise (Failure("Cannot define "^
-                                              (string_of_type (CalcT(nm,t)))^
+                                              (string_of_vdecl (CalcT(nm,t)))^
                                               " with '"^
-                                              (string_of_type (type_of_expr env e))^"'")))
+                                              (string_of_vdecl (type_of_expr env e))^"'")))
                 in
                 let env1 = update_calc rhse in
                 env1
           | _ as op -> (raise (Failure("Cannot define "^
-                                      (string_of_type (CalcT(nm,t)))^
+                                      (string_of_vdecl (CalcT(nm,t)))^
                                        " with '"^(string_of_op op)^"'")))
         in optype rhs op
   | ConvT(_,_) | KCalcT(_) ->
@@ -303,7 +303,7 @@ let rec check_expr env = function
                      CStr(_) | ChanMat(_) -> ref.channel
                    | ChanRef(c) -> c.channel
                    | _ as t -> (raise (Failure("Cannot assign "^
-                                               (string_of_type (type_of_expr
+                                               (string_of_vdecl (type_of_expr
                                                env1 t))^" to "^
                                                ref.image^":"^ref.channel)))
                in
@@ -343,7 +343,7 @@ let check_stmt env = function
          *)
         let env1, vexpr = check_expr env e in
         let env2 = var_add env v in
-        let lhs = type_of_vdecl v in
+        let lhs = v in
         let rhs = type_of_expr env2 vexpr in
         let env3 = check_assignment env2 rhs vexpr op lhs in
         env3, VAssign(v, op, vexpr)
@@ -359,5 +359,5 @@ let verify program =
        images = [];
        kernels = []}, [] ) (List.rev program))
   in
-  venv, (List.rev vslist)
+  venv, vslist
 

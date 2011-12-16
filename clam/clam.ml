@@ -51,14 +51,19 @@ let _ =
     ] in
   Arg.parse (Arg.align args) clam_anon_fcn clam_usage;
   try
-    let program = if clam_srcin = ref "-" then
-                  Parse_util.parse_stdin () else
-                  Parse_util.parse_file !clam_srcin in
-    let _ = if !(clam_print_ast) then print_endline (Printer.string_of_ast (List.rev program)) else () in
-    let (env, verified_prog) = Verifier.verify program in
-    let c_code = Backend.generate_c env verified_prog in
-    if !(clam_c_only) then
-      let ochan = Pervasives.open_out !(clam_c_out) in
+    let input_prog = if clam_srcin = ref "-" then
+                       Parse_util.parse_stdin ()
+                     else
+                       Parse_util.parse_file !clam_srcin in
+    let program = List.rev input_prog in
+    (* print out the AST if requested *)
+    let _ = if !clam_print_ast then
+              print_endline (Printer.string_of_ast program) else () in
+    let _, verified_ast = Verifier.verify program in
+    let (env, sast) = Semantic.translate_ast verified_ast in
+    let c_code = Backend.generate_c env sast in
+    if !clam_c_only then
+      let ochan = Pervasives.open_out !clam_c_out in
       let _ = Pervasives.output_string ochan c_code in
       let _ = Pervasives.close_out ochan in
       exit 0

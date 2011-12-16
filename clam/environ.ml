@@ -146,13 +146,3 @@ let rec type_of_expr env = function
           | ImgWrite -> BareT("VOID") in
         ctype f
 
-(* Find the type of a variable declaration *)
-let type_of_vdecl = function
-    ImageT(nm) -> ImageT(nm)
-  | KernelT(nm) -> KernelT(nm)
-  | KCalcT(k) -> KCalcT(k)
-  | CalcT(nm,t) -> CalcT(nm, t)
-  | StrT(t, s) -> StrT(t, s)
-  | BareT(s) -> BareT(s)
-  | ConvT(a,b) -> ConvT(a,b)
-
