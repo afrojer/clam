@@ -219,15 +219,15 @@ let rec check_expr env = function
 (*
   | ChanEval(c) -> check_chanref env c false; env, ChanEval(c)
  *)
-  | ChanMat(m) -> if (snd(fst(m)) <> BInt(0)) then 
-			(if let rec equal_rows = function
-				  [_] -> true
-				| hd::tl -> List.length hd = List.length (List.hd tl)
-						&& equal_rows tl in
-				equal_rows (snd m)				 
-			then (env, ChanMat(m))
-			else raise(Failure("Unequal matrix rows")))
-			else raise(Failure("Divide by zero"))
+  | ChanMat(m) -> if (snd(fst(m)) <> BInt(0)) then
+                        (if let rec equal_rows = function
+                                  [_] -> true
+                                | hd::tl -> List.length hd = List.length (List.hd tl)
+                                                && equal_rows tl in
+                                equal_rows (snd m)
+                        then (env, ChanMat(m))
+                        else raise(Failure("Unequal matrix rows")))
+                        else raise(Failure("Divide by zero"))
   | ChanRef(c) -> check_chanref env c false; env, ChanRef(c)
   | Convolve(a,b) ->
         let env1, va = check_expr env a in
