@@ -46,6 +46,8 @@ let string_of_type = function
   | FormatType -> "Image Format"
   | VoidType -> "Void"
 
+let string_of_chan ch =
+  ch.image ^ "." ^ ch.channel
 
 (*
  * Printing CLAM compiler messages
