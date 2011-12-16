@@ -17,10 +17,10 @@ open Ast
 type calcT = {
   cname    : string;
   ctype    : Ast.atom;
-  cisvalid : bool;
-  cismat   : bool; (* if true, use 'matrix' else use 'cfunc' *)
-  cfunc    : string;
-  cmatrix  : Ast.matrix;
+  mutable cisvalid : bool;
+  mutable cismat   : bool; (* if true, use 'matrix' else use 'cfunc' *)
+  mutable cfunc    : string * string list;
+  mutable cmatrix  : Ast.matrix;
 }
 
 type imgT = {
@@ -35,7 +35,7 @@ type kernelT = {
 }
 
 type envT = {
-  calc    : calcT list;
+  mutable calc : calcT list;
   images  : imgT list;
   kernels : kernelT list;
 }
@@ -53,21 +53,21 @@ let default_image nm =
         ctype = Uint8;
         cisvalid = true;
         cismat = false;
-        cfunc = "";
+        cfunc = "",[];
         cmatrix = default_matrix (); };
       "Green",
       { cname = "Green";
         ctype = Uint8;
         cisvalid = true;
         cismat = false;
-        cfunc = "";
+        cfunc = "",[];
         cmatrix = default_matrix (); };
       "Blue",
       { cname = "Blue";
         ctype = Uint8;
         cisvalid = true;
         cismat = false;
-        cfunc = "";
+        cfunc = "",[];
         cmatrix = default_matrix (); };
     ];
   }
@@ -98,7 +98,7 @@ let rec var_add env = function
                  ctype = t;
                  cisvalid = false;
                  cismat = false;
-                 cfunc = "";
+                 cfunc = "",[];
                  cmatrix = default_matrix ();} ]
       | hd :: tl -> if hd.cname = nm then
                       raise (Failure("CalcT redefined: "

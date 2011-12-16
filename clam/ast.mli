@@ -13,8 +13,6 @@ type assign_op = Eq | OrEq | DefEq
 
 type libfunc = ImgRead | ImgWrite
 
-type calcfunc = { func : string; channels : string list; }
-
 type chanref = { image : string; channel : string; }
 
 type kerncalc = { allcalc: string list; unusedcalc: string list }
