@@ -31,6 +31,7 @@ let string_of_atom = function
   | Int16 -> "I16"
   | Int32 -> "I32"
   | Angle -> "Angle"
+  | Unknown -> "Unknown"
 
 let string_of_libf = function
     ImgRead -> "ImgRead"

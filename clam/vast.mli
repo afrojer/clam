@@ -75,6 +75,14 @@ and chanRefEx =
 type imgWrite = { im: imgEx; fil: filenameId; fmtType: fmtType; }
 
 
+type vExpr =
+    CalcEx of calcEx
+  | KernelEx of kernEx
+  | ImageEx of imgEx
+  | ChanRefEx of chanRefEx
+  | FilenameEx of filenameId
+  | FormatEx of fmtType
+
 type actionItem =
     CalcAssign of calcAssign
   | KernAppend of kernAppend

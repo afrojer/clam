@@ -35,22 +35,28 @@ let type_of_vdecl = function
   | CalcT(s,t) -> CalcType(t)
 
 let type_of_vexpr = function
-  _ -> ImageType
+    CalcEx(e) -> CalcType(Unknown) (* XXX: We have big problems in how we handle the atomic types of Calcs *)
+  | KernelEx(e) -> KernelType
+  | ImageEx(e) -> ImageType
+  | ChanRefEx(e) -> ChanRefType
+  | FilenameEx(f) -> FilenameType
+  | FormatEx(f) -> FormatType
+
 
 let string_of_vdecl = function
     ImageT(s) -> s
+  | CalcT(s,t) -> s
   | KernelT(s) -> s
   | KCalcT(kc) -> raise(Failure("Kernel Calc does not have an associated identifier string"))
   | ConvT(e1,e2)-> raise(Failure("Convolution does not have an associated identifier string")) 
-  | CalcT(s,t) -> s
 
 
 (*
  * Recursive Checking Functions
  *)
 
-let check_expr e = function
-  _ -> Debug("Expression")
+let check_expr = function
+  _ -> CalcEx(CRaw("[RawString]", []))
 
 let check_eq_assign s e =
   let vexpr = check_expr e in
