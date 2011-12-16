@@ -13,6 +13,10 @@
 
 open Vast
 
+(*
+
+(* Check a variable assignment *)
+(* Mark the assigned variable as initialized *)
 let check_assign env ident_string typ =
   let id =
     let has_id x = (x.id == ident_string && x.init == false) in
@@ -24,51 +28,45 @@ let check_assign env ident_string typ =
     (id.typ != typ)
   then
     raise(Failure("Assigning identifier " ^ ident_string ^ " (" ^ (Printer.string_of_type id.typ) ^ ") to an expression of type " ^ (Printer.string_of_type typ)))
-  else
+  else (
     id.init <- true;
     env
+  )
  
-(*
-let assign_chan env img_ident_string chan_ident_string =
-  let env = check_assign env img_ident_string in
-    let img_has_id imgT = (imgT.iid == img_ident_string) in
-      let img =
-        try
-          List.find img_has_id env.imgs
-        with Not_found -> raise(Failure("Assignment to a channel of an undefined image: " ^ img_ident_string))
+(* Check a channel assignment *)
+(* Add the channel to the image's list of channels *)
+let assign_chan env img_ident chan_ident =
+  let env =
+    check_assign env img_ident ImageType
   in
-  if
-    (List.find ((==) chan_ident_string) img.chans)
-  then
-    raise(Failure("Assignment to a channel that already exists in an image: " ^ img_ident_string ^ "." ^ chan_ident_string))
-  else
-    img.chans <- chan_ident_string :: img.chans;
-    env
-
-(* Update the environment to know that we have assigned
- * an expression of type "typ" to identifier ident_string.
- * Throw an exception if this is bad *)
-let assign_var env ident_string typ = match typ with
-    VoidType -> (raise Failure("Cannot assign a void type"))
-  | ChanRefType -> (raise Failure("Improperly assigning to a Channel Reference"))
-  | _ -> (check_assign env ident_string typ)
-
-(* Declare a variable name. If it is an image, add it to our list
- * of currently defined images so we can keep track of which channels
- * currently exist *)
-let declare_var env ident_string typ =
-  if (List.exists ((==) ident_string) env.ids) then
-    (raise Failure("Identifier " ^ ident_string ^ " was declared twice."))
-  else
-    let new_ids =
-      ({ id = ident_string; typ = typ; init = false; } :: env.ids)
+  let ident_matches imgT = (imgT.iid == img_ident) in
+    let img =
+      try
+        List.find ident_matches env.imgs
+      with Not_found -> raise(Failure("Assignment to a channel of an undefined image: " ^ img_ident))
     in
-    let new_imgs = match typ with
-          ImageType -> (({ iid = ident_string; chan = []; }) :: env.imgs)
-        | _      -> env.imgs
-    in
-    { ids = new_ids; imgs = new_imgs; }
-      
+    if
+      List.find ((==) chan_ident) img.chans
+    then
+      raise(Failure("Assignment to a channel that already exists in an image: " ^ img_ident_string ^ "." ^ chan_ident_string))
+    else (
+      img.chans <- chan_ident_string :: img.chans;
+      env
+    )
 *)
+
+(* Declare a variable name. *)
+(* Add it to our list of identifiers, and if it is an image, add it to the list of images *)
+let declare_var ref_env ident_string typ =
+  let matches = fun idT -> (idT.id == ident_string) in
+    let env = !ref_env in
+      if (List.exists matches env.ids) then
+        (raise(Failure("Identifier " ^ ident_string ^ " was declared twice.")))
+      else
+        let new_ids =
+          ({ id = ident_string; typ = typ; init = false; chans = []; } :: env.ids)
+        in
+        ref_env.contents <- { ids = new_ids; }
+      
 
 

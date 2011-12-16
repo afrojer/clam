@@ -24,15 +24,12 @@ type typeT = CalcType of Ast.atom
 type identT = {
   id: string;
   typ: typeT;
-  mutable init: bool;
+  init: bool;
+  chans: string list; (* Only relevant for image identifiers *)
 }
-type imageT = {
-  iid: string;
-  mutable chans: string list;
-}
+
 type envT = {
   ids: identT list;
-  imgs: imageT list;
 }
 
 

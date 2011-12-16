@@ -44,7 +44,6 @@ type vdecl =
   | ConvT of expr * expr
   | CalcT of string * atom
   | StrT of string * string
-  | BareT of string (* used in typechecking: see type_of_expr *)
 
 type stmt =
     Expr of expr

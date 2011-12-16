@@ -25,17 +25,26 @@ open Printer
  *   5) Return (ENV, VAST)
  *)
 
-let scope = { ids = []; imgs = []; }
+let scope = ref { ids = []; }
 
+let check_vdecl = function
+    ImageT(s) -> (declare_var scope s ImageType; Debug("Declare Image"))
+  | KernelT(s) -> Debug("Declare Kernel")
+  | KCalcT(kc) -> Debug("Declare KernelCalc")
+  | ConvT(e1,e2) -> Debug("Declare Convolution")
+  | CalcT(s,t) -> Debug("Declare Calc")
+  | StrT(s1,s2) -> Debug("Declare String")
+    
+    
 let check_stmt = function
     Expr(e) -> Debug("Expression")
   | VDecl(v) -> Debug("Variable Declaration")
-  | VAssign(v,op,e) -> Debug("Variable Declare / Assignment")
+  | VAssign(v,op,e) -> check_vdecl v
 
 let verify ast =
   let gather nodes stmt = (check_stmt stmt) :: nodes in
     let nodelist = List.fold_left gather [] ast in
-      (scope, nodelist)
+      (!scope, nodelist)
 
 
 
