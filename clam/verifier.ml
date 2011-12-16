@@ -359,5 +359,5 @@ let verify program =
        images = [];
        kernels = []}, [] ) program)
   in
-  venv, vslist
+  venv, (List.rev vslist)
 
