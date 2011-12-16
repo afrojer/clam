@@ -2,3 +2,34 @@
 
 Introduce our project here\ldots
 
+\sys{} is a linear algebra manipulation language specifically targeted for
+image processing. It provides an efficient way to express complex image
+manipulation algorithms through compact matrix operations. Traditional image
+processing is performed using a language such as C, or C++. Algorithms in these
+languages are quite complex and error-prone due to the large number of lines of
+code required to implement something as conceptually simple as, "make this image
+blurry." The complexity arises from the need to perform elaborate calculations
+on every pixel in an image. For example, to blur an image you first need to
+calculate the luminance of the pixel (from the red, green, and blue channels),
+then you need to mathematically combine this with the luminance of adjacent pixels,
+and finally re-calculate red, green, and blue values for an output image.
+
+\sys{} will simplify image processing, and more generally linear algebra, through
+domain-specific data types and operators. The basic data type in \sys{} is a 
+\texttt{Matrix}. Matrices can be manipulated by operators that perform functions
+such as matrix multiplication, or rotation. An \texttt{Image} is another \sys{}
+data type which is expressed as a collection of matrices, or channels. For example,
+when reading an image into memory, \sys{} creates a \emph{Red}, \emph{Green}, and
+\emph{Blue} channel automatically. Additional Image channels can either be assigned,
+or calculated using an expression syntax which defines a calculation involving the
+values of other, previously defined, channels. The basic image processing operator
+in \sys{} is the convolution operator. This operator takes a channel and a
+\texttt{Kernel}, another basic data type, and outputs an \texttt{Image}. This
+operator convolves each \texttt{Matrix} within the \texttt{Kernel} with the input channel,
+and collects the resulting output channels into an \texttt{Image}.
+
+Two primary use cases of \sys{} are basic image information extraction, and
+filtering. The compact syntax and powerful basic data types of \sys{} will make
+information extraction, such as finding all the edges in an image, simple, compact,
+and easy to read.
+

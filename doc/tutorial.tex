@@ -1,3 +1,35 @@
 \chapter{Language Tutorial}
 
 Show examples of our language here.
+
+Reading a file
+
+The one of first things you'll usually want to do in CLAM is read an image file. This is easy:
+
+Image image = imgread("input.jpg");
+
+Writing a file
+
+After processing, you'll usually want to output an image as well. This is done as follows:
+
+imgwrite(image, "jpg", "output.jpg");
+
+So the simplest possible (useful) CLAM program simply reads an image from on file and writes it to another file, essentially copying it. But there are many interesting things you can do in between reading and writing.
+
+Extracting channels
+
+-The default channels: Red, Green, and Blue
+
+-Defining new channels
+
+Kernels & Calculations
+
+-Matrix Calculations
+
+-Embedded C Calculations
+
+Convolutions
+
+Advanced topics
+
+Command line arguments
