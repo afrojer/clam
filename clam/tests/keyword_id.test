@@ -1,0 +1,15 @@
+#!/bin/bash
+TEST_DESC="Test using Keyword Red as an identifier"
+. _buildup.sh
+
+compile_it
+if [ $ERRORS -eq 0 ]; then
+	ERRORS=1
+	error "an identifier named Red"
+else
+	# we purposely succeed b/c this test was
+	# designed to fail!
+	ERRORS=0
+fi
+
+. _breakdown.sh
