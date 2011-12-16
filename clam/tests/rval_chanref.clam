@@ -1,0 +1,3 @@
+Image srcimg = imgread("ucla.png");
+
+srcimg:Red;

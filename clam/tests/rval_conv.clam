@@ -1,0 +1,13 @@
+Image srcimg = imgread("ucla.png");
+
+Calc Lum := #[(3*Red + 6*Green + 1*Blue)/10]#;
+Calc sobelG<Uint8>:= #[sqrt(sobelGx*sobelGx + sobelGy*sobelGy)]#;
+
+srcimg |= Lum;
+
+Calc sobelGx<Uint8> := [1 / 1]{ -1  0 +1 , -2  0 +2 , -1  0 +1 };
+Calc sobelGy<Uint8>:=[1 / 1]{ +1 +2 +1 ,  0  0  0 , -1 -2 -1 };
+
+Kernel sobel = @sobelGx | @sobelGy | sobelG;
+
+srcimg:Lum ** sobel;

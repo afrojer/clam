@@ -1,0 +1,29 @@
+#!/bin/bash
+TEST_DESC="Unused Calc variable" #change this
+. _buildup.sh
+
+# This will compile the test CLAM source file
+# setting ERRORS to the compiler's return value
+compile_it
+
+if [ $ERRORS -eq 0 ]; then
+    # This runs the compiled output, accepts
+    # any command-line arguments, and sets ERRORS
+    # to the return value of the new binary
+    run_it
+    # STDOUT/STDERR are put into "$RUN_OUTPUT"
+    if [ ! $ERRORS -eq 0 ]; then
+        error "Problem running this test!"
+    fi
+else
+    # compilation errors are here, and you can print them
+    # using the "error" function
+    error $COMPILER_OUTPUT
+fi
+
+# At the end of the test, set ERRORS=0 if
+# there were no errors. Nonzero means fail.
+# ERRORS=1
+# error "This test auto-fails"
+
+. _breakdown.sh
