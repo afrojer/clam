@@ -17,9 +17,6 @@ open Ast
 open Sast
 
 
-let fold_c c_of_x =
-  List.fold_left (fun src x -> src ^ (c_of_x x)) ""
-
 let c_of_imgDecl imgT =
   "/* Declare ImageIdent: " ^ imgT.iname ^ " */\n"
 
@@ -63,7 +60,7 @@ let generate_c scope vast =
   (c_of_scope scope) ^
   "\n/* GENERATED MAIN C */\n" ^
   "int main(int argc, char **argv) {\n" ^
-  (fold_c c_of_vExpr vast) ^
+  (List.fold_left (^) "" (List.map c_of_vExpr vast)) ^
   "  return 0;\n" ^
   "}\n"
 
