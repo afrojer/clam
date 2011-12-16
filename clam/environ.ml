@@ -41,15 +41,43 @@ type envT = {
 }
 
 
+let default_matrix () = (BInt(1),BInt(1)),[[BInt(1)]]
+
+let default_image nm =
+  (* XXX: add default channels here! *)
+  { iname = nm;
+    ichannels =
+    [
+      "Red",
+      { cname = "Red";
+        ctype = Uint8;
+        cisvalid = true;
+        cismat = false;
+        cfunc = "";
+        cmatrix = default_matrix (); };
+      "Green",
+      { cname = "Green";
+        ctype = Uint8;
+        cisvalid = true;
+        cismat = false;
+        cfunc = "";
+        cmatrix = default_matrix (); };
+      "Blue",
+      { cname = "Blue";
+        ctype = Uint8;
+        cisvalid = true;
+        cismat = false;
+        cfunc = "";
+        cmatrix = default_matrix (); };
+    ];
+  }
 
 (* Add a variable definition to the environment:
  * raises a "Failure" exception if the name isn't unique
  *)
 let rec var_add env = function
     ImageT(nm) -> let rec add_unique_img = function
-        [] -> [ { iname = nm;
-                  (* XXX: add default channels here! *)
-                  ichannels = []; } ]
+        [] -> [ default_image nm ]
       | hd :: tl -> if hd.iname = nm then
                       raise (Failure("ImageT redefined: "^nm))
                     else hd :: add_unique_img tl
@@ -71,7 +99,7 @@ let rec var_add env = function
                  cisvalid = false;
                  cismat = false;
                  cfunc = "";
-                 cmatrix = (BInt(1),BInt(1)),[[BInt(1)]];} ]
+                 cmatrix = default_matrix ();} ]
       | hd :: tl -> if hd.cname = nm then
                       raise (Failure("CalcT redefined: "
                       ^nm^"<"^(Printer.string_of_atom t)^">"))

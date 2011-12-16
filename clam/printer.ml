@@ -45,11 +45,6 @@ let rec string_of_type = function
                   else "String("^s^")"
   | BareT(s) -> s
   | ConvT(a,b) -> "[Convolution]"
-  (* This causes a circular dependency... oh well...
-                  ((string_of_type (Environ.type_of_expr a))^
-                   "**"^
-                   (string_of_type (Environ.type_of_expr b)))
-   *)
 
 
 (*
