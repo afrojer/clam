@@ -99,7 +99,6 @@ let tree_of_vdecl vdecl =
       ImageT(id) -> Node("Variable Declaration [Image Type]", [tree_of_ident id])
     | KernelT(id) -> Node("Variable Declaration [Kernel Type]", [tree_of_ident id])
     | CalcT(id, a) -> Node("Variable Declaration [Calc Type]", [tree_of_ident id; tree_of_atom a])
-    | StrT(t,s) -> Node("INVALID String["^t^":"^s^"]", [])
     | KCalcT(k) -> Node("INVALID use of KCalcT", [])
     | ConvT(_,_) -> Node("INVALID use of ConvT", [])
 

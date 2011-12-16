@@ -43,7 +43,6 @@ type vdecl =
   | KCalcT of kerncalc (* need this to keep used/unused list around! *)
   | ConvT of expr * expr
   | CalcT of string * atom
-  | StrT of string * string
 
 type stmt =
     Expr of expr

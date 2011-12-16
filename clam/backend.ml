@@ -21,7 +21,7 @@ let fold_c c_of_x =
   List.fold_left (fun src x -> src ^ (c_of_x x)) ""
 
 let c_of_idT idT =
-  "/* Declare: '" ^ idT.id ^ "' of type " ^ (Printer.string_of_type idT.typ) ^ " */\n"
+  "/* Declare: '" ^ idT.id ^ "' of type " ^ (Printer.string_of_type idT.typ) ^ ": " ^ (if idT.init then "" else "NEVER USED") ^ " */\n"
  
 
 let c_of_env env =
