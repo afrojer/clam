@@ -17,10 +17,10 @@ open Ast
 type calcT = {
   cname    : string;
   ctype    : Ast.atom;
-  cisvalid : bool;
-  cismat   : bool; (* if true, use 'matrix' else use 'cfunc' *)
-  cfunc    : string;
-  cmatrix  : Ast.matrix;
+  mutable cisvalid : bool;
+  mutable cismat   : bool; (* if true, use 'matrix' else use 'cfunc' *)
+  mutable cfunc    : string * string list;
+  mutable cmatrix  : Ast.matrix;
 }
 
 type imgT = {
@@ -35,21 +35,48 @@ type kernelT = {
 }
 
 type envT = {
-  calc    : calcT list;
+  mutable calc : calcT list;
   images  : imgT list;
   kernels : kernelT list;
 }
 
 
+let default_matrix () = (BInt(1),BInt(1)),[[BInt(1)]]
+
+let default_image nm =
+  { iname = nm;
+    ichannels =
+    [
+      "Red",
+      { cname = "Red";
+        ctype = Uint8;
+        cisvalid = true;
+        cismat = false;
+        cfunc = "",[];
+        cmatrix = default_matrix (); };
+      "Green",
+      { cname = "Green";
+        ctype = Uint8;
+        cisvalid = true;
+        cismat = false;
+        cfunc = "",[];
+        cmatrix = default_matrix (); };
+      "Blue",
+      { cname = "Blue";
+        ctype = Uint8;
+        cisvalid = true;
+        cismat = false;
+        cfunc = "",[];
+        cmatrix = default_matrix (); };
+    ];
+  }
 
 (* Add a variable definition to the environment:
  * raises a "Failure" exception if the name isn't unique
  *)
 let rec var_add env = function
     ImageT(nm) -> let rec add_unique_img = function
-        [] -> [ { iname = nm;
-                  (* XXX: add default channels here! *)
-                  ichannels = []; } ]
+        [] -> [ default_image nm ]
       | hd :: tl -> if hd.iname = nm then
                       raise (Failure("ImageT redefined: "^nm))
                     else hd :: add_unique_img tl
@@ -70,8 +97,8 @@ let rec var_add env = function
                  ctype = t;
                  cisvalid = false;
                  cismat = false;
-                 cfunc = "";
-                 cmatrix = (BInt(1),BInt(1)),[[BInt(1)]];} ]
+                 cfunc = "",[];
+                 cmatrix = default_matrix ();} ]
       | hd :: tl -> if hd.cname = nm then
                       raise (Failure("CalcT redefined: "
                       ^nm^"<"^(Printer.string_of_atom t)^">"))
@@ -117,14 +144,4 @@ let rec type_of_expr env = function
             ImgRead -> ImageT(":i")
           | ImgWrite -> BareT("VOID") in
         ctype f
-
-(* Find the type of a variable declaration *)
-let type_of_vdecl = function
-    ImageT(nm) -> ImageT(nm)
-  | KernelT(nm) -> KernelT(nm)
-  | KCalcT(k) -> KCalcT(k)
-  | CalcT(nm,t) -> CalcT(nm, t)
-  | StrT(t, s) -> StrT(t, s)
-  | BareT(s) -> BareT(s)
-  | ConvT(a,b) -> ConvT(a,b)
 

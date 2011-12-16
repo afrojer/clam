@@ -13,6 +13,7 @@
 
 open ExtString
 open Ast
+open Sast
 
 (*
  * Strings that represent CLAM things
@@ -30,27 +31,33 @@ let string_of_atom = function
   | Int16 -> "I16"
   | Int32 -> "I32"
   | Angle -> "Angle"
+  | Unknown -> "Unknown"
 
 let string_of_libf = function
     ImgRead -> "ImgRead"
   | ImgWrite -> "ImgWrite"
 
-let rec string_of_type = function
+let string_of_vdecl = function
     ImageT(nm) -> "Image("^nm^")"
-  | KernelT(nm) -> "Kernel("^nm^")"
-  | KCalcT(k) -> "KCalc("^(List.fold_left (^) "" k.allcalc)^")"
-  | CalcT(nm,t) -> "Calc("^nm^")"
-  | StrT(t, s) -> if t = ":cstr"
-                  then "C["^s^"]"
-                  else "String("^s^")"
+  | KernelT(nm) -> "KernelT("^nm^")"
+  | KCalcT(k) -> "KCalc"
+  | CalcT(nm,t) -> "CalcT("^nm^")"
+  | StrT(t, s) -> t^":"^s
   | BareT(s) -> s
-  | ConvT(a,b) -> "[Convolution]"
-  (* This causes a circular dependency... oh well...
-                  ((string_of_type (Environ.type_of_expr a))^
-                   "**"^
-                   (string_of_type (Environ.type_of_expr b)))
-   *)
+  | ConvT(a,b) -> "Convolution"
 
+
+let string_of_type = function
+    CalcType(t) -> "Calc<" ^ (string_of_atom t) ^ ">"
+  | KernelType -> "Kernel"
+  | ImageType -> "Image"
+  | ChanRefType -> "ChanRef"
+  | FilenameType -> "Filename"
+  | FormatType -> "Image Format"
+  | VoidType -> "Void"
+
+let string_of_chan ch =
+  ch.image ^ "." ^ ch.channel
 
 (*
  * Printing CLAM compiler messages
@@ -69,6 +76,21 @@ let print_clamerr = function
       prerr_endline estr;
   | _ -> ()
 
+(*
+ * Environment Printing
+ *)
+let string_of_id idT =
+  "  * " ^ idT.id ^ " of " ^ (string_of_type idT.typ) ^
+  " [init=" ^ (string_of_bool idT.init) ^ "; chans=" ^ (
+    List.fold_left (^) "" (List.map (fun x -> x^";") idT.chans)
+  ) ^ "]\n"
+
+let string_of_env env =
+  "Environment:\n" ^
+  (List.fold_left (^) "" (List.map string_of_id env.ids))
+
+let print_env env =
+  print_endline (string_of_env env)
 
 (*
  * CLAM AST Printing
@@ -105,10 +127,8 @@ let tree_of_vdecl vdecl =
       ImageT(id) -> Node("Variable Declaration [Image Type]", [tree_of_ident id])
     | KernelT(id) -> Node("Variable Declaration [Kernel Type]", [tree_of_ident id])
     | CalcT(id, a) -> Node("Variable Declaration [Calc Type]", [tree_of_ident id; tree_of_atom a])
-    | StrT(t,s) -> Node("INVALID String["^t^":"^s^"]", [])
-    | BareT(s) -> Node("INVALID BareT["^s^"]", [])
     | KCalcT(k) -> Node("INVALID use of KCalcT", [])
-    | ConvT(_,_) -> Node("INVALID use of ConvT", [])
+    | _ -> Node("Invalid use of ...", [])
 
 let rec tree_of_expr expr =
   let tupl = match expr with
@@ -146,4 +166,5 @@ let rec string_of_tree prefix = function Node(str, ch) ->
 
 let string_of_ast ast =
   string_of_tree "" (tree_of_ast ast)
+
 

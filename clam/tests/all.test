@@ -5,16 +5,23 @@ echo "PWD: $PWD"
 
 CNT=0
 PASS=0
+FAILING=""
 for t in *.test; do
 	if [ "$(basename $0)" == "$(basename $t)" ]; then continue; fi
 	CNT=$(($CNT + 1))
 	./$t
 	if [ $? -eq 0 ]; then
 		PASS=$(($PASS + 1))
+	else
+		NM=$(basename $t)
+		FAILING="$FAILING ${NM%.test}"
 	fi
 done
 
 echo
 echo "PASSED: $PASS / $CNT"
+if [ ! -z "$FAILING" ]; then
+  echo "FAILED: $FAILING"
+fi
 echo
 

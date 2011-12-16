@@ -60,6 +60,39 @@ let kcalc_add env kname allC unusedC =
     kT.kunusedcalc <- List.append kT.kunusedcalc unusedC;
     env
 
+(* Set a matrix value in a CalcT *)
+let calc_set_matrix env nm mat =
+  let cval = (List.find
+              (fun c -> if c.cname = nm then true else false)
+              env.calc)
+  in
+    cval.cismat <- true;
+    cval.cmatrix <- mat;
+    env
+
+(* Set the CStr in a CalcT *)
+let calc_set_cfunc env nm func =
+  let cval = (List.find
+              (fun c -> if c.cname = nm then true else false)
+              env.calc)
+  in
+    cval.cisvalid <- true;
+    cval.cismat <- false;
+    cval.cfunc <- func;
+    env
+
+let calc_ismat env nm =
+  let cval = (List.find
+              (fun c -> if c.cname = nm then true else false)
+              env.calc)
+  in cval.cismat
+
+let calc_isvalid env nm =
+  let cval = (List.find
+              (fun c -> if c.cname = nm then true else false)
+              env.calc)
+  in cval.cisvalid
+
 (*
  * Add a channel to the specified image
  * (the caller needs to initialize most of the member variables)
@@ -109,11 +142,11 @@ let check_convolve env chanref kernelref =
  *              lhs = rhs
  *        for validity
  *)
-let check_assignment env rhs op = function (* passes in LHS *)
+let check_assignment env rhs rhse op = function (* passes in LHS *)
     ImageT(nm) ->
         let optype rhs = function
             DefEq -> (raise (Failure("Cannot define "^
-                                     (string_of_type (ImageT(nm)))^
+                                     (string_of_vdecl (ImageT(nm)))^
                                      " with ':='")))
           | Eq ->
                 let chk_img_assign = function
@@ -122,29 +155,41 @@ let check_assignment env rhs op = function (* passes in LHS *)
                         let img = find_image env1 nm in
                         let envNew = List.fold_left
                             (fun e c -> image_add e img c (get_calctype e c)
-                                        false false ""
+                                        false false ("",[])
                                         ((BInt(1),BInt(1)),[[BInt(1)]]) )
                             env1 chanlst in
                         envNew
                   | ImageT(nm) -> env
                   | _ as t -> (raise (Failure("Can't assign '"^
-                                         (string_of_type t)^
-                                         "' to "^(string_of_type (ImageT(nm)))^
+                                         (string_of_vdecl t)^
+                                         "' to "^(string_of_vdecl (ImageT(nm)))^
                                          ": Image = Image; only!")))
                 in
                 let env1 = chk_img_assign rhs in
                 env1
           | OrEq ->
                 let chk_chan_add = function
-                        CalcT(cnm,t) -> cnm, t
+                    CalcT(cnm,t) ->
+                        let isvalid = calc_isvalid env cnm in
+                        if not isvalid then
+                          (raise (Failure("Can't assign an un-initialized "^
+                                          "calculation '"^
+                                          cnm^ "' as an image channel")))
+                        else
+                          let ismat = calc_ismat env cnm in
+                          if ismat then
+                            (raise (Failure("Can't assign a matrix "^
+                                            "calculation '"^
+                                            cnm^"' to an image channel")))
+                          else cnm, t
                   | _ as t -> (raise (Failure("Can't assign "^
-                               (string_of_type t)^" to "^
-                               (string_of_type (ImageT(nm)))^
-                               ": Invalid image channel for |=")))
+                               (string_of_vdecl t)^" to "^
+                               (string_of_vdecl (ImageT(nm)))^
+                               ": Invalid image channel in |=")))
                 in
                 let chname, chtype = chk_chan_add rhs in
                 let env1 = image_add env (find_image env nm) chname chtype
-                                     false false ""
+                                     false false ("",[])
                                      ((BInt(1),BInt(1)),[[BInt(1)]]) in
                 env1
         in optype rhs op
@@ -154,11 +199,11 @@ let check_assignment env rhs op = function (* passes in LHS *)
             | _ -> (raise (Failure("Internal Error."))) in
         let optype rhs = function
             DefEq -> (raise (Failure("Cannot define "^
-                                     (string_of_type (KernelT(nm)))^
+                                     (string_of_vdecl (KernelT(nm)))^
                                      " with ':='")))
           | Eq -> if not (rhs = KCalcT(kcalc rhs))
-                  then (raise (Failure("Can't assign "^(string_of_type rhs)^
-                                       " to "^(string_of_type (KernelT(nm)))^
+                  then (raise (Failure("Can't assign "^(string_of_vdecl rhs)^
+                                       " to "^(string_of_vdecl (KernelT(nm)))^
                                        ": Kernel = Kernel only!")))
                   else
                     let kc = kcalc rhs in
@@ -168,23 +213,30 @@ let check_assignment env rhs op = function (* passes in LHS *)
                           CalcT(cnm,t) -> [cnm], []
                         | KCalcT(k) -> k.allcalc, k.unusedcalc
                         | _ as t -> (raise (Failure("Can't add "^
-                                             (string_of_type t)^" to "^
-                                             (string_of_type (KernelT(nm)))^
+                                             (string_of_vdecl t)^" to "^
+                                             (string_of_vdecl (KernelT(nm)))^
                                              ": Invalid CalcT!")))
                     in
                     let allC, unusedC = chk_calc_add rhs in
                     let env1 = kcalc_add env nm allC unusedC in
                     env1
         in optype rhs op
-  | CalcT(nm,t) -> 
+  | CalcT(nm,t) ->
         let optype rhs = function
-            Eq -> (raise (Failure("Cannot define "^
-                                     (string_of_type (ImageT(nm)))^
-                                     " with '='")))
-          | OrEq -> (raise (Failure("Cannot define "^
-                                     (string_of_type (ImageT(nm)))^
-                                     " with '|='")))
-          | DefEq -> env
+            DefEq ->
+                let update_calc = function
+                  | ChanMat(m) -> calc_set_matrix env nm m
+                  | CStr(s,idl) -> calc_set_cfunc env nm (s,idl)
+                  | _ as e -> (raise (Failure("Cannot define "^
+                                              (string_of_vdecl (CalcT(nm,t)))^
+                                              " with '"^
+                                              (string_of_vdecl (type_of_expr env e))^"'")))
+                in
+                let env1 = update_calc rhse in
+                env1
+          | _ as op -> (raise (Failure("Cannot define "^
+                                      (string_of_vdecl (CalcT(nm,t)))^
+                                       " with '"^(string_of_op op)^"'")))
         in optype rhs op
   | ConvT(_,_) | KCalcT(_) ->
         (raise (Failure("Can't assign to internal type!")))
@@ -216,18 +268,17 @@ let rec check_expr env = function
   | LitStr(s) -> env, LitStr(s)
   | CStr(s,idl) -> env, CStr(s,idl)
   | KernCalc(k) -> env, KernCalc(k)
-(*
-  | ChanEval(c) -> check_chanref env c false; env, ChanEval(c)
- *)
-  | ChanMat(m) -> if (snd(fst(m)) <> BInt(0)) then 
-			(if let rec equal_rows = function
-				  [_] -> true
-				| hd::tl -> List.length hd = List.length (List.hd tl)
-						&& equal_rows tl in
-				equal_rows (snd m)				 
-			then (env, ChanMat(m))
-			else raise(Failure("Unequal matrix rows")))
-			else raise(Failure("Divide by zero"))
+  | ChanMat(m) -> let denom = (snd (fst m)) in
+                  let matrix = snd m in
+                  if (denom <> BInt(0)) then
+                     let eqrows = List.fold_left
+                                    (fun cols lst -> if List.length lst = cols
+                                       then List.length lst else -1)
+                                    (List.length (List.hd matrix)) matrix
+                     in
+                     if eqrows = -1 then raise (Failure("Unequal matrix rows"))
+                     else env, ChanMat(m)
+                  else raise(Failure("Divide by zero"))
   | ChanRef(c) -> check_chanref env c false; env, ChanRef(c)
   | Convolve(a,b) ->
         let env1, va = check_expr env a in
@@ -237,7 +288,7 @@ let rec check_expr env = function
         let lhs = type_of env i in
         let env1, vexpr = check_expr env v in
         let rhs = type_of_expr env1 vexpr in
-        let env2 = check_assignment env1 rhs op lhs in
+        let env2 = check_assignment env1 rhs vexpr op lhs in
         env2, Assign(i,op,vexpr)
   | ChanAssign(ref,v) ->
         let env1, ve = check_expr env v in
@@ -249,14 +300,14 @@ let rec check_expr env = function
                      CStr(_) | ChanMat(_) -> ref.channel
                    | ChanRef(c) -> c.channel
                    | _ as t -> (raise (Failure("Cannot assign "^
-                                               (string_of_type (type_of_expr
+                                               (string_of_vdecl (type_of_expr
                                                env1 t))^" to "^
                                                ref.image^":"^ref.channel)))
                in
                let get_chandef = function
-                   CStr(s,idl) -> true, s, false, ((BInt(1),BInt(1)),[[BInt(1)]])
-                 | ChanMat(m) -> true, "", true, m
-                 | _ -> false, "", false, ((BInt(1),BInt(1)),[[BInt(1)]])
+                   CStr(s,idl) -> true, (s,idl), false, ((BInt(1),BInt(1)),[[BInt(1)]])
+                 | ChanMat(m) -> true, ("",[]), true, m
+                 | _ -> false, ("",[]), false, ((BInt(1),BInt(1)),[[BInt(1)]])
                in
                let channame = get_channame ve in
                let isvalid, cfuncstr, ismat, cmat = get_chandef ve in
@@ -278,9 +329,9 @@ let rec check_expr env = function
  *)
 let check_stmt env = function
     Expr(e) -> let env1, vexpr = check_expr env e in
-                env1, Expr(vexpr)
+          env1, Expr(vexpr)
   | VDecl(v) -> let env1 = var_add env v in
-                env1, VDecl(v)
+          env1, VDecl(v)
   | VAssign(v,op,e) ->
         (* NOTE: order is important here!
          *       the variable is not declared "in scope" until the end
@@ -289,9 +340,9 @@ let check_stmt env = function
          *)
         let env1, vexpr = check_expr env e in
         let env2 = var_add env v in
-        let lhs = type_of_vdecl v in
+        let lhs = v in
         let rhs = type_of_expr env2 vexpr in
-        let env3 = check_assignment env2 rhs op lhs in
+        let env3 = check_assignment env2 rhs vexpr op lhs in
         env3, VAssign(v, op, vexpr)
 
 (*
@@ -303,7 +354,7 @@ let verify program =
                              check_stmt envO s in env, vstmt :: slist)
     ( {calc = [];
        images = [];
-       kernels = []}, [] ) (List.rev program))
+       kernels = []}, [] ) program)
   in
   venv, (List.rev vslist)
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-TEST_DESC="Calc declared but not defined"
+TEST_DESC="Calc defined after it has been declared"
 . _buildup.sh
 
 # This will compile the test CLAM source file
