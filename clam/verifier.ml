@@ -176,7 +176,16 @@ let check_assignment env rhs op = function (* passes in LHS *)
                     let env1 = kcalc_add env nm allC unusedC in
                     env1
         in optype rhs op
-  | CalcT(nm,t) -> env
+  | CalcT(nm,t) -> 
+        let optype rhs = function
+            Eq -> (raise (Failure("Cannot define "^
+                                     (string_of_type (ImageT(nm)))^
+                                     " with '='")))
+          | OrEq -> (raise (Failure("Cannot define "^
+                                     (string_of_type (ImageT(nm)))^
+                                     " with '|='")))
+          | DefEq -> env
+        in optype rhs op
   | ConvT(_,_) | KCalcT(_) ->
         (raise (Failure("Can't assign to internal type!")))
   | StrT(t,s) -> (raise (Failure("Can't assign to a string: '"^s^"'")))
