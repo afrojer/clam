@@ -41,6 +41,7 @@ let type_of_vexpr = function
   | ChanRefEx(e) -> ChanRefType
   | FilenameEx(f) -> FilenameType
   | FormatEx(f) -> FormatType
+  | ImgWriteEx(im,f,fi) -> VoidType
   | Debug(s) -> print_endline("XXX: pretending Debug is a type CalcType(Unknown)"); CalcType(Unknown)
 
 
@@ -52,10 +53,25 @@ let string_of_vdecl = function
   | ConvT(e1,e2)-> raise(Failure("Convolution does not have an associated identifier string")) 
 
 
+
 (*
  * Recursive Checking Functions
  *)
 
+(* Returns: filenameId *)
+let check_filenameId_expr = function
+    Integer(bi) -> let ix = match bi with BInt(i) -> i in Arg(ix)
+  | LitStr(s) -> Const(s)
+  | _ -> raise(Failure("Filenames can only be a string or an integer"))
+
+(* Returns fmtType *)
+let check_format_expr = function
+    LitStr(s) -> (match s with
+        "png" -> Png
+      | _ -> raise(Failure("Unknown image format: " ^ s))
+    )
+  | _ -> raise(Failure("Image format must be specified as a string literal"))
+  
 (* Returns: vExpr *)
 let check_id s =
   let typ = env_type_of_ident scope s in
@@ -67,8 +83,9 @@ let check_id s =
   
 (* Returns: CMatrix *)
 let check_mat m =
-  (* TODO: Check to make sure matrix is Okay *)
+  (* TODO: Check to make sure matrix is Okay? *)
   CMatrix(m)
+
 
 
 (* Returns: chanRefId *)
@@ -82,8 +99,42 @@ let check_chanRefId ch =
   ( { iid = ch.image }, { cid = ch.channel } )
 
 
+(* Returns: vExpr *)
+let check_imgread elist =
+  match elist with
+      raw_arg :: [] -> (
+        let fileId = check_filenameId_expr raw_arg in
+          ImageEx(ImRead(fileId))
+      )
+    | _ -> raise(Failure("Wrong number of arguments supplied to imgread function"))
+    
+    
+    
+
+(* Returns: vExpr *)
+let rec check_libf libf elist =
+  match libf with
+     ImgRead -> check_imgread elist
+   | ImgWrite -> check_imgwrite elist
+
+(* Returns: vExpr *)
+and check_imgwrite elist =
+  match elist with
+      img_expr :: raw_format :: raw_filename :: [] -> (
+        let imgEx =
+          let vexpr = check_expr img_expr in
+            match vexpr with
+                ImageEx(imgExpr) -> imgExpr
+              | _ -> raise(Failure("1st argument to ImgWrite must be an Image expression"))
+        in
+        let fmt = check_format_expr raw_format in
+          let file = check_filenameId_expr raw_filename in
+            ImgWriteEx(imgEx, fmt, file)
+      )
+    | _ -> raise(Failure("Wrong number of arguments supplied to imgwrite function"))
+
 (* Returns: ImConv *)
-let rec check_conv e1 e2 =
+and check_conv e1 e2 =
   let ve1 = check_expr e1 in
     let ve2 = check_expr e2 in
       let chrefId = (match ve1 with
@@ -133,9 +184,9 @@ and check_expr = function
                                   ChanRefEx(cve) -> ChanRefEx(ChanChain({ch_lhs = chId; ch_rhs = cve;}))
                                 | _ -> raise(Failure("Must assign Channel to a channel type"))
                          )
- (* TODO: Verify every type of expression *)
-  | _ -> Debug("Unhandled Expression")
-
+  | LibCall(libf, elist) -> check_libf libf elist
+  | _ -> raise(Failure("Encountered AST Expression node that we didnt know how to verify"))
+      
 let check_eq_assign s e =
   let vexpr = check_expr e in
     env_assign scope s (type_of_vexpr vexpr);

@@ -82,7 +82,9 @@ type vExpr =
   | ChanRefEx of chanRefEx
   | FilenameEx of filenameId
   | FormatEx of fmtType
+  | ImgWriteEx of imgEx * fmtType * filenameId
   | Debug of string
+ 
 
 type vastRoot = vExpr list
 
