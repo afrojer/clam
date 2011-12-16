@@ -164,17 +164,20 @@ and check_expr = function
   | ChanRef(ch) -> ChanRefEx(ChanIdent(check_chanRefId ch))
   | Convolve(e1,e2) -> ImageEx(check_conv e1 e2)
   | Assign(s,op,e) -> (match (env_type_of_ident scope s) with
-                           CalcType(t) -> (let ve = check_expr e in match ve with
-                                              CalcEx(calcEx) -> CalcEx(CChain({ c_lhs = {cid = s}; c_rhs = calcEx; }))
-                                            | _ -> raise(Failure("Must assign Calc type to calc identifier"))
+                           CalcType(t) -> (env_assign scope s (CalcType t);
+                                           let ve = check_expr e in match ve with
+                                               CalcEx(calcEx) -> CalcEx(CChain({ c_lhs = {cid = s}; c_rhs = calcEx; }))
+                                             | _ -> raise(Failure("Must assign Calc type to calc identifier"))
                                           )
-                         | KernelType  -> (let ve = check_expr e in match ve with
-                                              KernelEx(kernEx) -> KernelEx(KChain({ k_lhs = {kid = s}; k_rhs = kernEx; }))
-                                            | _ -> raise(Failure("Must assign Kernel type to kernel identifier"))
+                         | KernelType  -> (env_assign scope s KernelType;
+                                           let ve = check_expr e in match ve with
+                                               KernelEx(kernEx) -> KernelEx(KChain({ k_lhs = {kid = s}; k_rhs = kernEx; }))
+                                             | _ -> raise(Failure("Must assign Kernel type to kernel identifier"))
                                           )
-                         | ImageType   -> (let ve = check_expr e in match ve with
-                                              ImageEx(imgEx) -> ImageEx(ImChain({ i_lhs = {iid = s}; i_rhs = imgEx; }))
-                                            | _ -> raise(Failure("Must assign Image type to image identifier"))
+                         | ImageType   -> (env_assign scope s ImageType;
+                                           let ve = check_expr e in match ve with
+                                               ImageEx(imgEx) -> ImageEx(ImChain({ i_lhs = {iid = s}; i_rhs = imgEx; }))
+                                             | _ -> raise(Failure("Must assign Image type to image identifier"))
                                           )
                          | _ -> raise(Failure("Identifier claims to be an impossible data type"))
                       )
@@ -205,7 +208,7 @@ let check_assign s op e =
     | DefEq -> check_def_assign s e
 
 let check_vdecl = function
-    ImageT(s)  -> print_env !scope; env_declare scope s ImageType; Debug("Declare Image")
+    ImageT(s)  -> env_declare scope s ImageType; Debug("Declare Image")
   | KernelT(s) -> env_declare scope s KernelType; Debug("Declare Kernel")
   | CalcT(s,t) -> env_declare scope s (CalcType(t)); Debug("Declare Calc")
   | _ -> raise(Failure("A variable declaration did not have a recognizable type"))

@@ -13,9 +13,10 @@
 
 open Vast
 
+(* Retrieve type of an identifier *)
 let env_type_of_ident ref_env s =
   let env = !ref_env in
-    let matches idT = (s == idT.id) in
+    let matches idT = (s = idT.id) in
       try
         let id = List.find matches env.ids in
           id.typ
@@ -23,30 +24,55 @@ let env_type_of_ident ref_env s =
  
   
 
-let env_exists ref_env ident_string typ =
-  print_endline("Cant yet check if id " ^ ident_string ^ " exists")
-
-
-(* Check a variable assignment *)
-(* If it exists, mark the assigned variable as initialized *)
-let env_assign ref_env ident_string typ =
+let do_env_exists ref_env ident_string typ is_lvalue =
   let env = !ref_env in
     let fold_ids (ids, is_found) next_id =
       if (next_id.id = ident_string) then
         if (next_id.typ = typ) then
-          let next_id = { id = next_id.id; typ = typ; init = true; chans = next_id.chans; } in (next_id :: ids, true)
+          let next_id = { id = next_id.id; typ = typ; init = (is_lvalue || next_id.init); chans = next_id.chans; } in (next_id :: ids, true)
         else
-          raise(Failure("Assigning identifier " ^ ident_string ^ " (" ^ (Printer.string_of_type next_id.typ) ^ ") to an expression of type " ^ (Printer.string_of_type typ)))
+          raise(Failure("Assigning identifier " ^ ident_string ^ " (" ^ (Printer.string_of_type next_id.typ) ^ ") assigned to " ^
+                        "an expression of type " ^ (Printer.string_of_type typ)))
       else
         (next_id :: ids, is_found)
     in
-    Printer.print_env env;
     let (new_ids, is_found) = List.fold_left fold_ids ([], false) env.ids in
       if not is_found then
-        raise(Failure("Assignment to undeclared variable: " ^ ident_string))
+        raise(Failure("Identifier not declared: " ^ ident_string))
       else
         ref_env.contents <- { ids = new_ids; }
+
+
+(* Check Identifier for use as an L-value *)
+(* If it exists, mark the assigned variable as initialized *)
+let env_assign ref_env ident_string typ =
+  do_env_exists ref_env ident_string typ true
  
+(* Check Identifier for use as an R-value *)
+let env_exists ref_env ident_string typ =
+  do_env_exists ref_env ident_string typ false
+
+let env_exists_chan ref_env ch =
+  print_endline("cant yet verify channel exists")
+
+let env_assign_chan ref_env ch =
+  print_endline("cant yet verify channel assignment")
+
+(* Declare a variable name. *)
+(* Add it to our list of identifiers, and if it is an image, add it to the list of images *)
+let env_declare ref_env ident_string typ =
+  let matches = fun idT -> (idT.id = ident_string) in
+    let env = !ref_env in
+      if (List.exists matches env.ids) then
+        (raise(Failure("Identifier " ^ ident_string ^ " was declared twice.")))
+      else
+        let new_ids =
+          ({ id = ident_string; typ = typ; init = false; chans = []; } :: env.ids)
+        in
+        ref_env.contents <- { ids = new_ids; }
+      
+
+
 (*
 (* Check a channel assignment *)
 (* Add the channel to the image's list of channels *)
@@ -69,25 +95,3 @@ let assign_chan env img_ident chan_ident =
       env
     )
 *)
-
-let env_exists_chan ref_env ch =
-  print_endline("cant yet verify channel exists")
-
-let env_assign_chan ref_env ch =
-  print_endline("cant yet verify channel assignment")
-
-(* Declare a variable name. *)
-(* Add it to our list of identifiers, and if it is an image, add it to the list of images *)
-let env_declare ref_env ident_string typ =
-  let matches = fun idT -> (idT.id == ident_string) in
-    let env = !ref_env in
-      if (List.exists matches env.ids) then
-        (raise(Failure("Identifier " ^ ident_string ^ " was declared twice.")))
-      else
-        let new_ids =
-          ({ id = ident_string; typ = typ; init = false; chans = []; } :: env.ids)
-        in
-        ref_env.contents <- { ids = new_ids; }
-      
-
-
