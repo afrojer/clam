@@ -7,7 +7,7 @@ OUT_BIN = *.out
 ML_TOP   = clam.ml
 
 # The rest of the source files
-ML_SRC   = env.ml environ.ml clamsys.ml backend.ml parse_util.ml verifier.ml semantic.ml printer.ml
+ML_SRC   = env.ml clamsys.ml backend.ml parse_util.ml semantic.ml printer.ml
 ML_INC   = ast.mli sast.mli
 LEX_SRC  = scanner.mll
 YACC_SRC = parser.mly
