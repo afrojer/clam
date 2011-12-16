@@ -26,15 +26,17 @@ open Printer
  *   5) Return (ENV, VAST)
  *)
 
+exception SemanticFailure of string
+
 let scope = ref { venv = { calc = []; images = []; kernels = [] }; }
 
 let type_of_vdecl = function
     ImageT(s) -> ImageType
   | KernelT(s) -> KernelType
-  | KCalcT(kc) -> raise(Failure("Kernel Calc does not have an associated type. Does this VDecl even exist!?"))
+  | KCalcT(kc) -> raise(SemanticFailure("Kernel Calc does not have an associated type. Does this VDecl even exist!?"))
   | ConvT(e1,e2)-> ImageType
   | CalcT(s,t) -> CalcType(t)
-  | _ -> raise(Failure("Invalid use of internal type."))
+  | _ -> raise(SemanticFailure("Invalid use of internal type."))
 
 let type_of_vexpr = function
     CalcEx(e) -> CalcType(Unknown) (* XXX: We have problems in how we handle the atomic types of Calcs *)
@@ -51,9 +53,9 @@ let ident_of_vdecl = function
     ImageT(s) -> s
   | CalcT(s,t) -> s
   | KernelT(s) -> s
-  | KCalcT(kc) -> raise(Failure("Kernel Calc does not have an associated identifier string"))
-  | ConvT(e1,e2)-> raise(Failure("Convolution does not have an associated identifier string"))
-  | _ -> raise(Failure("Invalid use of internal type!"))
+  | KCalcT(kc) -> raise(SemanticFailure("Kernel Calc does not have an associated identifier string"))
+  | ConvT(e1,e2)-> raise(SemanticFailure("Convolution does not have an associated identifier string"))
+  | _ -> raise(SemanticFailure("Invalid use of internal type!"))
 
 let type_of_ident scope s = 
   type_of_vdecl (Environ.type_of !scope.venv s)
@@ -70,15 +72,15 @@ let int_of_BInt = function
 let filenameId_of_expr = function
     Integer(bi) -> let i = int_of_BInt(bi) in Arg(i)
   | LitStr(s) -> Const(s)
-  | _ -> raise(Failure("Filenames can only be a string or an integer"))
+  | _ -> raise(SemanticFailure("Filenames can only be a string or an integer"))
 
 (* Returns fmtType *)
 let fmtType_of_expr = function
     LitStr(s) -> (match s with
         "png" -> Png
-      | _ -> raise(Failure("Unknown image format: " ^ s))
+      | _ -> raise(SemanticFailure("Unknown image format: " ^ s))
     )
-  | _ -> raise(Failure("Image format must be specified as a string literal"))
+  | _ -> raise(SemanticFailure("Image format must be specified as a string literal"))
 
 (* Returns: vExpr *)
 let trans_id s =
@@ -87,7 +89,7 @@ let trans_id s =
         CalcType(t) -> CalcEx(CIdent({ cid = s; }))
       | KernelType  -> KernelEx(KIdent({ kid = s; }))
       | ImageType   -> ImageEx(ImIdent({ iid = s; }))
-      | _ -> raise(Failure("Environment claimed identifier was non-standard type"))
+      | _ -> raise(SemanticFailure("Environment claimed identifier was non-standard type"))
 
 (* Returns: CMatrix *)
 let trans_mat m =
@@ -95,10 +97,10 @@ let trans_mat m =
     let num = int_of_BInt bNum in
     let den = int_of_BInt bDen in
     let colRow = List.map (List.map int_of_BInt) bColRow in
-    let _ = if (den = 0) then raise(Failure("Division by zero in matrix denominator"))
+    let _ = if (den = 0) then raise(SemanticFailure("Division by zero in matrix denominator"))
       else match (List.map List.length colRow) with
-          [] -> raise(Failure("Cannot have an empty matrix"))
-        | hd :: tl -> List.fold_left (fun x y -> if (x = y && x > 0) then x else raise(Failure("Uneven matrix row lengths"))) hd tl
+          [] -> raise(SemanticFailure("Cannot have an empty matrix"))
+        | hd :: tl -> List.fold_left (fun x y -> if (x = y && x > 0) then x else raise(SemanticFailure("Uneven matrix row lengths"))) hd tl
     in
     CMatrix((num, den), colRow)
 
@@ -128,13 +130,13 @@ and trans_imgwrite elist =
           let vexpr = trans_expr img_expr in
             match vexpr with
                 ImageEx(imgExpr) -> imgExpr
-              | _ -> raise(Failure("1st argument to ImgWrite must be an Image expression"))
+              | _ -> raise(SemanticFailure("1st argument to ImgWrite must be an Image expression"))
         in
         let fmt = fmtType_of_expr raw_format in
           let file = filenameId_of_expr raw_filename in
             ImgWriteEx(imgEx, fmt, file)
       )
-    | _ -> raise(Failure("Wrong number of arguments supplied to imgwrite function"))
+    | _ -> raise(SemanticFailure("Wrong number of arguments supplied to imgwrite function"))
 
 (* Returns: ImConv *)
 and trans_conv e1 e2 =
@@ -143,19 +145,19 @@ and trans_conv e1 e2 =
       let chrefId = (match ve1 with
           ChanRefEx(cv) -> (match cv with
                                 ChanIdent(cid) -> cid
-                              | ChanChain(ca) -> raise(Failure("Must supply a channel identifier to a convolve operation"))
+                              | ChanChain(ca) -> raise(SemanticFailure("Must supply a channel identifier to a convolve operation"))
                            )
-        | _ -> raise(Failure("Convolutions must have a ChanRef on the left-hand side"))
+        | _ -> raise(SemanticFailure("Convolutions must have a ChanRef on the left-hand side"))
         )
       in
       let kernEx = match ve2 with
           KernelEx(ke) -> (match ke with
-                               KCalcList(cids) -> raise(Failure("Cannot convolve with an unnamed Kernel"))
+                               KCalcList(cids) -> raise(SemanticFailure("Cannot convolve with an unnamed Kernel"))
                              | KChain(ka) -> ke
                              | KAppend(ka) -> ke
                              | KIdent(kid) -> ke
                           )
-        | _ -> raise(Failure("Convolutions must have a kernel on the right-hand side"))
+        | _ -> raise(SemanticFailure("Convolutions must have a kernel on the right-hand side"))
       in
       ImConv(chrefId, kernEx)
 
@@ -170,26 +172,26 @@ and trans_expr = function
   | Assign(s,op,e) -> (match (type_of_ident scope s) with
                            CalcType(t) -> (let ve = trans_expr e in match ve with
                                                CalcEx(calcEx) -> CalcEx(CChain({ c_lhs = {cid = s}; c_rhs = calcEx; }))
-                                             | _ -> raise(Failure("Must assign Calc type to calc identifier"))
+                                             | _ -> raise(SemanticFailure("Must assign Calc type to calc identifier"))
                                           )
                          | KernelType  -> (let ve = trans_expr e in match ve with
                                                KernelEx(kernEx) -> KernelEx(KChain({ k_lhs = {kid = s}; k_rhs = kernEx; }))
-                                             | _ -> raise(Failure("Must assign Kernel type to kernel identifier"))
+                                             | _ -> raise(SemanticFailure("Must assign Kernel type to kernel identifier"))
                                           )
                          | ImageType   -> (let ve = trans_expr e in match ve with
                                                ImageEx(imgEx) -> ImageEx(ImChain({ i_lhs = {iid = s}; i_rhs = imgEx; }))
-                                             | _ -> raise(Failure("Must assign Image type to image identifier"))
+                                             | _ -> raise(SemanticFailure("Must assign Image type to image identifier"))
                                           )
-                         | _ -> raise(Failure("Identifier claims to be an impossible data type"))
+                         | _ -> raise(SemanticFailure("Identifier claims to be an impossible data type"))
                       )
   | ChanAssign(ch, e) -> (let chId = trans_chanRefIdLval ch in
                             let ve = trans_expr e in
                               match ve with
                                   ChanRefEx(cve) -> ChanRefEx(ChanChain({ch_lhs = chId; ch_rhs = cve;}))
-                                | _ -> raise(Failure("Must assign Channel to a channel type"))
+                                | _ -> raise(SemanticFailure("Must assign Channel to a channel type"))
                          )
   | LibCall(libf, elist) -> trans_libf libf elist
-  | _ -> raise(Failure("Encountered AST Expression node that we didnt know how to verify"))
+  | _ -> raise(SemanticFailure("Encountered AST Expression node that we didnt know how to verify"))
 
 let trans_eq_assign s e =
   let _ = trans_expr e in
@@ -202,15 +204,15 @@ let trans_or_assign s e =
         CalcEx(c) -> (match (type_of_ident scope s) with
                   KernelType -> KernelEx(KAppend({ ka_lhs = { kid = s }; ka_rhs = c; }))
                 | ImageType -> ImageEx(ImAppend({ ia_lhs = { iid = s }; ia_rhs = c; }))
-                | _ -> raise(Failure("OrEq operation must have Kernel or Image as its L-Value"))
+                | _ -> raise(SemanticFailure("OrEq operation must have Kernel or Image as its L-Value"))
               )
-      | _ -> raise(Failure("Unexpected expression is an R-Value for OrEq operation"))
+      | _ -> raise(SemanticFailure("Unexpected expression is an R-Value for OrEq operation"))
 
 
 (* Returns: vExpr *)
 let trans_def_assign s e = match (trans_expr e) with
     CalcEx(cexp) -> CalcEx(CChain({ c_lhs = { cid=s }; c_rhs = cexp; }))
-  | _ -> raise(Failure("DefEq to something not a Calc expression"))
+  | _ -> raise(SemanticFailure("DefEq to something not a Calc expression"))
 
 (* Returns: vExpr *)
 let trans_assign s op e =
@@ -223,7 +225,7 @@ let trans_vdecl = function
     ImageT(s)  -> Debug("Declare Image")
   | KernelT(s) -> Debug("Declare Kernel")
   | CalcT(s,t) -> Debug("Declare Calc")
-  | _ -> raise(Failure("A variable declaration did not have a recognizable type"))
+  | _ -> raise(SemanticFailure("A variable declaration did not have a recognizable type"))
 
 (* Returns: vExpr *)
 let trans_action_expr = function
