@@ -87,6 +87,12 @@ let calc_ismat env nm =
               env.calc)
   in cval.cismat
 
+let calc_isvalid env nm =
+  let cval = (List.find
+              (fun c -> if c.cname = nm then true else false)
+              env.calc)
+  in cval.cisvalid
+
 (*
  * Add a channel to the specified image
  * (the caller needs to initialize most of the member variables)
@@ -164,12 +170,18 @@ let check_assignment env rhs rhse op = function (* passes in LHS *)
           | OrEq ->
                 let chk_chan_add = function
                     CalcT(cnm,t) ->
-                        let ismat = calc_ismat env cnm in
-                        if ismat then
-                          (raise (Failure("Can't assign a matrix "^
+                        let isvalid = calc_isvalid env cnm in
+                        if not isvalid then
+                          (raise (Failure("Can't assign an un-initialized "^
                                           "calculation '"^
-                                          cnm^"' to an image channel")))
-                        else cnm, t
+                                          cnm^ "' as an image channel")))
+                        else
+                          let ismat = calc_ismat env cnm in
+                          if ismat then
+                            (raise (Failure("Can't assign a matrix "^
+                                            "calculation '"^
+                                            cnm^"' to an image channel")))
+                          else cnm, t
                   | _ as t -> (raise (Failure("Can't assign "^
                                (string_of_type t)^" to "^
                                (string_of_type (ImageT(nm)))^
