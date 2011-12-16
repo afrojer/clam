@@ -1,0 +1,7 @@
+Image a;
+
+Calc c := #[0]#;
+
+a |= c;
+
+imgwrite(a, "png", "output.png");

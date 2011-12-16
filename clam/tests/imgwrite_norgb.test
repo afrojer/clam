@@ -1,0 +1,15 @@
+#!/bin/bash
+TEST_DESC="imgwrite without RGB channels"
+. _buildup.sh
+
+compile_it
+if [ $ERRORS -eq 0 ]; then
+	ERRORS=1
+	error "Wrote image without RGB channels"
+else
+	# we purposely succeed b/c this test was
+	# designed to fail!
+	ERRORS=0
+fi
+
+. _breakdown.sh
