@@ -13,6 +13,15 @@
 
 open Vast
 
+let env_type_of_ident ref_env s =
+  let env = !ref_env in
+    let matches idT = (s == idT.id) in
+      try
+        let id = List.find matches env.ids in
+          id.typ
+      with Not_found -> raise(Failure("Undefined Identifier: " ^ s))
+ 
+  
 
 (* Check a variable assignment *)
 (* If it exists, mark the assigned variable as initialized *)

@@ -35,12 +35,13 @@ let type_of_vdecl = function
   | CalcT(s,t) -> CalcType(t)
 
 let type_of_vexpr = function
-    CalcEx(e) -> CalcType(Unknown) (* XXX: We have big problems in how we handle the atomic types of Calcs *)
+    CalcEx(e) -> CalcType(Unknown) (* XXX: We have problems in how we handle the atomic types of Calcs *)
   | KernelEx(e) -> KernelType
   | ImageEx(e) -> ImageType
   | ChanRefEx(e) -> ChanRefType
   | FilenameEx(f) -> FilenameType
   | FormatEx(f) -> FormatType
+  | Debug(s) -> print_endline("XXX: pretending Debug is a type CalcType(Unknown)"); CalcType(Unknown)
 
 
 let string_of_vdecl = function
@@ -55,8 +56,68 @@ let string_of_vdecl = function
  * Recursive Checking Functions
  *)
 
-let check_expr = function
-  _ -> CalcEx(CRaw("[RawString]", []))
+(* Returns: vExpr *)
+let check_id s =
+  let typ = env_type_of_ident scope s in
+    match typ with
+        CalcType(t) -> CalcEx(CIdent({ cid = s; }))
+      | KernelType  -> KernelEx(KIdent({ kid = s; }))
+      | ImageType   -> ImageEx(ImIdent({ iid = s; }))
+      | _ -> raise(Failure("Environment claimed identifier was non-standard type"))
+  
+(* Returns: CMatrix *)
+let check_mat m =
+  (* TODO: Check to make sure matrix is Okay *)
+  CMatrix(m)
+
+(* Returns: ImConv *)
+let rec check_conv e1 e2 =
+  ImConv( ({ iid = "dumbImg" }, { cid = "dumbCalc" }), KCalcList([]))
+(*
+  let ve1 = check_expr e1 in
+    let ve2 = check_expr e2 in
+      let chrefId = (match ve1 with
+          ChanRefEx(cv) -> (match cv with
+                                ChanIdent(cid) -> cid
+                              | ChanChain(ca) -> raise(Failure("Must supply a channel identifier to a convolve operation"))
+                           )
+        | _ -> raise(Failure("Convolutions must have a ChanRef on the left-hand side"))
+        )
+      in
+      let kernEx = match ve2 with
+          KernelEx(ke) -> (match ke with
+                               KCalcList(cids) -> raise(Failure("Cannot convolve with an unnamed Kernel"))
+                             | KChain(ka) -> ke
+                             | KIdent(kid) -> ke
+                          )
+        | _ -> raise(Failure("Convolutions must have a kernel on the right-hand side"))
+      in
+      ImConv(chrefId, kernEx)
+*)
+
+(* Returns: vExpr *)
+let rec check_expr = function
+    Id(s) -> check_id s
+  | CStr(s,ids) -> CalcEx(CRaw(s, (List.map (fun s -> { cid = s; }) ids)))
+  | ChanMat(m) -> CalcEx(check_mat m)
+  | Convolve(e1,e2) -> ImageEx(check_conv e1 e2)
+  | Assign(s,op,e) -> (match (env_type_of_ident scope s) with
+                           CalcType(t) -> (let ve = check_expr e in match ve with
+                                              CalcEx(calcEx) -> CalcEx(CChain({ c_lhs = {cid = s}; c_rhs = calcEx; }))
+                                            | _ -> raise(Failure("Must assign Calc type to calc identifier"))
+                                          )
+                         | KernelType  -> (let ve = check_expr e in match ve with
+                                              KernelEx(kernEx) -> KernelEx(KChain({ k_lhs = {kid = s}; k_rhs = kernEx; }))
+                                            | _ -> raise(Failure("Must assign Kernel type to kernel identifier"))
+                                          )
+                         | ImageType   -> (let ve = check_expr e in match ve with
+                                              ImageEx(imgEx) -> ImageEx(ImChain({ i_lhs = {iid = s}; i_rhs = imgEx; }))
+                                            | _ -> raise(Failure("Must assign Image type to image identifier"))
+                                          )
+                         | _ -> raise(Failure("Identifier claims to be an impossible data type"))
+                      )
+  | KernCalc(kc) -> KernelEx(KCalcList((List.map (fun x -> {cid = x}) kc.allcalc)))
+  | _ -> Debug("Unhandled Expression")
 
 let check_eq_assign s e =
   let vexpr = check_expr e in

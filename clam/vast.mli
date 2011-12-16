@@ -41,7 +41,7 @@ type chanRefId = imgId * calcId
 type filenameId = Const of string | Arg of int
 
 (* Assignment to a Calc *)
-type calcAssign = { lhs: calcId; rhs: calcEx; }
+type calcAssign = { c_lhs: calcId; c_rhs: calcEx; }
 and calcEx =
     CMatrix of Ast.matrix
   | CRaw of string * calcId list
@@ -49,16 +49,16 @@ and calcEx =
   | CIdent of calcId
 
 (* Assignment to a Kernel *)
-type kernAppend = { lhs: kernId; rhs: calcEx; }
-type kernAssign = { lhs: kernId; rhs: kernEx; }
+type kernAppend = { ka_lhs: kernId; ka_rhs: calcEx; }
+type kernAssign = { k_lhs: kernId; k_rhs: kernEx; }
 and kernEx =
     KCalcList of calcId list
   | KChain of kernAssign
   | KIdent of kernId
 
 (* Assignment to an Image *)
-type imgAppend = { lhs: imgId; rhs: calcEx; }
-type imgAssign = { lhs: imgId; rhs: imgEx; }
+type imgAppend = { ia_lhs: imgId; ia_rhs: calcEx; }
+type imgAssign = { i_lhs: imgId; i_rhs: imgEx; }
 and imgEx =
     ImConv of chanRefId * kernEx
   | ImRead of filenameId
@@ -66,7 +66,7 @@ and imgEx =
   | ImIdent of imgId
 
 (* Assignment to a Channel Reference *)
-type chanAssign = { lhs: chanRefId; rhs: chanRefEx; }
+type chanAssign = { ch_lhs: chanRefId; ch_rhs: chanRefEx; }
 and chanRefEx =
     ChanChain of chanAssign
   | ChanIdent of chanRefId
@@ -82,16 +82,7 @@ type vExpr =
   | ChanRefEx of chanRefEx
   | FilenameEx of filenameId
   | FormatEx of fmtType
-
-type actionItem =
-    CalcAssign of calcAssign
-  | KernAppend of kernAppend
-  | KernAssign of kernAssign
-  | ImgAppend of imgAppend
-  | ImgAssign of imgAssign
-  | DoChanAssign of chanAssign
-  | DoImgWrite of imgWrite
   | Debug of string
 
-type vastRoot = actionItem list
+type vastRoot = vExpr list
 
