@@ -206,20 +206,17 @@ and trans_expr = function
 let trans_eq_assign s e =
   let ve = trans_expr e in
     env_assign scope s (type_of_vexpr ve);
+    (* TODO: Create Sast for '=' operator *)
     Debug("Assign to " ^ s)
 
 let trans_or_assign s e =
   let ve = trans_expr e in
     match ve with
-        CalcEx(c) -> ( match c with
-            CRaw(s,cid) ->
-              (match (env_type_of_ident scope s) with
+        CalcEx(c) -> (match (env_type_of_ident scope s) with
                   KernelType -> KernelEx(KAppend({ ka_lhs = { kid = s }; ka_rhs = c; }))
                 | ImageType -> ImageEx(ImAppend({ ia_lhs = { iid = s }; ia_rhs = c; }))
                 | _ -> raise(Failure("OrEq operation must have Kernel or Image as its L-Value"))
               )
-          | _ -> raise(Failure("Only a CString (in #[...]#) can be used with OrEq"))
-        )
       | _ -> raise(Failure("Unexpected expression is an R-Value for OrEq operation"))
 
 let trans_def_assign s e =
