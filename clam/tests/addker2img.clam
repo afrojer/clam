@@ -1,0 +1,11 @@
+Image imtest;
+
+Calc c1<Uint8> := [1 / 1]{ -1  0 +1 , -2  0 +2 , -1  0 +1 };
+Calc c2<Uint8>:=[1 / 1]{ +1 +2 +1 ,  0  0  0 , -1 -2 -1 };
+
+Kernel k1 = c1 | c2;
+Kernel k2 = c2 | c1;
+
+Kernel ktest;
+
+imtest |= k1 | k2;
