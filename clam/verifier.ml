@@ -176,13 +176,13 @@ let check_assignment env rhs op = function (* passes in LHS *)
                     let env1 = kcalc_add env nm allC unusedC in
                     env1
         in optype rhs op
-  | CalcT(nm,t) -> 
+  | CalcT(nm,t) ->
         let optype rhs = function
             Eq -> (raise (Failure("Cannot define "^
-                                     (string_of_type (ImageT(nm)))^
+                                     (string_of_type (CalcT(nm,t)))^
                                      " with '='")))
           | OrEq -> (raise (Failure("Cannot define "^
-                                     (string_of_type (ImageT(nm)))^
+                                     (string_of_type (CalcT(nm,t)))^
                                      " with '|='")))
           | DefEq -> env
         in optype rhs op
