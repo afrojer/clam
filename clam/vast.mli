@@ -13,10 +13,13 @@
 
 
 (* Environment Objects *)
+type fmtType = Png
 type typeT = CalcType of Ast.atom
            | KernelType
            | ImageType
            | ChanRefType
+           | FilenameType
+           | FormatType
            | VoidType
 type identT = {
   id: string;
@@ -72,6 +75,18 @@ and chanRefEx =
   | ChanIdent of chanRefId
 
 (* Output images *)
-type imgType = Png
-type imgWrite = { im: imgEx; fil: filenameId; otype: imgType; }
+type imgWrite = { im: imgEx; fil: filenameId; fmtType: fmtType; }
+
+
+type actionItem =
+    CalcAssign of calcAssign
+  | KernAppend of kernAppend
+  | KernAssign of kernAssign
+  | ImgAppend of imgAppend
+  | ImgAssign of imgAssign
+  | DoChanAssign of chanAssign
+  | DoImgWrite of imgWrite
+  | Debug of string
+
+type vastRoot = actionItem list
 

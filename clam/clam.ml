@@ -55,8 +55,8 @@ let _ =
                   Parse_util.parse_stdin () else
                   Parse_util.parse_file !clam_srcin in
     let _ = if !(clam_print_ast) then print_endline (Printer.string_of_ast (List.rev program)) else () in
-    let (env, verified_prog) = Verifier.verify program in
-    let c_code = Backend.generate_c env verified_prog in
+    let (env, vast) = Verifier.verify program in
+    let c_code = Backend.generate_c env vast in
     if !(clam_c_only) then
       let ochan = Pervasives.open_out !(clam_c_out) in
       let _ = Pervasives.output_string ochan c_code in

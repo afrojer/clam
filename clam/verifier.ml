@@ -12,9 +12,34 @@
  *)
 
 open Ast
+open Vast
 open Environ
 open Printer
 
+(* Strategy:
+ * check_N ENV N =
+ *   1) Make sure N has the correct child nodes
+ *   2) Check the child nodes
+ *   3) Update the ENV for any effects from N
+ *   4) Create VAST, the vast node that represents N
+ *   5) Return (ENV, VAST)
+ *)
+
+let scope = { ids = []; imgs = []; }
+
+let check_stmt = function
+    Expr(e) -> Debug("Expression")
+  | VDecl(v) -> Debug("Variable Declaration")
+  | VAssign(v,op,e) -> Debug("Variable Declare / Assignment")
+
+let verify ast =
+  let gather nodes stmt = (check_stmt stmt) :: nodes in
+    let nodelist = List.fold_left gather [] ast in
+      (scope, nodelist)
+
+
+
+(*
 (*
  * Find an image by name from the environment
  *)
@@ -291,3 +316,4 @@ let verify program =
   in
   venv, (List.rev vslist)
 
+*)
