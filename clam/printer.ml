@@ -13,7 +13,7 @@
 
 open ExtString
 open Ast
-open Vast
+open Sast
 
 (*
  * Strings that represent CLAM things

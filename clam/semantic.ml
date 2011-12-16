@@ -12,7 +12,7 @@
  *)
 
 open Ast
-open Vast
+open Sast
 open Environ
 open Printer
 
@@ -227,7 +227,7 @@ let check_stmt = function
         check_assign (string_of_vdecl v) op e
     )
 
-let verify ast =
+let translate_ast ast =
   let gather nodes stmt = (check_stmt stmt) :: nodes in
     let nodelist = List.fold_left gather [] ast in
       (!scope, List.rev nodelist)

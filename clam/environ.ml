@@ -12,7 +12,7 @@
  *)
 
 open Ast
-open Vast
+open Sast
 
 type equation_side = LValue | RValue
 
