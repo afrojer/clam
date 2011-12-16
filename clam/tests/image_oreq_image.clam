@@ -1,0 +1,2 @@
+Image s = imgread("ucla.png");
+Image t |= s;
