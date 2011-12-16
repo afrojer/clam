@@ -162,21 +162,7 @@ and trans_expr = function
   | ChanMat(m) -> CalcEx(cMatrix_of_matrix m)
   | ChanRef(ch) -> ChanRefEx(ChanIdent(trans_chanRefId ch))
   | Convolve(e1,e2) -> ImageEx(trans_conv e1 e2)
-  | Assign(s,op,e) -> (match (type_of_ident scope s) with
-                           CalcType(t) -> (let ve = trans_expr e in match ve with
-                                               CalcEx(calcEx) -> CalcEx(CChain({ c_lhs = {cid = s}; c_rhs = calcEx; }))
-                                             | _ -> raise(SemanticFailure("Must assign Calc type to calc identifier"))
-                                          )
-                         | KernelType  -> (let ve = trans_expr e in match ve with
-                                               KernelEx(kernEx) -> KernelEx(KChain({ k_lhs = {kid = s}; k_rhs = kernEx; }))
-                                             | _ -> raise(SemanticFailure("Must assign Kernel type to kernel identifier"))
-                                          )
-                         | ImageType   -> (let ve = trans_expr e in match ve with
-                                               ImageEx(imgEx) -> ImageEx(ImChain({ i_lhs = {iid = s}; i_rhs = imgEx; }))
-                                             | _ -> raise(SemanticFailure("Must assign Image type to image identifier"))
-                                          )
-                         | _ -> raise(SemanticFailure("Identifier claims to be an impossible data type"))
-                      )
+  | Assign(s,op,e) -> trans_assign s op e
   | ChanAssign(ch, e) -> (let chId = trans_chanRefIdLval ch in
                             let ve = trans_expr e in
                               match ve with
@@ -186,12 +172,16 @@ and trans_expr = function
   | LibCall(libf, elist) -> trans_libf libf elist
   | _ -> raise(SemanticFailure("Encountered AST Expression node that we didnt know how to verify"))
 
-let trans_eq_assign s e =
-  let _ = trans_expr e in
-    (* TODO: Create Sast for '=' operator *)
-    Debug("Assign to " ^ s)
+(* Returns: vExpr *)
+and trans_eq_assign s e =
+  let ve = trans_expr e in
+    match (type_of_ident scope s) with
+        CalcType(t) -> (match ve with CalcEx(ce) -> CalcEx(CChain({ c_lhs = {cid = s}; c_rhs = ce; })) | _ -> raise(SemanticFailure("Bad assignment")))
+      | KernelType -> (match ve with KernelEx(ke) -> KernelEx(KChain({ k_lhs = {kid = s}; k_rhs = ke; })) | _ -> raise(SemanticFailure("Bad assignment")))
+      | ImageType -> (match ve with ImageEx(ie) -> ImageEx(ImChain({ i_lhs = {iid = s}; i_rhs = ie; })) | _ -> raise(SemanticFailure("Bad assignment")))
+      | _ -> raise(SemanticFailure("Identifier claims to be an impossible data type"))
 
-let trans_or_assign s e =
+and trans_or_assign s e =
   let ve = trans_expr e in
     match ve with
         CalcEx(c) -> (match (type_of_ident scope s) with
@@ -203,12 +193,12 @@ let trans_or_assign s e =
 
 
 (* Returns: vExpr *)
-let trans_def_assign s e = match (trans_expr e) with
+and trans_def_assign s e = match (trans_expr e) with
     CalcEx(cexp) -> CalcEx(CChain({ c_lhs = { cid=s }; c_rhs = cexp; }))
   | _ -> raise(SemanticFailure("DefEq to something not a Calc expression"))
 
 (* Returns: vExpr *)
-let trans_assign s op e =
+and trans_assign s op e =
   match op with
       Eq -> trans_eq_assign s e
     | OrEq -> trans_or_assign s e
@@ -221,10 +211,10 @@ let trans_vdecl = function
   | _ -> raise(SemanticFailure("A variable declaration did not have a recognizable type"))
 
 (* Returns: vExpr *)
-let trans_action_expr = function
-    Assign(s,op,e) -> trans_assign s op e
-  | ChanAssign(chref,e) -> Debug("ChanAssign")
-  | LibCall(libf,elist) -> Debug("LibCall")
+let trans_action_expr expr = match expr with
+    Assign(s,op,e) -> trans_expr expr
+  | ChanAssign(chref,e) -> trans_expr expr
+  | LibCall(libf,elist) -> trans_expr expr
   | _ -> Debug("Expression result ignored!") (* TODO: Can side effects be hiding in the expression? *)
 
 let trans_stmt = function
