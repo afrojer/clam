@@ -209,10 +209,14 @@ let check_eq_assign s e =
 let check_or_assign s e =
   let ve = check_expr e in
     match ve with
-        CalcEx(c) -> (match (env_type_of_ident scope s) with
-              KernelType -> KernelEx(KAppend({ ka_lhs = { kid = s }; ka_rhs = c; }))
-            | ImageType -> ImageEx(ImAppend({ ia_lhs = { iid = s }; ia_rhs = c; }))
-            | _ -> raise(Failure("OrEq operation must have Kernel or Image as its L-Value"))
+        CalcEx(c) -> ( match c with
+            CRaw(s,cid) ->
+              (match (env_type_of_ident scope s) with
+                  KernelType -> KernelEx(KAppend({ ka_lhs = { kid = s }; ka_rhs = c; }))
+                | ImageType -> ImageEx(ImAppend({ ia_lhs = { iid = s }; ia_rhs = c; }))
+                | _ -> raise(Failure("OrEq operation must have Kernel or Image as its L-Value"))
+              )
+          | _ -> raise(Failure("Only a CString (in #[...]#) can be used with OrEq"))
         )
       | _ -> raise(Failure("Unexpected expression is an R-Value for OrEq operation"))
 
