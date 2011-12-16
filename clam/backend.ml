@@ -12,7 +12,6 @@
  *)
 
 open String
-open Env
 open Ast
 open Sast
 
@@ -20,21 +19,18 @@ open Sast
 let fold_c c_of_x =
   List.fold_left (fun src x -> src ^ (c_of_x x)) ""
 
-let c_of_idT idT =
-  "/* Declare: '" ^ idT.id ^ "' of type " ^ (Printer.string_of_type idT.typ) ^ ": " ^ (if idT.init then "Used" else "Unused") ^ " */\n"
- 
 
-let c_of_env env =
-  fold_c c_of_idT env.ids
+let c_of_scope scope =
+  "/* TODO: C for Declaration of stuff we collected from the environment */\n"
   
 
 let c_of_aItem = function
     Debug(s) -> "/* DEBUG: " ^ s ^ " */\n"
   | _ -> "/* ACTION ITEM */\n"
 
-let generate_c env vast =
+let generate_c scope vast =
   "/* Generated Environment C */\n" ^
-  (c_of_env env) ^
+  (c_of_scope scope) ^
   "/* Generated Syntax Tree C */\n" ^
   "int main(int argc, char **argv) {\n" ^
   (fold_c c_of_aItem vast) ^

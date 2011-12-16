@@ -13,6 +13,7 @@
 
 open ExtString
 open Ast
+open Envtypes
 open Sast
 
 (*
@@ -79,18 +80,13 @@ let print_clamerr = function
 (*
  * Environment Printing
  *)
-let string_of_id idT =
-  "  * " ^ idT.id ^ " of " ^ (string_of_type idT.typ) ^
-  " [init=" ^ (string_of_bool idT.init) ^ "; chans=" ^ (
-    List.fold_left (^) "" (List.map (fun x -> x^";") idT.chans)
-  ) ^ "]\n"
+let string_of_scope scope =
+  let _ = scope.venv in
+    "Environment:\n" ^
+    "  Printer not implemented\n"
 
-let string_of_env env =
-  "Environment:\n" ^
-  (List.fold_left (^) "" (List.map string_of_id env.ids))
-
-let print_env env =
-  print_endline (string_of_env env)
+let print_scope scope =
+  print_endline (string_of_scope scope)
 
 (*
  * CLAM AST Printing
