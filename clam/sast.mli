@@ -13,6 +13,7 @@
 
 
 (* Environment Objects *)
+type sMatrix = (int * int) * int list list
 type fmtType = Png
 type typeT = CalcType of Ast.atom
            | KernelType
@@ -43,7 +44,7 @@ type filenameId = Const of string | Arg of int
 (* Assignment to a Calc *)
 type calcAssign = { c_lhs: calcId; c_rhs: calcEx; }
 and calcEx =
-    CMatrix of Ast.matrix
+    CMatrix of sMatrix
   | CRaw of string * calcId list
   | CChain of calcAssign
   | CIdent of calcId
@@ -54,6 +55,7 @@ type kernAssign = { k_lhs: kernId; k_rhs: kernEx; }
 and kernEx =
     KCalcList of calcId list
   | KChain of kernAssign
+  | KAppend of kernAppend
   | KIdent of kernId
 
 (* Assignment to an Image *)
@@ -63,6 +65,7 @@ and imgEx =
     ImConv of chanRefId * kernEx
   | ImRead of filenameId
   | ImChain of imgAssign
+  | ImAppend of imgAppend
   | ImIdent of imgId
 
 (* Assignment to a Channel Reference *)
@@ -70,6 +73,7 @@ type chanAssign = { ch_lhs: chanRefId; ch_rhs: chanRefEx; }
 and chanRefEx =
     ChanChain of chanAssign
   | ChanIdent of chanRefId
+
 
 (* Output images *)
 type imgWrite = { im: imgEx; fil: filenameId; fmtType: fmtType; }

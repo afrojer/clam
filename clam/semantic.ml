@@ -52,6 +52,8 @@ let string_of_vdecl = function
   | KCalcT(kc) -> raise(Failure("Kernel Calc does not have an associated identifier string"))
   | ConvT(e1,e2)-> raise(Failure("Convolution does not have an associated identifier string")) 
 
+let int_of_BInt = function
+  BInt(i) -> i
 
 
 (*
@@ -83,8 +85,16 @@ let check_id s =
   
 (* Returns: CMatrix *)
 let check_mat m =
-  (* TODO: Check to make sure matrix is Okay? *)
-  CMatrix(m)
+  let ((bNum, bDen), bColRow) = m in
+    let num = int_of_BInt bNum in
+    let den = int_of_BInt bDen in
+    let colRow = List.map (List.map int_of_BInt) bColRow in
+    let _ = if (den = 0) then raise(Failure("Division by zero in matrix denominator"))
+      else match (List.map List.length colRow) with
+          [] -> raise(Failure("Cannot have an empty matrix"))
+        | hd :: tl -> List.fold_left (fun x y -> if (x = y && x > 0) then x else raise(Failure("Uneven matrix row lengths"))) hd tl
+    in
+    CMatrix((num, den), colRow)
 
 
 
@@ -149,6 +159,7 @@ and check_conv e1 e2 =
           KernelEx(ke) -> (match ke with
                                KCalcList(cids) -> raise(Failure("Cannot convolve with an unnamed Kernel"))
                              | KChain(ka) -> ke
+                             | KAppend(ka) -> ke
                              | KIdent(kid) -> ke
                           )
         | _ -> raise(Failure("Convolutions must have a kernel on the right-hand side"))
@@ -191,15 +202,25 @@ and check_expr = function
   | _ -> raise(Failure("Encountered AST Expression node that we didnt know how to verify"))
       
 let check_eq_assign s e =
-  let vexpr = check_expr e in
-    env_assign scope s (type_of_vexpr vexpr);
+  let ve = check_expr e in
+    env_assign scope s (type_of_vexpr ve);
     Debug("Assign to " ^ s)
 
 let check_or_assign s e =
-  Debug("OrAssign to " ^ s)
+  let ve = check_expr e in
+    match ve with
+        CalcEx(c) -> (match (env_type_of_ident scope s) with
+              KernelType -> KernelEx(KAppend({ ka_lhs = { kid = s }; ka_rhs = c; }))
+            | ImageType -> ImageEx(ImAppend({ ia_lhs = { iid = s }; ia_rhs = c; }))
+            | _ -> raise(Failure("OrEq operation must have Kernel or Image as its L-Value"))
+        )
+      | _ -> raise(Failure("Unexpected expression is an R-Value for OrEq operation"))
 
 let check_def_assign s e =
-  Debug("DefAssign to " ^ s)
+  let ve = check_expr e in
+    match ve with
+        CalcEx(c) -> env_assign scope s (type_of_vexpr ve); CalcEx(c)
+      | _ -> raise(Failure("Can only DefAssign a Calc"))
 
 let check_assign s op e =
   match op with

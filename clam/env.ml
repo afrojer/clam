@@ -56,6 +56,17 @@ let do_env_exists ref_env ident_string typ eq_side =
                }
           in
           (next_id :: ids, true)
+        else if ((match next_id.typ with CalcType(t) -> true | _ -> false) && (typ = CalcType(Unknown))) then
+          let next_id = 
+            let new_init = next_id.init || match eq_side with LValue -> true | RValue -> false in
+               {
+                 id = next_id.id;
+                 typ = typ;
+                 init = new_init;
+                 chans = next_id.chans;
+               }
+          in
+          (next_id :: ids, true)
         else
           raise(Failure("Assigning identifier " ^ ident_string ^ " (" ^ (Printer.string_of_type next_id.typ) ^ ") assigned to " ^
                         "an expression of type " ^ (Printer.string_of_type typ)))
