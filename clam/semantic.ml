@@ -43,8 +43,6 @@ let type_of_vexpr = function
   | KernelEx(e) -> KernelType
   | ImageEx(e) -> ImageType
   | ChanRefEx(e) -> ChanRefType
-  | FilenameEx(f) -> FilenameType
-  | FormatEx(f) -> FormatType
   | ImgWriteEx(im,f,fi) -> VoidType
   | Debug(s) -> print_endline("XXX: pretending Debug is a type CalcType(Unknown)"); CalcType(Unknown)
 
@@ -92,17 +90,12 @@ let trans_id s =
       | _ -> raise(SemanticFailure("Environment claimed identifier was non-standard type"))
 
 (* Returns: CMatrix *)
-let trans_mat m =
+let cMatrix_of_matrix m =
   let ((bNum, bDen), bColRow) = m in
     let num = int_of_BInt bNum in
     let den = int_of_BInt bDen in
     let colRow = List.map (List.map int_of_BInt) bColRow in
-    let _ = if (den = 0) then raise(SemanticFailure("Division by zero in matrix denominator"))
-      else match (List.map List.length colRow) with
-          [] -> raise(SemanticFailure("Cannot have an empty matrix"))
-        | hd :: tl -> List.fold_left (fun x y -> if (x = y && x > 0) then x else raise(SemanticFailure("Uneven matrix row lengths"))) hd tl
-    in
-    CMatrix((num, den), colRow)
+      CMatrix((num, den), colRow)
 
 
 
@@ -115,28 +108,25 @@ let trans_chanRefId ch = ( { iid = ch.image }, { cid = ch.channel } )
 (* Returns: vExpr *)
 let trans_imgread elist = ImageEx(ImRead(filenameId_of_expr (List.hd elist)))
 
-
 (* Returns: vExpr *)
-let rec trans_libf libf elist =
-  match libf with
-     ImgRead -> trans_imgread elist
-   | ImgWrite -> trans_imgwrite elist
-
-(* Returns: vExpr *)
-and trans_imgwrite elist =
+let rec imgwrite_of_elist elist =
   match elist with
-      img_expr :: raw_format :: raw_filename :: [] -> (
+      fname_expr :: fmt_expr :: img_expr :: [] -> ( (* Yes. They're in the list backwards. *)
         let imgEx =
-          let vexpr = trans_expr img_expr in
-            match vexpr with
-                ImageEx(imgExpr) -> imgExpr
-              | _ -> raise(SemanticFailure("1st argument to ImgWrite must be an Image expression"))
+          let ve = trans_expr img_expr in
+            match ve with ImageEx(ie) -> ie | _ -> raise(SemanticFailure("ImgWrite not passed an image?"))
         in
-        let fmt = fmtType_of_expr raw_format in
-          let file = filenameId_of_expr raw_filename in
-            ImgWriteEx(imgEx, fmt, file)
+        let fmtType = fmtType_of_expr fmt_expr in
+        let filenameId = filenameId_of_expr fname_expr in
+        ImgWriteEx(imgEx, fmtType, filenameId)
       )
     | _ -> raise(SemanticFailure("Wrong number of arguments supplied to imgwrite function"))
+
+(* Returns: vExpr *)
+and trans_libf libf elist =
+  match libf with
+     ImgRead -> trans_imgread elist
+   | ImgWrite -> (imgwrite_of_elist elist)
 
 (* Returns: ImConv *)
 and trans_conv e1 e2 =
@@ -164,26 +154,14 @@ and trans_conv e1 e2 =
 (* Returns: vExpr *)
 and trans_expr = function
     Id(s) -> trans_id s
+  | Integer(bi) -> Debug("Ignoring integer expression: " ^ (string_of_int (int_of_BInt bi)))
+  | LitStr(s) -> Debug("Ignoring String literal: " ^ s)
   | CStr(s,ids) -> CalcEx(CRaw(s, (List.map (fun s -> { cid = s; }) ids)))
   | KernCalc(kc) -> KernelEx(KCalcList((List.map (fun x -> {cid = x}) kc.allcalc)))
-  | ChanMat(m) -> CalcEx(trans_mat m)
+  | ChanMat(m) -> CalcEx(cMatrix_of_matrix m)
   | ChanRef(ch) -> ChanRefEx(ChanIdent(trans_chanRefId ch))
   | Convolve(e1,e2) -> ImageEx(trans_conv e1 e2)
-  | Assign(s,op,e) -> (match (type_of_ident scope s) with
-                           CalcType(t) -> (let ve = trans_expr e in match ve with
-                                               CalcEx(calcEx) -> CalcEx(CChain({ c_lhs = {cid = s}; c_rhs = calcEx; }))
-                                             | _ -> raise(SemanticFailure("Must assign Calc type to calc identifier"))
-                                          )
-                         | KernelType  -> (let ve = trans_expr e in match ve with
-                                               KernelEx(kernEx) -> KernelEx(KChain({ k_lhs = {kid = s}; k_rhs = kernEx; }))
-                                             | _ -> raise(SemanticFailure("Must assign Kernel type to kernel identifier"))
-                                          )
-                         | ImageType   -> (let ve = trans_expr e in match ve with
-                                               ImageEx(imgEx) -> ImageEx(ImChain({ i_lhs = {iid = s}; i_rhs = imgEx; }))
-                                             | _ -> raise(SemanticFailure("Must assign Image type to image identifier"))
-                                          )
-                         | _ -> raise(SemanticFailure("Identifier claims to be an impossible data type"))
-                      )
+  | Assign(s,op,e) -> trans_assign s op e
   | ChanAssign(ch, e) -> (let chId = trans_chanRefIdLval ch in
                             let ve = trans_expr e in
                               match ve with
@@ -191,14 +169,17 @@ and trans_expr = function
                                 | _ -> raise(SemanticFailure("Must assign Channel to a channel type"))
                          )
   | LibCall(libf, elist) -> trans_libf libf elist
-  | _ -> raise(SemanticFailure("Encountered AST Expression node that we didnt know how to verify"))
 
-let trans_eq_assign s e =
-  let _ = trans_expr e in
-    (* TODO: Create Sast for '=' operator *)
-    Debug("Assign to " ^ s)
+(* Returns: vExpr *)
+and trans_eq_assign s e =
+  let ve = trans_expr e in
+    match (type_of_ident scope s) with
+        CalcType(t) -> (match ve with CalcEx(ce) -> CalcEx(CChain({ c_lhs = {cid = s}; c_rhs = ce; })) | _ -> raise(SemanticFailure("Bad assignment")))
+      | KernelType -> (match ve with KernelEx(ke) -> KernelEx(KChain({ k_lhs = {kid = s}; k_rhs = ke; })) | _ -> raise(SemanticFailure("Bad assignment")))
+      | ImageType -> (match ve with ImageEx(ie) -> ImageEx(ImChain({ i_lhs = {iid = s}; i_rhs = ie; })) | _ -> raise(SemanticFailure("Bad assignment")))
+      | _ -> raise(SemanticFailure("Identifier claims to be an impossible data type"))
 
-let trans_or_assign s e =
+and trans_or_assign s e =
   let ve = trans_expr e in
     match ve with
         CalcEx(c) -> (match (type_of_ident scope s) with
@@ -210,12 +191,12 @@ let trans_or_assign s e =
 
 
 (* Returns: vExpr *)
-let trans_def_assign s e = match (trans_expr e) with
+and trans_def_assign s e = match (trans_expr e) with
     CalcEx(cexp) -> CalcEx(CChain({ c_lhs = { cid=s }; c_rhs = cexp; }))
   | _ -> raise(SemanticFailure("DefEq to something not a Calc expression"))
 
 (* Returns: vExpr *)
-let trans_assign s op e =
+and trans_assign s op e =
   match op with
       Eq -> trans_eq_assign s e
     | OrEq -> trans_or_assign s e
@@ -228,10 +209,10 @@ let trans_vdecl = function
   | _ -> raise(SemanticFailure("A variable declaration did not have a recognizable type"))
 
 (* Returns: vExpr *)
-let trans_action_expr = function
-    Assign(s,op,e) -> trans_assign s op e
-  | ChanAssign(chref,e) -> Debug("ChanAssign")
-  | LibCall(libf,elist) -> Debug("LibCall")
+let trans_action_expr expr = match expr with
+    Assign(s,op,e) -> trans_expr expr
+  | ChanAssign(chref,e) -> trans_expr expr
+  | LibCall(libf,elist) -> trans_expr expr
   | _ -> Debug("Expression result ignored!") (* TODO: Can side effects be hiding in the expression? *)
 
 let trans_stmt = function

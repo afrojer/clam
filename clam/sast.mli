@@ -84,8 +84,6 @@ type vExpr =
   | KernelEx of kernEx
   | ImageEx of imgEx
   | ChanRefEx of chanRefEx
-  | FilenameEx of filenameId
-  | FormatEx of fmtType
   | ImgWriteEx of imgEx * fmtType * filenameId
   | Debug of string
  
