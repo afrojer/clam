@@ -23,6 +23,10 @@ let env_type_of_ident ref_env s =
  
   
 
+let env_exists ref_env ident_string typ =
+  print_endline("Cant yet check if id " ^ ident_string ^ " exists")
+
+
 (* Check a variable assignment *)
 (* If it exists, mark the assigned variable as initialized *)
 let env_assign ref_env ident_string typ =
@@ -66,6 +70,11 @@ let assign_chan env img_ident chan_ident =
     )
 *)
 
+let env_exists_chan ref_env ch =
+  print_endline("cant yet verify channel exists")
+
+let env_assign_chan ref_env ch =
+  print_endline("cant yet verify channel assignment")
 
 (* Declare a variable name. *)
 (* Add it to our list of identifiers, and if it is an image, add it to the list of images *)

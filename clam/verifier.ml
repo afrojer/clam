@@ -70,10 +70,20 @@ let check_mat m =
   (* TODO: Check to make sure matrix is Okay *)
   CMatrix(m)
 
+
+(* Returns: chanRefId *)
+let check_chanRefIdLval ch =
+  env_assign_chan scope ch;
+  ( { iid = ch.image }, { cid = ch.channel } )
+
+(* Returns: chanRefId *)
+let check_chanRefId ch =
+  env_exists_chan scope ch;
+  ( { iid = ch.image }, { cid = ch.channel } )
+
+
 (* Returns: ImConv *)
 let rec check_conv e1 e2 =
-  ImConv( ({ iid = "dumbImg" }, { cid = "dumbCalc" }), KCalcList([]))
-(*
   let ve1 = check_expr e1 in
     let ve2 = check_expr e2 in
       let chrefId = (match ve1 with
@@ -93,13 +103,14 @@ let rec check_conv e1 e2 =
         | _ -> raise(Failure("Convolutions must have a kernel on the right-hand side"))
       in
       ImConv(chrefId, kernEx)
-*)
 
 (* Returns: vExpr *)
-let rec check_expr = function
+and check_expr = function
     Id(s) -> check_id s
   | CStr(s,ids) -> CalcEx(CRaw(s, (List.map (fun s -> { cid = s; }) ids)))
+  | KernCalc(kc) -> KernelEx(KCalcList((List.map (fun x -> {cid = x}) kc.allcalc)))
   | ChanMat(m) -> CalcEx(check_mat m)
+  | ChanRef(ch) -> ChanRefEx(ChanIdent(check_chanRefId ch))
   | Convolve(e1,e2) -> ImageEx(check_conv e1 e2)
   | Assign(s,op,e) -> (match (env_type_of_ident scope s) with
                            CalcType(t) -> (let ve = check_expr e in match ve with
@@ -116,7 +127,13 @@ let rec check_expr = function
                                           )
                          | _ -> raise(Failure("Identifier claims to be an impossible data type"))
                       )
-  | KernCalc(kc) -> KernelEx(KCalcList((List.map (fun x -> {cid = x}) kc.allcalc)))
+  | ChanAssign(ch, e) -> (let chId = check_chanRefIdLval ch in
+                            let ve = check_expr e in
+                              match ve with
+                                  ChanRefEx(cve) -> ChanRefEx(ChanChain({ch_lhs = chId; ch_rhs = cve;}))
+                                | _ -> raise(Failure("Must assign Channel to a channel type"))
+                         )
+ (* TODO: Verify every type of expression *)
   | _ -> Debug("Unhandled Expression")
 
 let check_eq_assign s e =
