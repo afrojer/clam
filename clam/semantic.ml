@@ -110,17 +110,8 @@ let trans_chanRefId ch =
   env_exists_chan scope ch;
   ( { iid = ch.image }, { cid = ch.channel } )
 
-
 (* Returns: vExpr *)
-let trans_imgread elist =
-  match elist with
-      raw_arg :: [] -> (
-        let fileId = trans_filenameId_expr raw_arg in
-          ImageEx(ImRead(fileId))
-      )
-    | _ -> raise(Failure("Wrong number of arguments supplied to imgread function"))
-
-
+let trans_imgread elist = ImageEx(ImRead(trans_filenameId_expr (List.hd elist)))
 
 
 (* Returns: vExpr *)
