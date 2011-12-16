@@ -34,6 +34,9 @@ let type_of_vdecl = function
   | ConvT(e1,e2)-> ImageType
   | CalcT(s,t) -> CalcType(t)
 
+let type_of_vexpr = function
+  _ -> ImageType
+
 let string_of_vdecl = function
     ImageT(s) -> s
   | KernelT(s) -> s
@@ -42,25 +45,38 @@ let string_of_vdecl = function
   | CalcT(s,t) -> s
 
 
+(*
+ * Recursive Checking Functions
+ *)
 
-let check_assign str e =
-  Debug("Assign to " ^ str)
+let check_expr e = function
+  _ -> Debug("Expression")
 
-let check_orassign str e =
-  Debug("OrAssign to " ^ str)
+let check_eq_assign s e =
+  let vexpr = check_expr e in
+    env_assign scope s (type_of_vexpr vexpr);
+    Debug("Assign to " ^ s)
 
-let check_defassign str e =
-  Debug("DefAssign to " ^ str)
+let check_or_assign s e =
+  Debug("OrAssign to " ^ s)
+
+let check_def_assign s e =
+  Debug("DefAssign to " ^ s)
+
+let check_assign s op e =
+  match op with
+      Eq -> check_eq_assign s e
+    | OrEq -> check_or_assign s e
+    | DefEq -> check_def_assign s e
 
 let check_vdecl = function
-    ImageT(s) -> (declare_var scope s ImageType; Debug("Declare Image"))
-  | KernelT(s) -> Debug("Declare Kernel")
-  | KCalcT(kc) -> Debug("Declare KernelCalc")
-  | ConvT(e1,e2) -> Debug("Declare Convolution")
-  | CalcT(s,t) -> Debug("Declare Calc")
+    ImageT(s)  -> print_env !scope; env_declare scope s ImageType; Debug("Declare Image")
+  | KernelT(s) -> env_declare scope s KernelType; Debug("Declare Kernel")
+  | CalcT(s,t) -> env_declare scope s (CalcType(t)); Debug("Declare Calc")
+  | _ -> raise(Failure("A variable declaration did not have a recognizable type"))
 
 let check_action_expr = function
-    Assign(s,op,e) -> Debug("Assign")
+    Assign(s,op,e) -> check_assign s op e
   | ChanAssign(chref,e) -> Debug("ChanAssign")
   | LibCall(libf,elist) -> Debug("LibCall")
   | _ -> raise(Failure("Expression result is ignored"))
@@ -70,14 +86,11 @@ let check_stmt = function
   | VDecl(v) -> check_vdecl v
   | VAssign(v,op,e) -> (
       let _ = check_vdecl v in
-        match op with
-              Eq    -> check_assign (string_of_vdecl v) e
-            | OrEq  -> check_orassign (string_of_vdecl v) e
-            | DefEq -> check_defassign (string_of_vdecl v) e
+        check_assign (string_of_vdecl v) op e
     )
 
 let verify ast =
   let gather nodes stmt = (check_stmt stmt) :: nodes in
     let nodelist = List.fold_left gather [] ast in
-      (!scope, nodelist)
+      (!scope, List.rev nodelist)
 

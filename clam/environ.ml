@@ -16,17 +16,18 @@ open Vast
 
 (* Check a variable assignment *)
 (* If it exists, mark the assigned variable as initialized *)
-let check_assign ref_env ident_string typ =
+let env_assign ref_env ident_string typ =
   let env = !ref_env in
     let fold_ids (ids, is_found) next_id =
-      if (next_id.id == ident_string) then
-        if (next_id.typ == typ) then
+      if (next_id.id = ident_string) then
+        if (next_id.typ = typ) then
           let next_id = { id = next_id.id; typ = typ; init = true; chans = next_id.chans; } in (next_id :: ids, true)
         else
           raise(Failure("Assigning identifier " ^ ident_string ^ " (" ^ (Printer.string_of_type next_id.typ) ^ ") to an expression of type " ^ (Printer.string_of_type typ)))
       else
         (next_id :: ids, is_found)
     in
+    Printer.print_env env;
     let (new_ids, is_found) = List.fold_left fold_ids ([], false) env.ids in
       if not is_found then
         raise(Failure("Assignment to undeclared variable: " ^ ident_string))
@@ -59,7 +60,7 @@ let assign_chan env img_ident chan_ident =
 
 (* Declare a variable name. *)
 (* Add it to our list of identifiers, and if it is an image, add it to the list of images *)
-let declare_var ref_env ident_string typ =
+let env_declare ref_env ident_string typ =
   let matches = fun idT -> (idT.id == ident_string) in
     let env = !ref_env in
       if (List.exists matches env.ids) then

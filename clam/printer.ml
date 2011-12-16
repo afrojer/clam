@@ -63,6 +63,21 @@ let print_clamerr = function
       prerr_endline estr;
   | _ -> ()
 
+(*
+ * Environment Printing
+ *)
+let string_of_id idT =
+  "  * " ^ idT.id ^ " of " ^ (string_of_type idT.typ) ^
+  " [init=" ^ (string_of_bool idT.init) ^ "; chans=" ^ (
+    List.fold_left (^) "" (List.map (fun x -> x^";") idT.chans)
+  ) ^ "]\n"
+
+let string_of_env env =
+  "Environment:\n" ^
+  (List.fold_left (^) "" (List.map string_of_id env.ids))
+
+let print_env env =
+  print_endline (string_of_env env)
 
 (*
  * CLAM AST Printing
@@ -138,4 +153,5 @@ let rec string_of_tree prefix = function Node(str, ch) ->
 
 let string_of_ast ast =
   string_of_tree "" (tree_of_ast ast)
+
 
