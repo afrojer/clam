@@ -16,18 +16,19 @@ open Envtypes
 open Ast
 open Sast
 
+(*
+ * Identifier Translations
+ *)
+let id_of_imgT imgT = "__imgT_" ^ imgT.iname
+let id_of_kernT kernT = "__kernT_" ^ kernT.kname
+let id_of_calcT calcT = "__calcT_" ^ calcT.cname
 
 (*
  * Variable Declarations
  *)
-let c_of_imgDecl imgT =
-  "/* Declare ImageIdent: " ^ imgT.iname ^ " */\n"
-
-let c_of_kernDecl kernT =
-  "/* Declare KernelIdent: " ^ kernT.kname ^ " */\n"
-
-let c_of_calcDecl calcT =
-  "/* Declare CalcIdent: " ^ calcT.cname ^ " */\n"
+let c_of_imgDecl imgT = "clam_img *" ^ (id_of_imgT imgT) ^ " = NULL;\n"
+let c_of_kernDecl kernT = "clam_kernel *" ^ (id_of_kernT kernT) ^ " = NULL;\n"
+let c_of_calcDecl calcT = "clam_calc *" ^ (id_of_calcT calcT) ^ " = NULL;\n"
 
 (*
  * Variable Definitions
@@ -39,6 +40,16 @@ let c_of_calcDecl calcT =
 (*
  * Main C Functions
  *)
+let c_of_fmt = function
+    Png -> "PNG"
+  | Bmp -> "BMP"
+  | Tga -> "TGA"
+
+let c_of_fid = function
+    Arg(i) -> "argv[" ^ (string_of_int i) ^ "]"
+  | Const(s) -> "\"" ^ (escaped s) ^ "\""
+
+
 let c_of_kernCalc ids =
   "/* Kernel of Calcs: " ^ (List.fold_left (^) "" (List.map ((^) " ") ids)) ^ " */\n"
 
@@ -110,10 +121,15 @@ and c_of_chanAssign ca =
   "/* <-- ChanAssign: Store in " ^ fst(ca.ch_lhs) ^ ":" ^ snd(ca.ch_lhs) ^ " */\n"
 
 let c_of_imgWrite ie fmt fid =
-  "/* --> ImgWrite: Prepare Image */\n" ^
-  (c_of_imgEx ie) ^
-  "/* <-- C of ImgWrite Expression */\n"
+  "imgwrite( (" ^ (c_of_imgEx ie) ^ ") , " ^ (c_of_fmt fmt) ^ " , " ^ (c_of_fid fid) ^ " )"
 
+
+
+
+
+(*
+ * Glue
+ *)
 let c_of_scope scope =
   let venv = scope.venv in
     (List.fold_left (^) "" (List.map c_of_imgDecl venv.images)) ^
@@ -121,19 +137,24 @@ let c_of_scope scope =
     (List.fold_left (^) "" (List.map c_of_calcDecl venv.calc))
 
 let c_of_vExpr = function
-    Debug(s) -> "/* DEBUG: " ^ s ^ " */\n"
+    Debug(s) -> "/* DEBUG: " ^ s ^ " */"
   | CalcEx(ce) -> c_of_calcEx ce
   | KernelEx(ke) -> c_of_kernEx ke
   | ImageEx(ie) -> c_of_imgEx ie
   | ChanRefEx(che) -> c_of_chanRefEx che
   | ImgWriteEx(ie,fmt,fid) -> c_of_imgWrite ie fmt fid
 
+let c_of_vStmt vExpr =
+	"  " ^ (c_of_vExpr vExpr) ^ ";\n"
+
 let generate_c scope vast =
+  "\n/* GENERATED HEADER C */\n" ^
+  "/* Jeremy's Header file goes here in place of this comment */\n" ^ 
   "\n/* GENERATED ENVIRONMENT C */\n" ^
   (c_of_scope scope) ^
   "\n/* GENERATED MAIN C */\n" ^
   "int main(int argc, char **argv) {\n" ^
-  (List.fold_left (^) "" (List.map c_of_vExpr vast)) ^
+  (List.fold_left (^) "" (List.map c_of_vStmt vast)) ^
   "  return 0;\n" ^
   "}\n"
 
