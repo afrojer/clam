@@ -1,0 +1,14 @@
+#!/bin/bash
+TEST_DESC="Matrix with multiple right brackets"
+. _buildup.sh
+
+
+compile_it
+if [ $ERRORS -eq 0 ]; then
+    ERRORS=1
+    error "Defined matrix with multiple right brackets!"
+else
+    ERRORS=0
+fi
+
+. _breakdown.sh
