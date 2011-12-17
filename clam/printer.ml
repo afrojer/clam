@@ -135,7 +135,7 @@ let rec tree_of_expr expr =
     | KernCalc(kc) -> ("KernCalc", [tree_of_kerncalc kc])
     | ChanMat(mat) -> ("ChanMat", [tree_of_chanmat mat])
     | ChanRef(ref) -> ("ChanRef", [tree_of_chanref ref])
-    | Convolve(e1, e2) -> ("Convolve", [tree_of_expr e1; tree_of_expr e2])
+    | Convolve(ref, kid) -> ("Convolve", [tree_of_chanref ref; tree_of_ident kid])
     | Assign(id, op, e) -> ("Assign", [tree_of_ident id; tree_of_assign_op op; tree_of_expr e])
     | ChanAssign(ref, e) -> ("ChanAssign", [tree_of_chanref ref; tree_of_expr e])
     | LibCall(libf, elist) -> ("LibCall", List.append [tree_of_libf libf] (List.map tree_of_expr elist))

@@ -13,7 +13,7 @@
 open Printf
 
 (* assume gcc is in the path *)
-let gcc_path = "gcc"
+let gcc_path = "g++"
 
 (* will be something like "clamlib.o" - need to hook in auto compilation during
  * compiler build before we actually set this variable *)

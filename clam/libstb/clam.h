@@ -1,3 +1,5 @@
+#ifndef CLAM_H
+#define CLAM_H
 /*
  * CLAM C Interface Header
  *
@@ -5,6 +7,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include <float.h>
+#include <limits.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <stdint.h>
 
 
@@ -139,6 +148,7 @@ typedef enum clam_img_fmt_e {
 	PNG = 0,
 	BMP,
 	TGA,
+	JPG,
 	CLAM_NUMFMTS,
 } clam_img_fmt;
 
@@ -210,7 +220,7 @@ typedef struct clam_matrix {
 	(_calc)->m.cols = _cols; \
 	*((_type *)(&(_calc)->m.num)) = _num; \
 	*((_type *)(&(_calc)->m.denom)) = _denom; \
-	static _type _calc ## _matdata [_rows][_cols] = _data; \
+	static int _calc ## _matdata [_rows][_cols] = _data; \
 	(_calc)->m.d = & _calc ## _matdata
 
 /* CalcT */
@@ -417,21 +427,20 @@ extern void clam_convolve_matrix(clam_img *outimg,
 
 /* Convolution (much easier with templates) */
 template<typename CalcT, typename ChanT>
-void __clam_convolve_matrix(clam_img *outimg, clam_imgchan *ch, clam_calc *calc)
+void __clam_convolve_matrix(clam_img *outimg, clam_imgchan *ch, clam_calc *calc, int min, int max)
 {
 	int xx, xstart, xend;
 	int yy, ystart, yend;
 	int kx, kxstart, kxend;
 	int ky, kystart, kyend;
-	int kidx;
+	int k_start, k_stride;
 	int width, height;
 	clam_imgchan *outchan;
 	CalcT *dpix;
 	ChanT *spix;
 
-	CalcT *kern, num, denom;
+	int *kern, num, denom;
 
-DBG(	printf("Convolve[%c]: %s:%s = %s ** %s\n", (calc->ismat ? 't' : 'f'), outimg->name, calc->name, ch->name, calc->name);)
 	if (!calc->ismat)
 		return;
 
@@ -447,41 +456,49 @@ DBG(	printf("Convolve[%c]: %s:%s = %s ** %s\n", (calc->ismat ? 't' : 'f'), outim
 	width = outimg->width;
 	height = outimg->height;
 
-	kern = (CalcT *)(calc->m.d);
-	num = *((CalcT *)&(calc->m.num));
-	denom = *((CalcT *)&(calc->m.denom));
+	kern = (int *)(calc->m.d);
+	num = (int)*((CalcT *)&(calc->m.num));
+	denom = (int)*((CalcT *)&(calc->m.denom));
 
+DBG(	printf("\tConvolve[%d/%d]: %s:%s = %s ** %s\n", num,denom, outimg->name, calc->name, ch->name, calc->name);)
 	/* XXX: remove this when we add boundary support! */
 	memset(outchan->p, 0, width * height * sizeof(CalcT));
 
 	/* XXX: do first N rows */
 
-	ystart = calc->m.rows/2;
+	ystart = calc->m.rows/2 + 1;
 	yend = height - calc->m.rows;
-	xstart = calc->m.cols/2;
+	xstart = calc->m.cols/2 + 1;
 	xend = width - calc->m.cols;
 
 	kystart = -(calc->m.rows/2);
-	kyend = kxstart + calc->m.rows;
+	kyend = kystart + calc->m.rows;
 	kxstart = -(calc->m.cols/2);
-	kyend = kxstart + calc->m.cols;
+	kxend = kxstart + calc->m.cols;
 
-	for (yy = ystart; yy < yend; ++yy) {
+	k_start = kystart*width + kxstart;
+	k_stride = width - calc->m.cols;
+
+	for (yy = ystart; yy < yend; yy++) {
 		/* XXX: do first N cols */
 
-		dpix = ((CalcT *)outchan->p) + (yy * width) + xstart;
-		for (xx = xstart; xx < xend; ++xx, ++dpix) {
+		dpix = &( ((CalcT *)outchan->p)[(yy * width) + xstart] );
+		spix = &( ((ChanT *)ch->p)[(yy * width) + xstart]);
+		for (xx = xstart; xx < xend; xx++, dpix++, spix++) {
 			/* kernel operation */
-			kidx = 0;
-			for (ky = kystart; ky < kyend; ky++) {
-				spix = ((ChanT *)ch->p)
-					+ ((yy+ky) * width) + xstart;
-				for (kx = kxstart; kx < kxend; kx++, kidx++) {
-					*dpix += (*spix++) * kern[kidx];
+			int kidx = 0;
+			int sidx = k_start;
+			int val = 0;
+			for (ky = kystart; ky < kyend; ky++, sidx += k_stride) {
+				for (kx = kxstart; kx < kxend; kx++, kidx++, sidx++) {
+					val += (int)(spix[sidx]) * kern[kidx];
 				}
 			}
-			*dpix *= num;
-			*dpix /= denom;
+			val *= num;
+			val /= denom;
+			/* clamp */
+			val = (val < min ? min : (val > max ? max : val));
+			*dpix = (CalcT)(val);
 		}
 
 		/* XXX: do last N cols */
@@ -489,5 +506,8 @@ DBG(	printf("Convolve[%c]: %s:%s = %s ** %s\n", (calc->ismat ? 't' : 'f'), outim
 
 	/* XXX: do last N rows */
 }
+
+/* XXX: create a partially specialized function for float... ?! */
 #endif
 
+#endif /* CLAM_H */

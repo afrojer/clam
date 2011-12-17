@@ -30,7 +30,7 @@ type expr =
   | KernCalc of kerncalc
   | ChanMat of matrix
   | ChanRef of chanref
-  | Convolve of expr * expr
+  | Convolve of chanref * string
   | Assign of string * assign_op * expr
   | ChanAssign of chanref * expr
   | LibCall of libfunc * expr list
@@ -39,7 +39,7 @@ type vdecl =
     ImageT of string
   | KernelT of string
   | KCalcT of kerncalc (* need this to keep used/unused list around! *)
-  | ConvT of expr * expr
+  | ConvT of chanref * string
   | CalcT of string * atom
   | StrT of string * string
   | BareT of string

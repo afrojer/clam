@@ -7,7 +7,7 @@ OUT_BIN = *.out
 ML_TOP   = clam.ml
 
 # The rest of the source files
-ML_SRC   = environ.ml clamsys.ml backend.ml parse_util.ml semantic.ml printer.ml verifier.ml
+ML_SRC   = environ.ml clamsys.ml backend.ml parse_util.ml semantic.ml printer.ml verifier.ml clam_clib.ml
 ML_INC   = envtypes.mli ast.mli sast.mli
 LEX_SRC  = scanner.mll
 YACC_SRC = parser.mly
@@ -86,8 +86,21 @@ ML_OBJ += $(filter-out $(ML_OBJ),$(ML_TOP:%.ml=$(OBJDIR)/%.cmo))
 ML_DEP     = $(ML_OINC:%.cmi=%.mli.dep)
 ML_DEP    += $(ML_OBJ:%.cmo=%.ml.dep)
 
+create_some_ocaml = \
+  $(shell \
+	echo "let clibheader = \"" > clam_clib.ml; \
+	cat libstb/clam.h | sed 's/\\/\\\\/g; s/"/\\"/g' >> clam_clib.ml; \
+	cat libstb/clam.c | sed 's/\\/\\\\/g; s/"/\\"/g' >> clam_clib.ml; \
+	echo "\"" >> clam_clib.ml; \
+  )
+
+#$(OBJDIR)/clam_clib.ml.dep: clam_clib.ml
+#	$(call prepdir,$@)
+#	touch $@
+
 $(OBJDIR)/lex/%.ml: %.mll
 	$(call add_dep,"","clear")
+	$(call create_some_ocaml)
 	@echo "[OCAML  LEX] $*.mll"
 	@$(OCLEX) $(OCLEX_OPTS) -o $@ $<
 
@@ -119,6 +132,7 @@ $(TGT): $(TGT).a $(ML_DEP) $(ML_OINC) $(ML_OBJ)
 
 clean:
 	@echo "  CLEAN"
+	@rm -v clam_clib.ml
 	@rm -fv $(OUT_BIN)
 	@rm -f $(ML_OBJ)
 	@rm -f $(ML_OINC)

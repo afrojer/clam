@@ -1,368 +1,10 @@
-/*
- * Template C file for CLAM backend
- * Jeremy C. Andrus <jeremya@cs.columbia.edu>
- * 2011-12-12
- */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
 #include "clam.h"
-
-#define bail(msg, ...) \
-{ \
-	fprintf(stderr, "CLAM Runtime ERROR: " msg "\n", ## __VA_ARGS__ ); \
-	exit(EXIT_FAILURE); \
-}
+#include "clam.c"
 
 /* _really_ basic argument handling */
 static char *INFILE = NULL;
 static char *OUTFILE = NULL;
-static char OUTFMT[4] = { 0, 0, 0, 0 };
-
-/* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
-/*                                                                 */
-/* CLAM heavy lifting functions                                    */
-/*                                                                 */
-/* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
-
-clam_img *__clam_imgchan_add(clam_img *img, clam_atom type,
-			     const char *name, int should_alloc)
-{
-	clam_imgchan *chan;
-
-DBG(	printf("Adding %s to %s\n", name, img->name);)
-	chan = (clam_imgchan *)malloc(sizeof(*chan));
-	if (!chan)
-		bail("no memory for channel");
-
-	INIT_LIST_HEAD(&chan->list);
-	chan->name = name;
-	chan->img = img;
-	chan->type = type;
-	chan->stride = clam_atom_sz(type);
-	if (should_alloc) {
-		int sz = img->width * img->height * chan->stride;
-		chan->p = (unsigned char *)malloc(sz);
-		if (!chan->p)
-			bail("no memory for channel");
-	} else
-		chan->p = NULL;
-
-	list_add_tail(&chan->list, &img->chan);
-	img->num_chan++;
-	return img;
-}
-
-void clam_imgchan_del(clam_img *img, const char *name)
-{
-DBG(	printf("Removing %s from %s\n", name, img->name);)
-	clam_imgchan *ch = clam_imgchan_ref(img, name);
-	list_del(&ch->list);
-	free(ch->p);
-	free(ch);
-}
-
-int clam_imgchan_exists(clam_img *img, const char *name)
-{
-	clam_imgchan *ch;
-	list_for_each_entry(ch, &img->chan, list) {
-		if (strcmp(name, ch->name) == 0)
-			return 1;
-	}
-	return 0;
-}
-
-
-clam_imgchan *clam_imgchan_ref(clam_img *img, const char *name)
-{
-	clam_imgchan *ch;
-	list_for_each_entry(ch, &img->chan, list) {
-		if (strcmp(name, ch->name) == 0) {
-			goto out;
-		}
-	}
-	bail("Invalid channel: %s", name);
-out:
-	return ch;
-}
-
-#define clam_imgchan_eval(img, ch) \
-{ \
-	int pix, sz; \
-	unsigned char *chan_ptr; \
-	unsigned char **pp; \
-	if (!((ch)->p)) { \
-		sz = (img)->width * (img)->height; \
-		chan_ptr = (unsigned char *)malloc(sz * ch->stride); \
-		clam_alloc_check(chan_ptr); \
-		ch->p = chan_ptr; \
-		clam_img_setup_calc(img); \
-		for (pix = 0; pix < sz; ++pix) { \
-			pp = (img)->curr_p; \
-			cfunc ; \
-			chan_ptr += ch->stride; \
-			clam_img_next_pix(img); \
-		} \
-	} \
-}
-
-
-clam_imgchan *clam_imgchan_copy(clam_img *dst, const char *dname,
-				clam_imgchan *schan)
-{
-	int sz;
-	clam_imgchan *dchan;
-	clam_img *src = schan->img;
-
-DBG(	printf("Copy-> %s:%s = %s:%s\n",dst->name,dname,schan->img->name,schan->name);)
-	if (!clam_img_valid(dst))
-		clam_img_resize(dst, src->width, src->height);
-
-	if (dst->width != src->width || dst->height != src->height) {
-		bail("incompatible images in chan copy (%s->%s)", schan->name, dname);
-	}
-
-	if (clam_imgchan_exists(dst, dname))
-		clam_imgchan_del(dst, dname);
-
-	__clam_imgchan_add(dst, schan->type, dname, 1);
-	dchan = clam_imgchan_ref(dst, dname);
-
-	sz = src->width * src->height * schan->stride;
-	memcpy(dchan->p, schan->p, sz);
-}
-
-void clam_img_resize(clam_img *img, int width, int height)
-{
-	if (!list_empty(&img->chan))
-		bail("Can't resize an image with existing channels!");
-
-	img->width = width;
-	img->height = height;
-	img->num_chan = 0;
-	free(img->curr_p); img->curr_p = NULL;
-	free(img->curr_s); img->curr_s = NULL;
-}
-
-void clam_convolve_matrix(clam_img *outimg,
-			  clam_imgchan *ch,
-			  clam_calc *calc)
-{
-	/* switch on destination type (CalcT) */
-	switch (calc->type) {
-	case UINT8:
-		/* switch on source type (ChanT) */
-		switch (ch->type) {
-		case UINT8:
-			__clam_convolve_matrix<uint8_t, uint8_t>(outimg, ch, calc);
-			break;
-		case UINT16:
-			__clam_convolve_matrix<uint8_t, uint16_t>(outimg, ch, calc);
-			break;
-		case UINT32:
-			__clam_convolve_matrix<uint8_t, uint32_t>(outimg, ch, calc);
-			break;
-		case INT8:
-			__clam_convolve_matrix<uint8_t, int8_t>(outimg, ch, calc);
-			break;
-		case INT16:
-			__clam_convolve_matrix<uint8_t, int16_t>(outimg, ch, calc);
-			break;
-		case INT32:
-			__clam_convolve_matrix<uint8_t, int32_t>(outimg, ch, calc);
-			break;
-		case ANGLE:
-			__clam_convolve_matrix<uint8_t, float>(outimg, ch, calc);
-			break;
-		default:
-			bail("invalid channel type?!");
-		}
-		break;
-	case UINT16:
-		switch (ch->type) {
-		case UINT8:
-			__clam_convolve_matrix<uint16_t, uint8_t>(outimg, ch, calc);
-			break;
-		case UINT16:
-			__clam_convolve_matrix<uint16_t, uint16_t>(outimg, ch, calc);
-			break;
-		case UINT32:
-			__clam_convolve_matrix<uint16_t, uint32_t>(outimg, ch, calc);
-			break;
-		case INT8:
-			__clam_convolve_matrix<uint16_t, int8_t>(outimg, ch, calc);
-			break;
-		case INT16:
-			__clam_convolve_matrix<uint16_t, int16_t>(outimg, ch, calc);
-			break;
-		case INT32:
-			break;
-			__clam_convolve_matrix<uint16_t, int32_t>(outimg, ch, calc);
-		case ANGLE:
-			break;
-			__clam_convolve_matrix<uint16_t, float>(outimg, ch, calc);
-		default:
-			bail("invalid channel type?!");
-		}
-		break;
-	case UINT32:
-		switch (ch->type) {
-		case UINT8:
-			__clam_convolve_matrix<uint32_t, uint8_t>(outimg, ch, calc);
-			break;
-		case UINT16:
-			__clam_convolve_matrix<uint32_t, uint16_t>(outimg, ch, calc);
-			break;
-		case UINT32:
-			__clam_convolve_matrix<uint32_t, uint32_t>(outimg, ch, calc);
-			break;
-		case INT8:
-			__clam_convolve_matrix<uint32_t, int8_t>(outimg, ch, calc);
-			break;
-		case INT16:
-			__clam_convolve_matrix<uint32_t, int16_t>(outimg, ch, calc);
-			break;
-		case INT32:
-			__clam_convolve_matrix<uint32_t, int32_t>(outimg, ch, calc);
-			break;
-		case ANGLE:
-			__clam_convolve_matrix<uint32_t, float>(outimg, ch, calc);
-			break;
-		default:
-			bail("invalid channel type?!");
-		}
-		break;
-	case INT8:
-		switch (ch->type) {
-		case UINT8:
-			__clam_convolve_matrix<int8_t, uint8_t>(outimg, ch, calc);
-			break;
-		case UINT16:
-			__clam_convolve_matrix<int8_t, uint16_t>(outimg, ch, calc);
-			break;
-		case UINT32:
-			__clam_convolve_matrix<int8_t, uint32_t>(outimg, ch, calc);
-		case INT8:
-			break;
-			__clam_convolve_matrix<int8_t, int8_t>(outimg, ch, calc);
-		case INT16:
-			break;
-			__clam_convolve_matrix<int8_t, int16_t>(outimg, ch, calc);
-		case INT32:
-			break;
-			__clam_convolve_matrix<int8_t, int32_t>(outimg, ch, calc);
-		case ANGLE:
-			break;
-			__clam_convolve_matrix<int8_t, float>(outimg, ch, calc);
-		default:
-			bail("invalid channel type?!");
-		}
-		break;
-	case INT16:
-		switch (ch->type) {
-		case UINT8:
-			__clam_convolve_matrix<int16_t, uint8_t>(outimg, ch, calc);
-			break;
-		case UINT16:
-			__clam_convolve_matrix<int16_t, uint16_t>(outimg, ch, calc);
-			break;
-		case UINT32:
-			__clam_convolve_matrix<int16_t, uint32_t>(outimg, ch, calc);
-			break;
-		case INT8:
-			__clam_convolve_matrix<int16_t, int8_t>(outimg, ch, calc);
-			break;
-		case INT16:
-			__clam_convolve_matrix<int16_t, int16_t>(outimg, ch, calc);
-			break;
-		case INT32:
-			__clam_convolve_matrix<int16_t, int32_t>(outimg, ch, calc);
-			break;
-		case ANGLE:
-			__clam_convolve_matrix<int16_t, float>(outimg, ch, calc);
-			break;
-		default:
-			bail("invalid channel type?!");
-		}
-		break;
-	case INT32:
-		switch (ch->type) {
-		case UINT8:
-			__clam_convolve_matrix<int32_t, uint8_t>(outimg, ch, calc);
-			break;
-		case UINT16:
-			__clam_convolve_matrix<int32_t, uint16_t>(outimg, ch, calc);
-			break;
-		case UINT32:
-			__clam_convolve_matrix<int32_t, uint32_t>(outimg, ch, calc);
-			break;
-		case INT8:
-			__clam_convolve_matrix<int32_t, int8_t>(outimg, ch, calc);
-			break;
-		case INT16:
-			__clam_convolve_matrix<int32_t, int16_t>(outimg, ch, calc);
-			break;
-		case INT32:
-			__clam_convolve_matrix<int32_t, int32_t>(outimg, ch, calc);
-			break;
-		case ANGLE:
-			__clam_convolve_matrix<int32_t, float>(outimg, ch, calc);
-			break;
-		default:
-			bail("invalid channel type?!");
-		}
-		break;
-	case ANGLE:
-		switch (ch->type) {
-		case UINT8:
-			__clam_convolve_matrix<float, uint8_t>(outimg, ch, calc);
-			break;
-		case UINT16:
-			__clam_convolve_matrix<float, uint16_t>(outimg, ch, calc);
-			break;
-		case UINT32:
-			__clam_convolve_matrix<float, uint32_t>(outimg, ch, calc);
-			break;
-		case INT8:
-			__clam_convolve_matrix<float, int8_t>(outimg, ch, calc);
-			break;
-		case INT16:
-			__clam_convolve_matrix<float, int16_t>(outimg, ch, calc);
-			break;
-		case INT32:
-			__clam_convolve_matrix<float, int32_t>(outimg, ch, calc);
-			break;
-		case ANGLE:
-			__clam_convolve_matrix<float, float>(outimg, ch, calc);
-			break;
-		default:
-			bail("invalid channel type?!");
-		}
-		break;
-	default:
-		bail("invalid calculation type?!");
-	}
-}
-
-
-#define clam_convolve_cfunc(CALC, CFUNC...) \
-{ \
-	clam_imgchan *__outchanref; \
-	__clam_imgchan_add(__IMG, (CALC)->type, (CALC)->name, 0); \
-	__outchanref = clam_imgchan_ref(__IMG, (CALC)->name); \
-	clam_imgchan_eval(__IMG, __outchanref); \
-}
-
-void clam_img_cleanup(clam_img *img, clam_kernel *kern)
-{
-	clam_kcalc *kc;
-	list_for_each_entry(kc, &kern->allcalc, list) {
-		if (!kc->used)
-			clam_imgchan_del(img, kc->calc->name);
-	}
-}
-
+static clam_img_fmt OUTFMT = PNG;
 
 /* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
 /*                                                                 */
@@ -398,10 +40,9 @@ int main(int argc, char **argv)
 		OUTFILE = (char *)malloc(sz);
 		if (!OUTFILE) bail("no space for arguments");
 		strncpy(OUTFILE, argv[2], sz);
-		/* find the format */
-		fmt = strrchr(OUTFILE, '.');
-		if (fmt && (OUTFILE + sz - ++fmt) > 3)
-			strncpy(OUTFMT, fmt, 4);
+	}
+	if (argc > 3) {
+		OUTFMT = (clam_img_fmt)atoi(argv[3]);
 	}
 
 	/* Image srcimage = imgread(...) */
@@ -429,7 +70,7 @@ DBG(	srcimg->name = "srcimg";)
 		#define Green clam_img_pix(uint8_t,pp,1)
 		#define Blue  clam_img_pix(uint8_t,pp,2)
 		#define cfunc ( (3*Red + 6*Green + 1*Blue)/10 )
-		clam_imgchan_eval(srcimg,__EVALCHAN);
+		clam_imgchan_eval(srcimg,uint8_t,__EVALCHAN);
 		#undef cfunc
 		#undef Red
 		#undef Green
@@ -442,7 +83,7 @@ DBG(	srcimg->name = "srcimg";)
 
 	sobelGy = clam_calc_alloc("sobelGy", UINT8);
 	clam_alloc_check(sobelGy);
-	clam_calc_setmatrix(sobelGy, uint8_t, 3, 3, 1, 1, { {1, 2, 1}, {0, 0, 0}, {-1 ,-2, -3} });
+	clam_calc_setmatrix(sobelGy, uint8_t, 3, 3, 1, 1, { {1, 2, 1}, {0, 0, 0}, {-1 ,-2, -1} });
 
 	sobel = clam_kernel_alloc();
 	clam_alloc_check(sobel);
@@ -450,7 +91,7 @@ DBG(	srcimg->name = "srcimg";)
 	clam_kernel_addcalc(
 		clam_kernel_addcalc(
 		clam_kernel_addcalc(
-		clam_kernel_addcalc(sobel, sobelGx, 0), sobelGy, 0), sobelG, 1), sobelTheta, 1);
+		clam_kernel_addcalc(sobel, sobelGx, 0), sobelGy, 1), sobelG, 1), sobelTheta, 1);
 
 	/* Image edges = srcimg:Lum ** sobel */
 	{
@@ -467,7 +108,7 @@ DBG(		edges->name = "edges";)
 		list_for_each_entry_reverse(__kc, &sobel->allcalc, list) {
 			int __isused = __kc->used;
 			clam_calc *__c = __kc->calc;
-DBG(			printf("    calc=%s\n", __c->name);)
+DBG(			printf("\tcalc=%s\n", __c->name);)
 			if (__c->ismat) {
 				clam_convolve_matrix(edges, __CONVCHAN, __c);
 			} else {
@@ -483,7 +124,7 @@ DBG(			printf("    calc=%s\n", __c->name);)
 				#define sobelGx clam_img_pix(uint8_t,pp,0)
 				#define sobelGy clam_img_pix(uint8_t,pp,1)
 				#define cfunc ( sqrt(sobelGx*sobelGx + sobelGy*sobelGy) )
-				clam_convolve_cfunc(sobelG, cfunc)
+				clam_convolve_cfunc(sobelG,uint8_t,cfunc)
 				#undef cfunc
 				#undef sobelGx
 				#undef sobelGy
@@ -492,8 +133,8 @@ DBG(			printf("    calc=%s\n", __c->name);)
 				#define sobelGx clam_img_pix(uint8_t,pp,0)
 				#define sobelGy clam_img_pix(uint8_t,pp,1)
 				#define sobelG  clam_img_pix(uint8_t,pp,3)
-				#define cfunc ( atan(sobelGy/sobelGx) )
-				clam_convolve_cfunc(sobelTheta, cfunc)
+				#define cfunc ( atan((float)sobelGy/(float)sobelGx) )
+				clam_convolve_cfunc(sobelTheta,float,cfunc)
 				#undef cfunc
 				#undef sobelGx
 				#undef sobelGy
@@ -516,7 +157,7 @@ DBG(	output->name = "output";)
 	clam_imgchan_copy(output, "Blue", clam_imgchan_ref(edges, "sobelG"));
 	
 	if (OUTFILE) {
-		printf("Copying to: (%s) %s\n", OUTFMT, OUTFILE);
+		printf("Copying to: (%d) %s\n", OUTFMT, OUTFILE);
 		imgwrite(output, OUTFMT, OUTFILE);
 	}
 
