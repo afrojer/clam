@@ -12,6 +12,15 @@
 /* stolen from: linux/list.h   */
 /* --- --- --- --- --- --- --- */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef _DEBUG
+#define DBG(X) X
+#else
+#define DBG(X)
+#endif
 
 struct list_head {
 	struct list_head *next, *prev;
@@ -23,23 +32,23 @@ static inline void INIT_LIST_HEAD(struct list_head *nm)
 	nm->prev = nm;
 }
 
-static inline void __list_add(struct list_head *new,
+static inline void __list_add(struct list_head *newI,
 			      struct list_head *prev,
 			      struct list_head *next) {
-	next->prev = new;
-	new->next = next;
-	new->prev = prev;
-	prev->next = new;
+	next->prev = newI;
+	newI->next = next;
+	newI->prev = prev;
+	prev->next = newI;
 }
 
-static inline void list_add(struct list_head *new, struct list_head *head)
+static inline void list_add(struct list_head *newI, struct list_head *head)
 {
-	__list_add(new, head, head->next);
+	__list_add(newI, head, head->next);
 }
 
-static inline void list_add_tail(struct list_head *new, struct list_head *head)
+static inline void list_add_tail(struct list_head *newI, struct list_head *head)
 {
-	__list_add(new, head->prev, head);
+	__list_add(newI, head->prev, head);
 }
 
 #define __list_del(__prev, __next) \
@@ -126,7 +135,6 @@ static inline int list_empty(const struct list_head *head)
 /* CLAM type declarations      */
 /* --- --- --- --- --- --- --- */
 
-
 typedef enum clam_atom_e {
 	UINT8 = 0,
 	UINT16,
@@ -147,7 +155,7 @@ typedef enum clam_atom_e {
 	int32_t  s32; \
 	float    f32;
 
-static inline clam_atom_sz(clam_atom a) {
+static inline int clam_atom_sz(clam_atom a) {
 	switch (a) {
 	case UINT8:
 		return sizeof(uint8_t);
@@ -177,6 +185,7 @@ typedef struct clam_img {
 	int num_chan;            /* total number of channels */
 	unsigned char **curr_p;  /* channel data pointers: dynamically setup */
 	unsigned int   *curr_s;
+	const char *name;
 } clam_img;
 
 /* clam matrix (for kernel computation) */
@@ -188,17 +197,13 @@ typedef struct clam_matrix {
 } clam_matrix;
 
 #define clam_calc_setmatrix(_calc, _type, _rows, _cols, _num, _denom, _data...) \
+	(_calc)->ismat = 1; \
 	(_calc)->m.rows = _rows; \
 	(_calc)->m.cols = _cols; \
 	*((_type *)(&(_calc)->m.num)) = _num; \
 	*((_type *)(&(_calc)->m.denom)) = _denom; \
 	static _type _calc ## _matdata [_rows][_cols] = _data; \
 	(_calc)->m.d = & _calc ## _matdata
-
-/* Calc functor */
-struct clam_calc;
-typedef void (*clam_calcFunc)(unsigned char **pp,
-			      size_t num_chan, void *val);
 
 /* CalcT */
 typedef struct clam_calc {
@@ -218,15 +223,15 @@ typedef struct clam_kcalc {
 /* KernelT */
 typedef struct clam_kernel {
 	struct list_head allcalc;
-	struct list_head unused_calc;
 } clam_kernel;
 
 /* ImageT channels */
 typedef struct clam_imgchan {
 	struct list_head  list;
+	clam_img         *img;
 	const char       *name;
-	clam_calcFunc     f;
 	unsigned char    *p;
+	clam_atom         type;
 	uint32_t          stride;
 } clam_imgchan;
 
@@ -241,7 +246,7 @@ typedef struct clam_imgchan {
 static inline clam_img *clam_img_alloc(void)
 {
 	clam_img *img;
-	img = malloc(sizeof(*img));
+	img = (clam_img *)malloc(sizeof(*img));
 	if (!img)
 		return NULL;
 	/* simple init */
@@ -271,6 +276,11 @@ static inline void clam_img_free(clam_img *img)
 	free(img);
 }
 
+static inline int clam_img_valid(clam_img *img)
+{
+	return (img->width > 0) && (img->height > 0);
+}
+
 static inline void clam_img_setup_calc(clam_img *img)
 {
 	clam_imgchan *ch;
@@ -278,8 +288,8 @@ static inline void clam_img_setup_calc(clam_img *img)
 
 	free(img->curr_p); /* kill previous setup */
 	free(img->curr_s);
-	img->curr_p = malloc(img->num_chan * sizeof(char *));
-	img->curr_s = malloc(img->num_chan * sizeof(int));
+	img->curr_p = (unsigned char **)malloc(img->num_chan * sizeof(char *));
+	img->curr_s = (unsigned int *)malloc(img->num_chan * sizeof(int));
 	if (!img->curr_p || !img->curr_s) {
 		fprintf(stderr, "Internal memory alloc error\n");
 		return;
@@ -303,8 +313,7 @@ static inline void clam_img_setup_calc(clam_img *img)
 #define clam_img_pix(type, pp, chidx) \
 	(*((type *)((pp)[chidx])))
 
-static inline clam_calc *clam_calc_alloc(const char *name,
-					 clam_atom type, int ismat)
+static inline clam_calc *clam_calc_alloc(const char *name, clam_atom type)
 {
 	clam_calc *c;
 	c = (clam_calc *)malloc(sizeof(*c));
@@ -313,7 +322,6 @@ static inline clam_calc *clam_calc_alloc(const char *name,
 	memset(c, 0, sizeof(*c));
 	c->name = name;
 	c->type = type;
-	c->ismat;
 	return c;
 }
 
@@ -325,7 +333,6 @@ static inline clam_kernel *clam_kernel_alloc(void)
 		return NULL;
 	memset(k, 0, sizeof(*k));
 	INIT_LIST_HEAD(&k->allcalc);
-	INIT_LIST_HEAD(&k->unused_calc);
 	return k;
 }
 
@@ -344,20 +351,22 @@ static inline void clam_kernel_free(clam_kernel *kern)
 	free(kern);
 }
 
-static void clam_kernel_addcalc(clam_kernel *kern, clam_calc *calc, int used)
+static clam_kernel *clam_kernel_addcalc(clam_kernel *kern, clam_calc *calc, int used)
 {
 	clam_kcalc *kc;
-	kc = malloc(sizeof(*kc));
+	kc = (clam_kcalc *)malloc(sizeof(*kc));
 	if (!kc) {
 		fprintf(stderr, "out of memory\n");
-		return;
+		return NULL;
 	}
+	memset(kc, 0, sizeof(*kc));
+DBG(	printf("Adding %s to kernel\n", calc->name);)
 	INIT_LIST_HEAD(&kc->list);
 	kc->calc = calc;
 	kc->used = used;
 	list_add(&kc->list, &kern->allcalc);
 
-	return;
+	return kern;
 }
 
 /* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
@@ -366,21 +375,111 @@ static void clam_kernel_addcalc(clam_kernel *kern, clam_calc *calc, int used)
 /* (implemented in generated C file)                               */
 /*                                                                 */
 /* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
-#define clam_imgchan_add(IMG, CHAN, SHOULDALLOC) \
-	__clam_imgchan_add(IMG, (CHAN)->type, #CHAN, SHOULDALLOC)
+
+extern clam_img *clam_img_copy(clam_img *src);
+
+extern clam_img *__clam_imgchan_add(clam_img *img, clam_atom type,
+				    const char *name, int should_alloc);
+
+#define clam_imgchan_addcalc(IMG, CHAN) \
+	__clam_imgchan_add(IMG, (CHAN)->type, #CHAN, 0)
 
 #define clam_imgchan_add_empty(IMG, NAME, TYPE) \
-	__clam_imgchan_add(IMG, TYPE, #NAME, 0)
+	__clam_imgchan_add(IMG, TYPE, #NAME, 1)
+
+extern void clam_imgchan_del(clam_img *img, const char *name);
 
 extern clam_imgchan *clam_imgchan_ref(clam_img *img, const char *name);
 
-extern void clam_imgchan_assign(clam_img *dimg, const char *dname,
-				clam_img *simg, const char *sname);
+extern clam_imgchan *clam_imgchan_copy(clam_img *dst, const char *dname,
+				       clam_imgchan *schan);
 
-extern void clam_imgchan_copy(clam_img *dst, const char *dname,
-			      clam_img *src, const char *sname);
+extern void clam_img_resize(clam_img *img, int width, int height);
 
-/* Functional interface */
+/* Functional Library Interface */
 extern clam_img *imgread(const char *filename);
 extern int imgwrite(clam_img *img, const char *type, const char *filename);
+
+#ifdef __cplusplus
+} /* extern "C" */
+
+extern void clam_convolve_matrix(clam_img *outimg,
+				 clam_imgchan *ch,
+				 clam_calc *calc);
+
+/* Convolution (much easier with templates) */
+template<typename CalcT, typename ChanT>
+void __clam_convolve_matrix(clam_img *outimg, clam_imgchan *ch, clam_calc *calc)
+{
+	int xx, xstart, xend;
+	int yy, ystart, yend;
+	int kx, kxstart, kxend;
+	int ky, kystart, kyend;
+	int kidx;
+	int width, height;
+	clam_imgchan *outchan;
+	CalcT *dpix;
+	ChanT *spix;
+
+	CalcT *kern, num, denom;
+
+DBG(	printf("Convolve[%c]: %s:%s = %s ** %s\n", (calc->ismat ? 't' : 'f'), outimg->name, calc->name, ch->name, calc->name);)
+	if (!calc->ismat)
+		return;
+
+	if (!clam_img_valid(outimg))
+		clam_img_resize(outimg, ch->img->width, ch->img->height);
+
+	/* add the channel to the image
+	 * (if it's unused, we'll remove it later)
+	 */
+	__clam_imgchan_add(outimg, calc->type, calc->name, 1);
+	outchan = clam_imgchan_ref(outimg, calc->name);
+
+	width = outimg->width;
+	height = outimg->height;
+
+	kern = (CalcT *)(calc->m.d);
+	num = *((CalcT *)&(calc->m.num));
+	denom = *((CalcT *)&(calc->m.denom));
+
+	/* XXX: remove this when we add boundary support! */
+	memset(outchan->p, 0, width * height * sizeof(CalcT));
+
+	/* XXX: do first N rows */
+
+	ystart = calc->m.rows/2;
+	yend = height - calc->m.rows;
+	xstart = calc->m.cols/2;
+	xend = width - calc->m.cols;
+
+	kystart = -(calc->m.rows/2);
+	kyend = kxstart + calc->m.rows;
+	kxstart = -(calc->m.cols/2);
+	kyend = kxstart + calc->m.cols;
+
+	for (yy = ystart; yy < yend; ++yy) {
+		/* XXX: do first N cols */
+
+		dpix = ((CalcT *)outchan->p) + (yy * width) + xstart;
+		for (xx = xstart; xx < xend; ++xx, ++dpix) {
+			/* kernel operation */
+			kidx = 0;
+			for (ky = kystart; ky < kyend; ky++) {
+				spix = ((ChanT *)ch->p)
+					+ ((yy+ky) * width) + xstart;
+				for (kx = kxstart; kx < kxend; kx++, kidx++) {
+					*dpix += (*spix++) * kern[kidx];
+				}
+			}
+			*dpix *= num;
+			*dpix /= denom;
+		}
+
+		/* XXX: do last N cols */
+	}
+
+	/* XXX: do last N rows */
+}
+#endif
 
