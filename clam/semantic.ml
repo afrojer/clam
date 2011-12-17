@@ -28,7 +28,10 @@ open Printer
 
 exception SemanticFailure of string
 
-let scope = ref { venv = { calc = []; images = []; kernels = [] }; }
+let scope = ref {
+              mats = [];
+              venv = { calc = []; images = []; kernels = [] };
+            }
 
 let type_of_vdecl = function
     ImageT(s) -> ImageType
@@ -226,7 +229,7 @@ let trans_stmt = function
     )
 
 let translate_ast env ast =
-  scope.contents <- { venv = env; };
+  scope.contents <- { venv = env; mats = [] };
   let gather nodes stmt = (trans_stmt stmt) :: nodes in
     let nodelist = List.fold_left gather [] ast in
       (!scope, List.rev nodelist)

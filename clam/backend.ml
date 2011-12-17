@@ -35,11 +35,13 @@ let c_of_imgDecl imgT = "clam_img *" ^ (id_of_imgT imgT) ^ " = NULL;\n"
 let c_of_kernDecl kernT = "clam_kernel *" ^ (id_of_kernT kernT) ^ " = NULL;\n"
 let c_of_calcDecl calcT = "clam_calc *" ^ (id_of_calcT calcT) ^ " = NULL;\n"
 
+
+
 (*
  * Variable Definitions
  *)
 
-(* TODO: Initialize the Calc variables *)
+(* TODO: Initialize the Calc variables? *)
 
 
 (*
@@ -62,19 +64,13 @@ let c_of_kernCalc ids =
 *)
 
 let rec c_of_calcEx = function
-    CMatrix(m) -> "/* TODO: C Matrix */"
-  | CRaw(s,ids) -> "/* TODO: C String: '" ^ s ^ "' */"
+    CMatrix(m) -> "/* TODO: Read-Only Matrix */"
+  | CRaw(s,ids) -> "/* TODO: Read-Only C String: '" ^ s ^ "' */"
   | CChain(ca) -> c_of_calcAssign ca
   | CIdent(id) -> id_of_calcId id
 
 and c_of_calcAssign ca =
-  "/* TODO: Calc Assignment */"
-(*
-  let c_of_rhs = c_of_calcEx ca.c_rhs in
-    "/* --> Calc Assignment: Prepare RHS */\n" ^
-    (c_of_rhs) ^
-    "/* <-- Calc Assignment: Store in: " ^ ca.c_lhs ^ " */\n"
-*)
+  (id_of_calcId ca.c_lhs) ^ " = " ^ (c_of_calcEx ca.c_rhs)
 
 let rec c_of_kernEx = function
     KCalcList(ids) -> c_of_kernCalc ids

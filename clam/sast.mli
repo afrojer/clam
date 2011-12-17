@@ -31,6 +31,7 @@ type identT = {
 
 type scopeT = {
   venv: Envtypes.envT;
+  mutable mats: sMatrix list;
 }
 
 
