@@ -1,3 +1,5 @@
+#ifndef CLAM_H
+#define CLAM_H
 /*
  * CLAM C Interface Header
  *
@@ -5,6 +7,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include <float.h>
+#include <limits.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <stdint.h>
 
 
@@ -139,6 +148,7 @@ typedef enum clam_img_fmt_e {
 	PNG = 0,
 	BMP,
 	TGA,
+	JPG,
 	CLAM_NUMFMTS,
 } clam_img_fmt;
 
@@ -500,3 +510,4 @@ DBG(	printf("\tConvolve[%d/%d]: %s:%s = %s ** %s\n", num,denom, outimg->name, ca
 /* XXX: create a partially specialized function for float... ?! */
 #endif
 
+#endif /* CLAM_H */

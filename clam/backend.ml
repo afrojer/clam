@@ -164,7 +164,7 @@ let c_of_vStmt vExpr =
 
 let generate_c scope vast =
   "\n/* GENERATED HEADER C */\n" ^
-  "/* Jeremy's Header file goes here in place of this comment */\n" ^ 
+  Clam_clib.clibheader ^
   "\n/* GENERATED ENVIRONMENT C */\n" ^
   (c_of_scope scope) ^
   "\n/* GENERATED MAIN C */\n" ^
