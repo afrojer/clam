@@ -12,13 +12,6 @@
    *)
 
 
-(*
-matrix:
-    LBRACE matrix_row RBRACE    { [List.rev $2]       }
-  | LBRACE matrix_row COMMA     { [List.rev $2]       }
-  | matrix matrix_row COMMA     { (List.rev $2) :: $1 }
-  | matrix matrix_row RBRACE    { (List.rev $2) :: $1 }
-*)
 open Ast %}
 
 %token SEMI LPAREN RPAREN LTCHAR GTCHAR LBRKT RBRKT LBRACE RBRACE
