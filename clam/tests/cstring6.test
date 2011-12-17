@@ -1,0 +1,16 @@
+#!/bin/bash
+TEST_DESC="Sanity check. C-String should work."
+. _buildup.sh
+
+compile_it
+if [ $ERRORS -eq 0 ]; then
+	run_it
+	ERRORS=$?
+	if [ $ERRORS -ne 0 ]; then
+		error "Binary did not exit normally: $ERRORS: $RUN_OUTPUT"
+	fi
+else
+	error $COMPILE_OUTPUT
+fi
+
+. _breakdown.sh
