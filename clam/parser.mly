@@ -109,7 +109,7 @@ expr:
   | matrix_scale matrix          { ChanMat($1, List.rev $2) }
   | matrix			 { ChanMat((BInt(1),BInt(1)), List.rev $1) }
   | chanref                      { ChanRef($1) }
-  | expr CONVOP expr             { Convolve($1, $3) }
+  | chanref CONVOP ID            { Convolve($1, $3) }
   | ID ASSIGN expr               { Assign($1, Eq, $3) }
   | ID OREQUAL expr              { Assign($1, OrEq, $3) }
   | chanref ASSIGN expr          { ChanAssign($1, $3) }

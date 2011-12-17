@@ -118,12 +118,15 @@ let image_add env img channel typ isvalid ismat cfuncstr cmat =
  *        and retuns a list of new channels produced by the
  *        convolution (so we can add them to the resulting image)
  *)
-let check_convolve env chanref kernelref =
+let check_convolve env chanref kref =
+  let allC, unusedC = find_kernel env kref in
+(*
   let get_kcalc = function
                   KernCalc(k) -> k.allcalc, k.unusedcalc
                 | Id(i) -> find_kernel env i
                 | _ -> (raise (Failure("Invalid convolution kernel!"))) in
   let allC, unusedC = get_kcalc kernelref in
+*)
   let calc_is_used chname =
         if (List.exists
             (fun nm -> if nm = chname then true else false)
@@ -282,8 +285,10 @@ let rec check_expr env = function
                   else raise(Failure("Divide by zero"))
   | ChanRef(c) -> check_chanref env c false; env, ChanRef(c)
   | Convolve(a,b) ->
-        let env1, va = check_expr env a in
-        let env2, vb = check_expr env1 b in
+        let env1, va = check_chanref env a false; env, a in
+        let env2, vb = if (type_of env1 b = KernelT(b)) then env1, b else
+                        (raise (Failure("Can't convolve with non-kernel "^b)))
+        in
         env2, Convolve(va,vb)
   | Assign(i,op,v) ->
         let lhs = type_of env i in

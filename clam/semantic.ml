@@ -134,6 +134,11 @@ and trans_libf libf elist =
    | ImgWrite -> (imgwrite_of_elist elist)
 
 (* Returns: ImConv *)
+and trans_conv cref id =
+  let chanIdent = trans_chanRefId cref in
+  ImConv(chanIdent,id)
+
+(*
 and trans_conv e1 e2 =
   let ve1 = trans_expr e1 in
     let ve2 = trans_expr e2 in
@@ -155,6 +160,7 @@ and trans_conv e1 e2 =
         | _ -> raise(SemanticFailure("Convolutions must have a kernel on the right-hand side"))
       in
       ImConv(chrefId, kernEx)
+*)
 
 (* Returns: vExpr *)
 and trans_expr = function
