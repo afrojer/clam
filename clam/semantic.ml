@@ -76,6 +76,8 @@ let filenameId_of_expr = function
 let fmtType_of_expr = function
     LitStr(s) -> (match s with
         "png" -> Png
+      | "bmp" -> Bmp
+      | "tga" -> Tga
       | _ -> raise(SemanticFailure("Unknown image format: " ^ s))
     )
   | _ -> raise(SemanticFailure("Image format must be specified as a string literal"))
