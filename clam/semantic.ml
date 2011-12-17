@@ -84,9 +84,9 @@ let fmtType_of_expr = function
 let trans_id s =
   let typ = type_of_ident scope s in
     match typ with
-        CalcType(t) -> CalcEx(CIdent({ cid = s; }))
-      | KernelType  -> KernelEx(KIdent({ kid = s; }))
-      | ImageType   -> ImageEx(ImIdent({ iid = s; }))
+        CalcType(t) -> CalcEx(CIdent(s))
+      | KernelType  -> KernelEx(KIdent(s))
+      | ImageType   -> ImageEx(ImIdent(s))
       | _ -> raise(SemanticFailure("Environment claimed identifier was non-standard type"))
 
 (* Returns: CMatrix *)
@@ -100,10 +100,10 @@ let cMatrix_of_matrix m =
 
 
 (* Returns: chanRefId *)
-let trans_chanRefIdLval ch = ( { iid = ch.image }, { cid = ch.channel } )
+let trans_chanRefIdLval ch = ( ch.image , ch.channel )
 
 (* Returns: chanRefId *)
-let trans_chanRefId ch = ( { iid = ch.image }, { cid = ch.channel } )
+let trans_chanRefId ch = ( ch.image , ch.channel )
 
 (* Returns: vExpr *)
 let trans_imgread elist = ImageEx(ImRead(filenameId_of_expr (List.hd elist)))
@@ -156,8 +156,8 @@ and trans_expr = function
     Id(s) -> trans_id s
   | Integer(bi) -> Debug("Ignoring integer expression: " ^ (string_of_int (int_of_BInt bi)))
   | LitStr(s) -> Debug("Ignoring String literal: " ^ s)
-  | CStr(s,ids) -> CalcEx(CRaw(s, (List.map (fun s -> { cid = s; }) ids)))
-  | KernCalc(kc) -> KernelEx(KCalcList((List.map (fun x -> {cid = x}) kc.allcalc)))
+  | CStr(s,ids) -> CalcEx(CRaw(s, ids))
+  | KernCalc(kc) -> KernelEx(KCalcList(kc.allcalc))
   | ChanMat(m) -> CalcEx(cMatrix_of_matrix m)
   | ChanRef(ch) -> ChanRefEx(ChanIdent(trans_chanRefId ch))
   | Convolve(e1,e2) -> ImageEx(trans_conv e1 e2)
@@ -174,17 +174,17 @@ and trans_expr = function
 and trans_eq_assign s e =
   let ve = trans_expr e in
     match (type_of_ident scope s) with
-        CalcType(t) -> (match ve with CalcEx(ce) -> CalcEx(CChain({ c_lhs = {cid = s}; c_rhs = ce; })) | _ -> raise(SemanticFailure("Bad assignment")))
-      | KernelType -> (match ve with KernelEx(ke) -> KernelEx(KChain({ k_lhs = {kid = s}; k_rhs = ke; })) | _ -> raise(SemanticFailure("Bad assignment")))
-      | ImageType -> (match ve with ImageEx(ie) -> ImageEx(ImChain({ i_lhs = {iid = s}; i_rhs = ie; })) | _ -> raise(SemanticFailure("Bad assignment")))
+        CalcType(t) -> (match ve with CalcEx(ce) -> CalcEx(CChain({ c_lhs = s; c_rhs = ce; })) | _ -> raise(SemanticFailure("Bad assignment")))
+      | KernelType -> (match ve with KernelEx(ke) -> KernelEx(KChain({ k_lhs = s; k_rhs = ke; })) | _ -> raise(SemanticFailure("Bad assignment")))
+      | ImageType -> (match ve with ImageEx(ie) -> ImageEx(ImChain({ i_lhs = s; i_rhs = ie; })) | _ -> raise(SemanticFailure("Bad assignment")))
       | _ -> raise(SemanticFailure("Identifier claims to be an impossible data type"))
 
 and trans_or_assign s e =
   let ve = trans_expr e in
     match ve with
         CalcEx(c) -> (match (type_of_ident scope s) with
-                  KernelType -> KernelEx(KAppend({ ka_lhs = { kid = s }; ka_rhs = c; }))
-                | ImageType -> ImageEx(ImAppend({ ia_lhs = { iid = s }; ia_rhs = c; }))
+                  KernelType -> KernelEx(KAppend({ ka_lhs = s; ka_rhs = c; }))
+                | ImageType -> ImageEx(ImAppend({ ia_lhs = s; ia_rhs = c; }))
                 | _ -> raise(SemanticFailure("OrEq operation must have Kernel or Image as its L-Value"))
               )
       | _ -> raise(SemanticFailure("Unexpected expression is an R-Value for OrEq operation"))
@@ -192,7 +192,7 @@ and trans_or_assign s e =
 
 (* Returns: vExpr *)
 and trans_def_assign s e = match (trans_expr e) with
-    CalcEx(cexp) -> CalcEx(CChain({ c_lhs = { cid=s }; c_rhs = cexp; }))
+    CalcEx(cexp) -> CalcEx(CChain({ c_lhs = s; c_rhs = cexp; }))
   | _ -> raise(SemanticFailure("DefEq to something not a Calc expression"))
 
 (* Returns: vExpr *)
