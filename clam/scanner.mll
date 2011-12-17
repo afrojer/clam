@@ -76,7 +76,7 @@ let alpha      = ['_' 'a'-'z' 'A'-'Z']
 let alphanum   = alpha | digit
 let identifier = alpha alphanum*
 let backslash_escapes = ['\\' '"' '\'' 'n' 't' 'b' 'r']
-let invalidcstr_char  = ['{' '}' ';' '#']
+let invalidcstr_char  = ['{' '}' ';' '#' ] | "/*" | "*/" | "//"
 let cstr_libcall = alpha alphanum* ['(']
 
 rule token = parse
@@ -186,7 +186,7 @@ and parse_cstr = parse
     "]#"    { () }
   | invalidcstr_char
         { raise (LexError("Invalid character in escaped-C string")) }
-  | cstr_libcall as str
+  | '(' | cstr_libcall as str
         { store_string_snip str; parse_cstr_libcall 0 lexbuf }
   | identifier as id
         { store_string_snip id; add_id_to_list id; parse_cstr lexbuf }
@@ -206,7 +206,7 @@ and parse_cstr_libcall level = parse
             parse_cstr_libcall (level-1) lexbuf }
   | invalidcstr_char
         { raise (LexError("Invalid character in escaped-C string")) }
-  | cstr_libcall as str
+  | '(' | cstr_libcall as str
         { store_string_snip str;
           parse_cstr_libcall (level+1) lexbuf }
   | "(" { store_string_char '(';

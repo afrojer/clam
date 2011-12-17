@@ -135,6 +135,14 @@ static inline int list_empty(const struct list_head *head)
 /* CLAM type declarations      */
 /* --- --- --- --- --- --- --- */
 
+typedef enum clam_img_fmt_e {
+	PNG = 0,
+	BMP,
+	TGA,
+	CLAM_NUMFMTS,
+} clam_img_fmt;
+
+
 typedef enum clam_atom_e {
 	UINT8 = 0,
 	UINT16,
@@ -398,7 +406,7 @@ extern void clam_img_resize(clam_img *img, int width, int height);
 
 /* Functional Library Interface */
 extern clam_img *imgread(const char *filename);
-extern int imgwrite(clam_img *img, const char *type, const char *filename);
+extern int imgwrite(clam_img *img, clam_img_fmt fmt, const char *filename);
 
 #ifdef __cplusplus
 } /* extern "C" */

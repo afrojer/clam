@@ -506,14 +506,14 @@ int stbi_write_png(char const *filename, int x, int y, int comp, const void *dat
  * CLAM Interface: imgwrite
  *
  */
-int imgwrite(clam_img *img, const char *fmt, const char *filename)
+int imgwrite(clam_img *img, clam_img_fmt fmt, const char *filename)
 {
 	int ok = 0;
 	int pix, sz;
 	int r, g, b;
 	unsigned char *pixels;
 
-	if (!filename || !fmt || !img || img->num_chan <= 0) {
+	if (!filename || !img || img->num_chan <= 0) {
 		fprintf(stderr, "imgwrite: Invalid parameters!\n");
 		return -1;
 	}
@@ -546,21 +546,24 @@ int imgwrite(clam_img *img, const char *fmt, const char *filename)
 		clam_img_next_pix(img);
 	}
 
-	/* this is dirty... */
-	if (!strncmp("png",fmt,3)) {
+	switch (fmt) {
+	case PNG:
 		ok = stbi_write_png(filename, img->width, img->height, 3, img->p, img->width * 3);
 		if (!ok)
 			fprintf(stderr, "imgwrite: Error writing to '%s'\n", filename);
-	} else if (!strncmp("bmp",fmt,3)) {
+		break;
+	case BMP:
 		ok = stbi_write_bmp(filename, img->width, img->height, 3, img->p);
 		if (!ok)
 			fprintf(stderr, "imgwrite: Error writing to '%s'\n", filename);
-	} else if (!strncmp("tga",fmt,3)) {
+		break;
+	case TGA:
 		ok = stbi_write_tga(filename, img->width, img->height, 3, img->p);
 		if (!ok)
 			fprintf(stderr, "imgwrite: Error writing to '%s'\n", filename);
-	} else {
-		fprintf(stderr, "imgwrite: Unsupported output format '%s'\n", fmt);
+		break;
+	default:
+		fprintf(stderr, "imgwrite: Unsupported output format (%d)\n", fmt);
 		ok = -1;
 	}
 
