@@ -104,9 +104,7 @@ let c_of_conv cid ke =
 *)
 
 let c_of_imgread fid =
-  match fid with
-      Const(s) -> "/* filename: " ^ s ^ " */\n"
-    | Arg(i) -> "/* filename: Arg " ^ (string_of_int i) ^ " */\n"
+  "imgread(" ^ (c_of_fid fid) ^ ")"
 
 let rec c_of_imAssign ia =
   (id_of_imgId ia.i_lhs) ^ " = clam_img_copy( (" ^ (c_of_imgEx ia.i_rhs) ^ ") )"
