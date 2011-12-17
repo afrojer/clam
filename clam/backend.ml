@@ -47,6 +47,7 @@ let c_of_calcDecl calcT = "clam_calc *" ^ (id_of_calcT calcT) ^ " = NULL;\n"
 (*
  * Main C Functions
  *)
+
 let c_of_fmt = function
     Png -> "PNG"
   | Bmp -> "BMP"
@@ -103,7 +104,16 @@ let c_of_imgread fid =
   "imgread(" ^ (c_of_fid fid) ^ ")"
 
 let rec c_of_imAssign ia =
-  (id_of_imgId ia.i_lhs) ^ " = clam_img_copy( (" ^ (c_of_imgEx ia.i_rhs) ^ ") )"
+  let img_needs_cloning = function
+      ImConv(cid,ke) -> false
+    | ImRead(fid)    -> false
+    | ImChain(ia)    -> true
+    | ImAppend(iaP)  -> true
+    | ImIdent(id)    -> true
+  in
+  if (img_needs_cloning ia.i_rhs)
+  then ((id_of_imgId ia.i_lhs) ^ " = clam_img_copy( (" ^ (c_of_imgEx ia.i_rhs) ^ ") )")
+  else ((id_of_imgId ia.i_lhs) ^ " = (" ^ (c_of_imgEx ia.i_rhs) ^ ")")
 
 and c_of_imAppend iap =
   "clam_imgchan_addcalc(" ^ (id_of_imgId iap.ia_lhs) ^ ", (" ^ (c_of_calcEx iap.ia_rhs) ^ ") )"
