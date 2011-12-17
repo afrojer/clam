@@ -35,9 +35,9 @@ type scopeT = {
 
 
 (* Identifiers *)
-type calcId = { cid: string; }
-type kernId = { kid: string; }
-type imgId = { iid: string; }
+type calcId = string
+type kernId = string
+type imgId = string
 type chanRefId = imgId * calcId
 type filenameId = Const of string | Arg of int
 
