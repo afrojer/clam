@@ -1,0 +1,14 @@
+#!/bin/bash
+TEST_DESC="Preprocessor in C-String"
+. _buildup.sh
+
+
+compile_it
+if [ $ERRORS -eq 0 ]; then
+    ERRORS=1
+    error "Allowed preprocessor in C-String!"
+else
+    ERRORS=0
+fi
+
+. _breakdown.sh
