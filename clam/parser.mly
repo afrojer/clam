@@ -11,6 +11,14 @@
    *
    *)
 
+
+(*
+matrix:
+    LBRACE matrix_row RBRACE    { [List.rev $2]       }
+  | LBRACE matrix_row COMMA     { [List.rev $2]       }
+  | matrix matrix_row COMMA     { (List.rev $2) :: $1 }
+  | matrix matrix_row RBRACE    { (List.rev $2) :: $1 }
+*)
 open Ast %}
 
 %token SEMI LPAREN RPAREN LTCHAR GTCHAR LBRKT RBRKT LBRACE RBRACE
@@ -86,11 +94,12 @@ matrix_row:
     bareint { [$1] }
   | matrix_row bareint { $2 :: $1 }
 
+matrix_start:
+  | LBRACE matrix_row { [List.rev $2] }
+  | matrix_start COMMA matrix_row {  (List.rev $3) :: $1 }
+
 matrix:
-    LBRACE matrix_row RBRACE    { [List.rev $2]       }
-  | LBRACE matrix_row COMMA     { [List.rev $2]       }
-  | matrix matrix_row COMMA     { (List.rev $2) :: $1 }
-  | matrix matrix_row RBRACE    { (List.rev $2) :: $1 }
+  | matrix_start RBRACE { $1 }
 
 vdecl:
     IMAGET ID                   { ImageT($2) }
