@@ -19,9 +19,12 @@ open Sast
 (*
  * Identifier Translations
  *)
-let id_of_imgT imgT = "__imgT_" ^ imgT.iname
+let id_of_imgId imgId = "__imgT_" ^ imgId
+
+let id_of_imgT imgT = id_of_imgId imgT.iname
 let id_of_kernT kernT = "__kernT_" ^ kernT.kname
 let id_of_calcT calcT = "__calcT_" ^ calcT.cname
+let id_of_chanT chanT = "clam_imgchan_ref( " ^ (id_of_imgId(fst chanT)) ^ ", \"" ^ (escaped(fst chanT)) ^ "\")"
 
 (*
  * Variable Declarations
@@ -113,17 +116,18 @@ and c_of_imgEx = function
 
 let rec c_of_chanRefEx = function
     ChanChain(ca) -> c_of_chanAssign ca
-  | ChanIdent(cid) -> "/* C Chan Ref: " ^ fst(cid) ^ ":" ^ snd(cid) ^ " */\n"
+  | ChanIdent(cid) -> id_of_chanT cid
 
 and c_of_chanAssign ca =
-  "/* --> ChanAssign: Prepare RHS */\n" ^
-  (c_of_chanRefEx ca.ch_rhs) ^
-  "/* <-- ChanAssign: Store in " ^ fst(ca.ch_lhs) ^ ":" ^ snd(ca.ch_lhs) ^ " */\n"
+  "clam_imgchan_copy( " ^
+  (id_of_imgId(fst ca.ch_lhs)) ^
+  ", " ^
+  "\"" ^ (escaped(snd ca.ch_lhs)) ^ "\"" ^
+  ", " ^
+  (c_of_chanRefEx ca.ch_rhs)
 
 let c_of_imgWrite ie fmt fid =
   "imgwrite( (" ^ (c_of_imgEx ie) ^ ") , " ^ (c_of_fmt fmt) ^ " , " ^ (c_of_fid fid) ^ " )"
-
-
 
 
 
@@ -145,7 +149,7 @@ let c_of_vExpr = function
   | ImgWriteEx(ie,fmt,fid) -> c_of_imgWrite ie fmt fid
 
 let c_of_vStmt vExpr =
-	"  " ^ (c_of_vExpr vExpr) ^ ";\n"
+  "  " ^ (c_of_vExpr vExpr) ^ ";\n"
 
 let generate_c scope vast =
   "\n/* GENERATED HEADER C */\n" ^
