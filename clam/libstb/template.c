@@ -4,9 +4,11 @@
  * 2011-12-12
  */
 
+#include <float.h>
+#include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include "clam.h"
 
 #define bail(msg, ...) \
@@ -87,22 +89,23 @@ out:
 	return ch;
 }
 
-#define clam_imgchan_eval(img, ch) \
+#define clam_imgchan_eval(__img, __type, __ch) \
 { \
 	int pix, sz; \
 	unsigned char *chan_ptr; \
 	unsigned char **pp; \
-	if (!((ch)->p)) { \
-		sz = (img)->width * (img)->height; \
-		chan_ptr = (unsigned char *)malloc(sz * ch->stride); \
-		clam_alloc_check(chan_ptr); \
-		ch->p = chan_ptr; \
-		clam_img_setup_calc(img); \
+	__type *val; \
+	if (!((__ch)->p)) { \
+		sz = (__img)->width * (__img)->height; \
+		val = (__type *)malloc(sz * (__ch)->stride); \
+		clam_alloc_check(val); \
+		(__ch)->p = (unsigned char *)val; \
+		printf("\tEVAL: %s:%s [%s]\n", (__img)->name, (__ch)->name, #__type); \
+		clam_img_setup_calc(__img); \
 		for (pix = 0; pix < sz; ++pix) { \
-			pp = (img)->curr_p; \
-			cfunc ; \
-			chan_ptr += ch->stride; \
-			clam_img_next_pix(img); \
+			pp = (__img)->curr_p; \
+			*val++ = (__type)( cfunc ); \
+			clam_img_next_pix(__img); \
 		} \
 	} \
 }
@@ -155,25 +158,25 @@ void clam_convolve_matrix(clam_img *outimg,
 		/* switch on source type (ChanT) */
 		switch (ch->type) {
 		case UINT8:
-			__clam_convolve_matrix<uint8_t, uint8_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint8_t, uint8_t>(outimg, ch, calc, 0, UINT8_MAX);
 			break;
 		case UINT16:
-			__clam_convolve_matrix<uint8_t, uint16_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint8_t, uint16_t>(outimg, ch, calc, 0, UINT8_MAX);
 			break;
 		case UINT32:
-			__clam_convolve_matrix<uint8_t, uint32_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint8_t, uint32_t>(outimg, ch, calc, 0, UINT8_MAX);
 			break;
 		case INT8:
-			__clam_convolve_matrix<uint8_t, int8_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint8_t, int8_t>(outimg, ch, calc, 0, UINT8_MAX);
 			break;
 		case INT16:
-			__clam_convolve_matrix<uint8_t, int16_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint8_t, int16_t>(outimg, ch, calc, 0, UINT8_MAX);
 			break;
 		case INT32:
-			__clam_convolve_matrix<uint8_t, int32_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint8_t, int32_t>(outimg, ch, calc, 0, UINT8_MAX);
 			break;
 		case ANGLE:
-			__clam_convolve_matrix<uint8_t, float>(outimg, ch, calc);
+			__clam_convolve_matrix<uint8_t, float>(outimg, ch, calc, 0, UINT8_MAX);
 			break;
 		default:
 			bail("invalid channel type?!");
@@ -182,26 +185,26 @@ void clam_convolve_matrix(clam_img *outimg,
 	case UINT16:
 		switch (ch->type) {
 		case UINT8:
-			__clam_convolve_matrix<uint16_t, uint8_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint16_t, uint8_t>(outimg, ch, calc, 0, UINT16_MAX);
 			break;
 		case UINT16:
-			__clam_convolve_matrix<uint16_t, uint16_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint16_t, uint16_t>(outimg, ch, calc, 0, UINT16_MAX);
 			break;
 		case UINT32:
-			__clam_convolve_matrix<uint16_t, uint32_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint16_t, uint32_t>(outimg, ch, calc, 0, UINT16_MAX);
 			break;
 		case INT8:
-			__clam_convolve_matrix<uint16_t, int8_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint16_t, int8_t>(outimg, ch, calc, 0, UINT16_MAX);
 			break;
 		case INT16:
-			__clam_convolve_matrix<uint16_t, int16_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint16_t, int16_t>(outimg, ch, calc, 0, UINT16_MAX);
 			break;
 		case INT32:
 			break;
-			__clam_convolve_matrix<uint16_t, int32_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint16_t, int32_t>(outimg, ch, calc, 0, UINT16_MAX);
 		case ANGLE:
 			break;
-			__clam_convolve_matrix<uint16_t, float>(outimg, ch, calc);
+			__clam_convolve_matrix<uint16_t, float>(outimg, ch, calc, 0, UINT16_MAX);
 		default:
 			bail("invalid channel type?!");
 		}
@@ -209,25 +212,25 @@ void clam_convolve_matrix(clam_img *outimg,
 	case UINT32:
 		switch (ch->type) {
 		case UINT8:
-			__clam_convolve_matrix<uint32_t, uint8_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint32_t, uint8_t>(outimg, ch, calc, 0, UINT32_MAX);
 			break;
 		case UINT16:
-			__clam_convolve_matrix<uint32_t, uint16_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint32_t, uint16_t>(outimg, ch, calc, 0, UINT32_MAX);
 			break;
 		case UINT32:
-			__clam_convolve_matrix<uint32_t, uint32_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint32_t, uint32_t>(outimg, ch, calc, 0, UINT32_MAX);
 			break;
 		case INT8:
-			__clam_convolve_matrix<uint32_t, int8_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint32_t, int8_t>(outimg, ch, calc, 0, UINT32_MAX);
 			break;
 		case INT16:
-			__clam_convolve_matrix<uint32_t, int16_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint32_t, int16_t>(outimg, ch, calc, 0, UINT32_MAX);
 			break;
 		case INT32:
-			__clam_convolve_matrix<uint32_t, int32_t>(outimg, ch, calc);
+			__clam_convolve_matrix<uint32_t, int32_t>(outimg, ch, calc, 0, UINT32_MAX);
 			break;
 		case ANGLE:
-			__clam_convolve_matrix<uint32_t, float>(outimg, ch, calc);
+			__clam_convolve_matrix<uint32_t, float>(outimg, ch, calc, 0, UINT32_MAX);
 			break;
 		default:
 			bail("invalid channel type?!");
@@ -236,25 +239,25 @@ void clam_convolve_matrix(clam_img *outimg,
 	case INT8:
 		switch (ch->type) {
 		case UINT8:
-			__clam_convolve_matrix<int8_t, uint8_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int8_t, uint8_t>(outimg, ch, calc, INT8_MIN, INT8_MAX);
 			break;
 		case UINT16:
-			__clam_convolve_matrix<int8_t, uint16_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int8_t, uint16_t>(outimg, ch, calc, INT8_MIN, INT8_MAX);
 			break;
 		case UINT32:
-			__clam_convolve_matrix<int8_t, uint32_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int8_t, uint32_t>(outimg, ch, calc, INT8_MIN, INT8_MAX);
 		case INT8:
 			break;
-			__clam_convolve_matrix<int8_t, int8_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int8_t, int8_t>(outimg, ch, calc, INT8_MIN, INT8_MAX);
 		case INT16:
 			break;
-			__clam_convolve_matrix<int8_t, int16_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int8_t, int16_t>(outimg, ch, calc, INT8_MIN, INT8_MAX);
 		case INT32:
 			break;
-			__clam_convolve_matrix<int8_t, int32_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int8_t, int32_t>(outimg, ch, calc, INT8_MIN, INT8_MAX);
 		case ANGLE:
 			break;
-			__clam_convolve_matrix<int8_t, float>(outimg, ch, calc);
+			__clam_convolve_matrix<int8_t, float>(outimg, ch, calc, INT8_MIN, INT8_MAX);
 		default:
 			bail("invalid channel type?!");
 		}
@@ -262,25 +265,25 @@ void clam_convolve_matrix(clam_img *outimg,
 	case INT16:
 		switch (ch->type) {
 		case UINT8:
-			__clam_convolve_matrix<int16_t, uint8_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int16_t, uint8_t>(outimg, ch, calc, INT16_MIN, INT16_MAX);
 			break;
 		case UINT16:
-			__clam_convolve_matrix<int16_t, uint16_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int16_t, uint16_t>(outimg, ch, calc, INT16_MIN, INT16_MAX);
 			break;
 		case UINT32:
-			__clam_convolve_matrix<int16_t, uint32_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int16_t, uint32_t>(outimg, ch, calc, INT16_MIN, INT16_MAX);
 			break;
 		case INT8:
-			__clam_convolve_matrix<int16_t, int8_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int16_t, int8_t>(outimg, ch, calc, INT16_MIN, INT16_MAX);
 			break;
 		case INT16:
-			__clam_convolve_matrix<int16_t, int16_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int16_t, int16_t>(outimg, ch, calc, INT16_MIN, INT16_MAX);
 			break;
 		case INT32:
-			__clam_convolve_matrix<int16_t, int32_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int16_t, int32_t>(outimg, ch, calc, INT16_MIN, INT16_MAX);
 			break;
 		case ANGLE:
-			__clam_convolve_matrix<int16_t, float>(outimg, ch, calc);
+			__clam_convolve_matrix<int16_t, float>(outimg, ch, calc, INT16_MIN, INT16_MAX);
 			break;
 		default:
 			bail("invalid channel type?!");
@@ -289,25 +292,25 @@ void clam_convolve_matrix(clam_img *outimg,
 	case INT32:
 		switch (ch->type) {
 		case UINT8:
-			__clam_convolve_matrix<int32_t, uint8_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int32_t, uint8_t>(outimg, ch, calc, INT32_MIN, INT32_MAX);
 			break;
 		case UINT16:
-			__clam_convolve_matrix<int32_t, uint16_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int32_t, uint16_t>(outimg, ch, calc, INT32_MIN, INT32_MAX);
 			break;
 		case UINT32:
-			__clam_convolve_matrix<int32_t, uint32_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int32_t, uint32_t>(outimg, ch, calc, INT32_MIN, INT32_MAX);
 			break;
 		case INT8:
-			__clam_convolve_matrix<int32_t, int8_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int32_t, int8_t>(outimg, ch, calc, INT32_MIN, INT32_MAX);
 			break;
 		case INT16:
-			__clam_convolve_matrix<int32_t, int16_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int32_t, int16_t>(outimg, ch, calc, INT32_MIN, INT32_MAX);
 			break;
 		case INT32:
-			__clam_convolve_matrix<int32_t, int32_t>(outimg, ch, calc);
+			__clam_convolve_matrix<int32_t, int32_t>(outimg, ch, calc, INT32_MIN, INT32_MAX);
 			break;
 		case ANGLE:
-			__clam_convolve_matrix<int32_t, float>(outimg, ch, calc);
+			__clam_convolve_matrix<int32_t, float>(outimg, ch, calc, INT32_MIN, INT32_MAX);
 			break;
 		default:
 			bail("invalid channel type?!");
@@ -316,25 +319,25 @@ void clam_convolve_matrix(clam_img *outimg,
 	case ANGLE:
 		switch (ch->type) {
 		case UINT8:
-			__clam_convolve_matrix<float, uint8_t>(outimg, ch, calc);
+			__clam_convolve_matrix<float, uint8_t>(outimg, ch, calc, 0, INT32_MAX);
 			break;
 		case UINT16:
-			__clam_convolve_matrix<float, uint16_t>(outimg, ch, calc);
+			__clam_convolve_matrix<float, uint16_t>(outimg, ch, calc, 0, INT32_MAX);
 			break;
 		case UINT32:
-			__clam_convolve_matrix<float, uint32_t>(outimg, ch, calc);
+			__clam_convolve_matrix<float, uint32_t>(outimg, ch, calc, 0, INT32_MAX);
 			break;
 		case INT8:
-			__clam_convolve_matrix<float, int8_t>(outimg, ch, calc);
+			__clam_convolve_matrix<float, int8_t>(outimg, ch, calc, 0, INT32_MAX);
 			break;
 		case INT16:
-			__clam_convolve_matrix<float, int16_t>(outimg, ch, calc);
+			__clam_convolve_matrix<float, int16_t>(outimg, ch, calc, 0, INT32_MAX);
 			break;
 		case INT32:
-			__clam_convolve_matrix<float, int32_t>(outimg, ch, calc);
+			__clam_convolve_matrix<float, int32_t>(outimg, ch, calc, 0, INT32_MAX);
 			break;
 		case ANGLE:
-			__clam_convolve_matrix<float, float>(outimg, ch, calc);
+			__clam_convolve_matrix<float, float>(outimg, ch, calc, 0, INT32_MAX);
 			break;
 		default:
 			bail("invalid channel type?!");
@@ -346,12 +349,12 @@ void clam_convolve_matrix(clam_img *outimg,
 }
 
 
-#define clam_convolve_cfunc(CALC, CFUNC...) \
+#define clam_convolve_cfunc(CALC,TYPE,CFUNC...) \
 { \
 	clam_imgchan *__outchanref; \
 	__clam_imgchan_add(__IMG, (CALC)->type, (CALC)->name, 0); \
 	__outchanref = clam_imgchan_ref(__IMG, (CALC)->name); \
-	clam_imgchan_eval(__IMG, __outchanref); \
+	clam_imgchan_eval(__IMG, TYPE, __outchanref); \
 }
 
 void clam_img_cleanup(clam_img *img, clam_kernel *kern)
@@ -429,7 +432,7 @@ DBG(	srcimg->name = "srcimg";)
 		#define Green clam_img_pix(uint8_t,pp,1)
 		#define Blue  clam_img_pix(uint8_t,pp,2)
 		#define cfunc ( (3*Red + 6*Green + 1*Blue)/10 )
-		clam_imgchan_eval(srcimg,__EVALCHAN);
+		clam_imgchan_eval(srcimg,uint8_t,__EVALCHAN);
 		#undef cfunc
 		#undef Red
 		#undef Green
@@ -442,7 +445,7 @@ DBG(	srcimg->name = "srcimg";)
 
 	sobelGy = clam_calc_alloc("sobelGy", UINT8);
 	clam_alloc_check(sobelGy);
-	clam_calc_setmatrix(sobelGy, uint8_t, 3, 3, 1, 1, { {1, 2, 1}, {0, 0, 0}, {-1 ,-2, -3} });
+	clam_calc_setmatrix(sobelGy, uint8_t, 3, 3, 1, 1, { {1, 2, 1}, {0, 0, 0}, {-1 ,-2, -1} });
 
 	sobel = clam_kernel_alloc();
 	clam_alloc_check(sobel);
@@ -450,7 +453,7 @@ DBG(	srcimg->name = "srcimg";)
 	clam_kernel_addcalc(
 		clam_kernel_addcalc(
 		clam_kernel_addcalc(
-		clam_kernel_addcalc(sobel, sobelGx, 0), sobelGy, 0), sobelG, 1), sobelTheta, 1);
+		clam_kernel_addcalc(sobel, sobelGx, 0), sobelGy, 1), sobelG, 1), sobelTheta, 1);
 
 	/* Image edges = srcimg:Lum ** sobel */
 	{
@@ -467,7 +470,7 @@ DBG(		edges->name = "edges";)
 		list_for_each_entry_reverse(__kc, &sobel->allcalc, list) {
 			int __isused = __kc->used;
 			clam_calc *__c = __kc->calc;
-DBG(			printf("    calc=%s\n", __c->name);)
+DBG(			printf("\tcalc=%s\n", __c->name);)
 			if (__c->ismat) {
 				clam_convolve_matrix(edges, __CONVCHAN, __c);
 			} else {
@@ -483,7 +486,7 @@ DBG(			printf("    calc=%s\n", __c->name);)
 				#define sobelGx clam_img_pix(uint8_t,pp,0)
 				#define sobelGy clam_img_pix(uint8_t,pp,1)
 				#define cfunc ( sqrt(sobelGx*sobelGx + sobelGy*sobelGy) )
-				clam_convolve_cfunc(sobelG, cfunc)
+				clam_convolve_cfunc(sobelG,uint8_t,cfunc)
 				#undef cfunc
 				#undef sobelGx
 				#undef sobelGy
@@ -492,8 +495,8 @@ DBG(			printf("    calc=%s\n", __c->name);)
 				#define sobelGx clam_img_pix(uint8_t,pp,0)
 				#define sobelGy clam_img_pix(uint8_t,pp,1)
 				#define sobelG  clam_img_pix(uint8_t,pp,3)
-				#define cfunc ( atan(sobelGy/sobelGx) )
-				clam_convolve_cfunc(sobelTheta, cfunc)
+				#define cfunc ( atan((float)sobelGy/(float)sobelGx) )
+				clam_convolve_cfunc(sobelTheta,float,cfunc)
 				#undef cfunc
 				#undef sobelGx
 				#undef sobelGy
