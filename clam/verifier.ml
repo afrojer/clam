@@ -108,8 +108,7 @@ let image_add env img channel typ isvalid ismat cfuncstr cmat =
                        cfunc = cfuncstr;
                        cmatrix = cmat;
                      }) :: img.ichannels;
-  (* Add a new CalcT to the environment named "image:channel" *)
-  var_add env (CalcT(img.iname^":"^channel, typ))
+  env
 
 (*
  * VERIFY:

@@ -26,7 +26,7 @@ let id_of_calcId calcId = "__calcT_" ^ calcId
 let id_of_imgT imgT = id_of_imgId imgT.iname
 let id_of_kernT kernT = id_of_kernId kernT.kname
 let id_of_calcT calcT = id_of_calcId calcT.cname
-let id_of_chanT chanT = "clam_imgchan_ref( " ^ (id_of_imgId(fst chanT)) ^ ", \"" ^ (escaped(fst chanT)) ^ "\")"
+let id_of_chanT chanT = "clam_imgchan_ref( " ^ (id_of_imgId(fst chanT)) ^ ", \"" ^ (escaped(snd chanT)) ^ "\")"
 
 (*
  * Variable Declarations
@@ -135,7 +135,7 @@ and c_of_chanAssign ca =
   ", " ^
   "\"" ^ (escaped(snd ca.ch_lhs)) ^ "\"" ^
   ", " ^
-  (c_of_chanRefEx ca.ch_rhs)
+  (c_of_chanRefEx ca.ch_rhs) ^ ")"
 
 let c_of_imgWrite ie fmt fid =
   "imgwrite( (" ^ (c_of_imgEx ie) ^ ") , " ^ (c_of_fmt fmt) ^ " , " ^ (c_of_fid fid) ^ " )"

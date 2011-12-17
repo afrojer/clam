@@ -396,6 +396,8 @@ DBG(	printf("Adding %s to kernel\n", calc->name);)
 
 extern clam_img *clam_img_copy(clam_img *src);
 
+extern clam_kernel *clam_kernel_copy(clam_kernel *kern);
+
 extern clam_img *__clam_imgchan_add(clam_img *img, clam_atom type,
 				    const char *name, int should_alloc);
 
@@ -409,8 +411,13 @@ extern void clam_imgchan_del(clam_img *img, const char *name);
 
 extern clam_imgchan *clam_imgchan_ref(clam_img *img, const char *name);
 
-extern clam_imgchan *clam_imgchan_copy(clam_img *dst, const char *dname,
-				       clam_imgchan *schan);
+#define clam_imgchan_copy(DST, DNAME, SCHAN) \
+	({if (!DST) \
+		DST = clam_img_alloc(); \
+	__clam_imgchan_copy(DST, DNAME, SCHAN); })
+
+extern clam_imgchan *__clam_imgchan_copy(clam_img *dst, const char *dname,
+					 clam_imgchan *schan);
 
 extern void clam_img_resize(clam_img *img, int width, int height);
 

@@ -16,6 +16,10 @@
 /*                                                                 */
 /* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
 
+clam_img *clam_img_copy(clam_img *src)
+{
+}
+
 clam_img *__clam_imgchan_add(clam_img *img, clam_atom type,
 			     const char *name, int should_alloc)
 {
@@ -99,7 +103,7 @@ out:
 }
 
 
-clam_imgchan *clam_imgchan_copy(clam_img *dst, const char *dname,
+clam_imgchan *__clam_imgchan_copy(clam_img *dst, const char *dname,
 				clam_imgchan *schan)
 {
 	int sz;
