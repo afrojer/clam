@@ -20,10 +20,12 @@ open Sast
  * Identifier Translations
  *)
 let id_of_imgId imgId = "__imgT_" ^ imgId
+let id_of_kernId kernId = "__kernT_" ^ kernId
+let id_of_calcId calcId = "__calcT_" ^ calcId
 
 let id_of_imgT imgT = id_of_imgId imgT.iname
-let id_of_kernT kernT = "__kernT_" ^ kernT.kname
-let id_of_calcT calcT = "__calcT_" ^ calcT.cname
+let id_of_kernT kernT = id_of_kernId kernT.kname
+let id_of_calcT calcT = id_of_calcId calcT.cname
 let id_of_chanT chanT = "clam_imgchan_ref( " ^ (id_of_imgId(fst chanT)) ^ ", \"" ^ (escaped(fst chanT)) ^ "\")"
 
 (*
@@ -54,43 +56,52 @@ let c_of_fid = function
 
 
 let c_of_kernCalc ids =
+  "/* XXX: c_of_kernCalc should be an r-value by building up a kernel in memory, but possible memory leak? */"
+(*
   "/* Kernel of Calcs: " ^ (List.fold_left (^) "" (List.map ((^) " ") ids)) ^ " */\n"
+*)
 
 let rec c_of_calcEx = function
-    CMatrix(m) -> "/* C Matrix */\n"
-  | CRaw(s,ids) -> "/* C String: '" ^ s ^ "' */\n"
+    CMatrix(m) -> "/* TODO: C Matrix */"
+  | CRaw(s,ids) -> "/* TODO: C String: '" ^ s ^ "' */"
   | CChain(ca) -> c_of_calcAssign ca
-  | CIdent(id) -> "/* C Calc ID: " ^ id ^ " */\n"
+  | CIdent(id) -> id_of_calcId id
 
 and c_of_calcAssign ca =
+  "/* TODO: Calc Assignment */"
+(*
   let c_of_rhs = c_of_calcEx ca.c_rhs in
     "/* --> Calc Assignment: Prepare RHS */\n" ^
     (c_of_rhs) ^
     "/* <-- Calc Assignment: Store in: " ^ ca.c_lhs ^ " */\n"
+*)
 
 let rec c_of_kernEx = function
     KCalcList(ids) -> c_of_kernCalc ids
   | KChain(ka) -> c_of_kernAssign ka
   | KAppend(kap) -> c_of_kernAppend kap
-  | KIdent(id) -> "/* C Kernel ID: " ^ id ^ " */\n"
+  | KIdent(id) -> id_of_kernId id
 
 and c_of_kernAssign ka =
+  "/* XXX: Assignment needs: kernel *clam_kernel_copy( kernel* ) */"
+(*
   let c_of_rhs = c_of_kernEx ka.k_rhs in
     "/* --> Kern Assignment: Prepare RHS */\n" ^
     c_of_rhs ^
     "/* <-- Kern Assignment: Store in: " ^ ka.k_lhs ^ " */\n"
+*)
 
 and c_of_kernAppend kap =
-  let c_of_rhs = c_of_calcEx kap.ka_rhs in
-    "/* --> Kern Append: Prepare RHS */\n" ^
-    c_of_rhs ^
-    "/* <-- Kern Appen: Append to: " ^ kap.ka_lhs ^ " */\n"
+  "clam_kernel_addcalc(" ^ (id_of_kernId kap.ka_lhs) ^ ", (" ^ (c_of_calcEx kap.ka_rhs) ^ ") )"
 
 let c_of_conv cid ke =
+  "/* XXX: CONVOLUTION */"
+(*
   let c_of_rhs = c_of_kernEx ke in
     "/* --> Convolve: Prepare Kernel */\n" ^
     c_of_rhs ^
     "/* <-- Convolve: ??? */\n"
+*)
 
 let c_of_imgread fid =
   match fid with
@@ -98,21 +109,17 @@ let c_of_imgread fid =
     | Arg(i) -> "/* filename: Arg " ^ (string_of_int i) ^ " */\n"
 
 let rec c_of_imAssign ia =
-  "/* --> Image Assign: Prepare RHS */\n" ^
-  (c_of_imgEx ia.i_rhs) ^
-  "/* <-- Image Assign: Assign to " ^ ia.i_lhs ^ " */\n"
+  (id_of_imgId ia.i_lhs) ^ " = clam_img_copy( (" ^ (c_of_imgEx ia.i_rhs) ^ ") )"
 
 and c_of_imAppend iap =
-  "/* --> Image Append: Preapre RHS */\n" ^
-  (c_of_calcEx iap.ia_rhs) ^
-  "/* <-- Image Append: Append to " ^ iap.ia_lhs ^ " */\n"
+  "clam_imgchan_addcalc(" ^ (id_of_imgId iap.ia_lhs) ^ ", (" ^ (c_of_calcEx iap.ia_rhs) ^ ") )"
 
 and c_of_imgEx = function
     ImConv(cid,ke) -> c_of_conv cid ke
   | ImRead(fid) -> c_of_imgread fid
   | ImChain(ia) -> c_of_imAssign ia
   | ImAppend(iap) -> c_of_imAppend iap
-  | ImIdent(id) -> "/* C Image ID: " ^ id ^ " */\n"
+  | ImIdent(id) -> id_of_imgId id
 
 let rec c_of_chanRefEx = function
     ChanChain(ca) -> c_of_chanAssign ca
@@ -159,6 +166,6 @@ let generate_c scope vast =
   "\n/* GENERATED MAIN C */\n" ^
   "int main(int argc, char **argv) {\n" ^
   (List.fold_left (^) "" (List.map c_of_vStmt vast)) ^
-  "  return 0;\n" ^
+  "\n  return 0;\n" ^
   "}\n"
 
