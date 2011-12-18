@@ -1,3 +1,6 @@
+a.out
 clam.a
 clam_clib.ml
 clam_gen.c
+.DS_Store
+obj/*
