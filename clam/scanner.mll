@@ -77,7 +77,7 @@ let alphanum   = alpha | digit
 let identifier = alpha alphanum*
 let backslash_escapes = ['\\' '"' '\'' 'n' 't' 'b' 'r']
 let invalidcstr_char  = ['{' '}' ';' '#' ] | "/*" | "*/" | "//"
-let cstr_cast = ['(' ' '] alpha alphanum* [' ' ')']
+let cstr_cast = ['('] whitespace* alpha alphanum* whitespace* [')']
 let cstr_libcall = alpha alphanum* ['(']
 
 rule token = parse
@@ -185,18 +185,18 @@ and parse_string = parse
  * (to ensure that nothing crazy is going on) *)
 and parse_cstr = parse
     "]#"    { () }
+  | newline            { Lexing.new_line lexbuf; parse_cstr lexbuf }
+  | whitespace         { parse_cstr lexbuf }
+  | ")"
+        { raise (LexError("Unmatched ')' in escaped C")) }
   | invalidcstr_char
         { raise (LexError("Invalid character in escaped-C string")) }
   | cstr_cast as cast
         { store_string_snip cast; parse_cstr lexbuf }
-  | cstr_libcall as str
+  | cstr_libcall | "(" as str
         { store_string_snip str; parse_cstr_libcall 0 lexbuf }
-  | "(" { store_string_char '(';
-          parse_cstr_libcall 0 lexbuf }
   | identifier as id
         { store_string_snip id; add_id_to_list id; parse_cstr lexbuf }
-  | newline
-        { Lexing.new_line lexbuf; parse_cstr lexbuf }
   | eof
         { raise (LexError("unterminated escaped-C string!")) }
   | _ as c
@@ -205,6 +205,8 @@ and parse_cstr = parse
 
 and parse_cstr_libcall level = parse
     "]#" { raise (LexError("Mismatched parens in escaped-C string")) }
+  | newline            { Lexing.new_line lexbuf; parse_cstr_libcall level lexbuf }
+  | whitespace         { parse_cstr_libcall level lexbuf }
   | ")" { store_string_char ')';
           if level = 0 then
             parse_cstr lexbuf
@@ -214,15 +216,11 @@ and parse_cstr_libcall level = parse
         { raise (LexError("Invalid character in escaped-C string")) }
   | cstr_cast as cast
         { store_string_snip cast; parse_cstr_libcall (level) lexbuf }
-  | cstr_libcall as str
+  | cstr_libcall | "(" as str
         { store_string_snip str;
-          parse_cstr_libcall (level+1) lexbuf }
-  | "(" { store_string_char '(';
           parse_cstr_libcall (level+1) lexbuf }
   | identifier as id
         { store_string_snip id; add_id_to_list id; parse_cstr_libcall level lexbuf }
-  | newline
-        { Lexing.new_line lexbuf; parse_cstr_libcall level lexbuf }
   | eof { raise (LexError("unterminated function call in escaped-C string")) }
   | _ as c
     { store_string_char c;

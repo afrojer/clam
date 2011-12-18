@@ -50,9 +50,11 @@ let image_has imgnm channel env simple =
         (raise (Failure("No channel '"^channel^"' in image '"^imgnm^"'")))
 
 let get_calctype env chname =
-  let c = (List.find (fun i -> if i.cname = chname then true else false)
+  match chname with
+    "Red" | "Green" | "Blue" -> Ast.Uint8
+  | _ -> let c = (List.find (fun i -> if i.cname = chname then true else false)
                      env.calc)
-  in c.ctype
+         in c.ctype
 
 let kcalc_add env kname allC unusedC =
   let kT = (List.find
@@ -300,7 +302,7 @@ let rec check_expr env = function
   | ChanAssign(ref,v) ->
         let env1, ve = check_expr env v in
         let envNew =
-          (try check_chanref env1 ref true; env
+          (try check_chanref env1 ref true; env1
            with Failure(s) ->
              if s = "NOCHAN" then
                let get_channame = function

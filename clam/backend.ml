@@ -64,7 +64,7 @@ let c_of_fmt = function
 
 let inner_c_of_cfunc_calc calclst ct =
   let cinfo_from_id id = (List.fold_left (fun (ii,idx,ct) c ->
-                                         if (c.cname = id) then (ii+1,ii,c) else (ii+1,idx,ct))
+                                          if (c.cname = id) then (ii+1,ii,c) else (ii+1,idx,ct))
                          (0,0,ct)
                          calclst) in
   let pixparms ct idx = (snd (c_of_atom ct.ctype))^","^(string_of_int idx) in

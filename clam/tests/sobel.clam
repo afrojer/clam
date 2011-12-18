@@ -1,4 +1,4 @@
-Image srcimg = imgread("ucla.png");
+Image srcimg = imgread(1);
 
 Calc Lum := #[(3*Red + 6*Green + 1*Blue)/10]#;
 Calc sobelG<Uint8>:= #[sqrt((float)sobelGx*sobelGx + (float)sobelGy*sobelGy)]#;
@@ -18,4 +18,4 @@ output:Red   = edges:sobelG;
 output:Green = edges:sobelG;
 output:Blue  = edges:sobelG;
 
-imgwrite( output, "png", "ucla_sobel.png");
+imgwrite( output, "png", 2);

@@ -154,30 +154,6 @@ and trans_conv cref id =
   !scope.cvdata <- imconv_stuff :: !scope.cvdata;
   retval
 
-(*
-and trans_conv e1 e2 =
-  let ve1 = trans_expr e1 in
-    let ve2 = trans_expr e2 in
-      let chrefId = (match ve1 with
-          ChanRefEx(cv) -> (match cv with
-                                ChanIdent(cid) -> cid
-                              | ChanChain(ca) -> raise(SemanticFailure("Must supply a channel identifier to a convolve operation"))
-                           )
-        | _ -> raise(SemanticFailure("Convolutions must have a ChanRef on the left-hand side"))
-        )
-      in
-      let kernEx = match ve2 with
-          KernelEx(ke) -> (match ke with
-                               KCalcList(cids) -> raise(SemanticFailure("Cannot convolve with an unnamed Kernel"))
-                             | KChain(ka) -> ke
-                             | KAppend(ka) -> ke
-                             | KIdent(kid) -> ke
-                          )
-        | _ -> raise(SemanticFailure("Convolutions must have a kernel on the right-hand side"))
-      in
-      ImConv(chrefId, kernEx)
-*)
-
 (* Returns: vExpr *)
 and trans_expr = function
     Id(s) -> trans_id s
