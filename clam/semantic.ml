@@ -93,7 +93,7 @@ let fmtType_of_expr = function
 let trans_id s =
   let typ = type_of_ident scope s in
     match typ with
-        CalcType(t) -> CalcEx(CIdent(s))
+        CalcType(t) -> CalcEx(CIdent(s, t))
       | KernelType  -> KernelEx(KIdent(s))
       | ImageType   -> ImageEx(ImIdent(s))
       | _ -> raise(SemanticFailure("Environment claimed identifier was non-standard type"))
@@ -191,7 +191,7 @@ and trans_expr = function
 and trans_eq_assign s e =
   let ve = trans_expr e in
     match (type_of_ident scope s) with
-        CalcType(t) -> (match ve with CalcEx(ce) -> CalcEx(CChain({ c_lhs = s; c_rhs = ce; })) | _ -> raise(SemanticFailure("Bad assignment")))
+        CalcType(t) -> (match ve with CalcEx(ce) -> CalcEx(CChain({ c_lhs = s; c_rhs = ce; c_typ = t; })) | _ -> raise(SemanticFailure("Bad assignment")))
       | KernelType -> (match ve with KernelEx(ke) -> KernelEx(KChain({ k_lhs = s; k_rhs = ke; })) | _ -> raise(SemanticFailure("Bad assignment")))
       | ImageType -> (match ve with ImageEx(ie) -> ImageEx(ImChain({ i_lhs = s; i_rhs = ie; })) | _ -> raise(SemanticFailure("Bad assignment")))
       | _ -> raise(SemanticFailure("Identifier claims to be an impossible data type"))
@@ -208,8 +208,8 @@ and trans_or_assign s e =
 
 
 (* Returns: vExpr *)
-and trans_def_assign s e = match (trans_expr e) with
-    CalcEx(cexp) -> CalcEx(CChain({ c_lhs = s; c_rhs = cexp; }))
+and trans_def_assign s t e = match (trans_expr e) with
+    CalcEx(cexp) -> CalcEx(CChain({ c_lhs = s; c_rhs = cexp; c_typ = t; }))
   | _ -> raise(SemanticFailure("DefEq to something not a Calc expression"))
 
 (* Returns: vExpr *)
@@ -217,7 +217,7 @@ and trans_assign s op e =
   match op with
       Eq -> trans_eq_assign s e
     | OrEq -> trans_or_assign s e
-    | DefEq -> trans_def_assign s e
+    | _ -> raise(SemanticFailure("A DefEq in an unexpected place?"))
 
 let trans_vdecl = function
     ImageT(s)  -> Debug("Declare Image")
@@ -237,7 +237,9 @@ let trans_stmt = function
   | VDecl(v) -> trans_vdecl v
   | VAssign(v,op,e) -> (
       let _ = trans_vdecl v in
-        trans_assign (ident_of_vdecl v) op e
+        match v with
+            CalcT(s,t) -> trans_def_assign s t e
+          | _ -> trans_assign (ident_of_vdecl v) op e
     )
 
 let translate_ast env ast =

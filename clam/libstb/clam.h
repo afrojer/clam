@@ -415,8 +415,7 @@ extern void clam_imgchan_del(clam_img *img, const char *name);
 extern clam_imgchan *clam_imgchan_ref(clam_img *img, const char *name);
 
 #define clam_imgchan_copy(DST, DNAME, SCHAN) \
-	({if (!DST) \
-		DST = clam_img_alloc(); \
+	({if (!DST) DST = clam_img_alloc(); \
 	__clam_imgchan_copy(DST, DNAME, SCHAN); })
 
 extern clam_imgchan *__clam_imgchan_copy(clam_img *dst, const char *dname,
