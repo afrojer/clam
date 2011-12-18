@@ -44,12 +44,12 @@ type chanRefId = imgId * calcId
 type filenameId = Const of string | Arg of int
 
 (* Assignment to a Calc *)
-type calcAssign = { c_lhs: calcId; c_rhs: calcEx; }
+type calcAssign = { c_lhs: calcId; c_rhs: calcEx; c_typ: Ast.atom; }
 and calcEx =
     CMatrix of sMatrix
   | CRaw of string * calcId list
   | CChain of calcAssign
-  | CIdent of calcId
+  | CIdent of calcId * Ast.atom
 
 (* Assignment to a Kernel *)
 type kernAppend = { ka_lhs: kernId; ka_rhs: calcEx; }

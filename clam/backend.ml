@@ -48,6 +48,15 @@ let c_of_calcDecl calcT = "clam_calc *" ^ (id_of_calcT calcT) ^ " = NULL;\n"
  * Main C Functions
  *)
 
+let c_of_atom = function
+    Uint8  -> ("UINT8", "uint8_t")
+  | Uint16 -> ("UINT16", "uint16_t")
+  | Uint32 -> ("UINT32", "uint32_t")
+  | Int8   -> ("INT8", "int8_t")
+  | Int16  -> ("INT16", "int16_t")
+  | Int32  -> ("INT32", "int32_t")
+  | _ -> raise(Failure("Backend finding the Calc type of Unknown or Angle?"))
+
 let c_of_fmt = function
     Png -> "PNG"
   | Bmp -> "BMP"
@@ -77,16 +86,26 @@ let c_of_kernCalc ids =
   "/* Kernel of Calcs: " ^ (List.fold_left (^) "" (List.map ((^) " ") ids)) ^ " */\n"
 *)
 
+let c_of_declare_matrix cid t mat =
+  let ident = id_of_calcId cid in
+  let (bigSz, smallSz) = c_of_atom t in
+  ident ^ " = clam_calc_alloc(\"" ^ cid ^ "\", " ^ bigSz ^ ");\n  " ^
+  "clam_calc_setmatrix(" ^ ident ^ ", " ^ smallSz ^ ", " ^ (c_of_matrix mat) ^ ");"
+
+let c_of_declare_cstring cid t str ids =
+  "/* Declare Calc as CString */"
 
 let rec c_of_calcEx = function
-    CMatrix(m) -> "/* TODO: Read-Only Matrix: " ^ (c_of_matrix m) ^ " */"
-  | CRaw(s,ids) -> "/* TODO: Read-Only C String: '" ^ s ^ "' */"
-  | CChain(ca) -> c_of_calcAssign ca
-  | CIdent(id) -> id_of_calcId id
+    CChain(ca) -> c_of_calcAssign ca
+  | CIdent(id,t) -> id_of_calcId id
+  | _ -> raise(Failure("Backend found an unnamed Calc expression where it shouldn't be?"))
 
 and c_of_calcAssign ca =
-  (id_of_calcId ca.c_lhs) ^ " = " ^ (c_of_calcEx ca.c_rhs)
-
+  match ca.c_rhs with
+    CMatrix(m) -> c_of_declare_matrix ca.c_lhs ca.c_typ m
+  | CRaw(s,ids) -> c_of_declare_cstring ca.c_lhs ca.c_typ s ids
+  | _ -> raise(Failure("Backend trying to assign Calc to non-matrix and non-cstring?"))
+  
 let rec c_of_kernEx = function
     KCalcList(ids) -> c_of_kernCalc ids
   | KChain(ka) -> c_of_kernAssign ka
