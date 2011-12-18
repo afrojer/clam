@@ -102,14 +102,15 @@ let calc_isvalid env nm =
  *)
 let image_add env img channel typ isvalid ismat cfuncstr cmat =
   (* add the channel, to the image *)
-  img.ichannels <- (channel,
+  img.ichannels <- List.append img.ichannels
+                   [ (channel,
                      { cname = channel;
                        ctype = typ;
                        cisvalid = isvalid;
                        cismat = ismat;
                        cfunc = cfuncstr;
                        cmatrix = cmat;
-                     }) :: img.ichannels;
+                     }) ];
   env
 
 (*

@@ -196,10 +196,6 @@ and c_of_imAppend iap =
   let imgt = Environ.imgt_of_id !Semantic.scope.venv iap.ia_lhs in
   let calclst = List.map snd imgt.ichannels in
   "({ {\n"^
-  (*
-  "\tclam_imgchan_addcalc(" ^ (id_of_imgId iap.ia_lhs) ^ ", (" ^ (c_of_calcEx iap.ia_rhs) ^ ") );\n"^
-  "\t{\n"^"\t\tclam_imgchan *__EVALCHAN = clam_imgchan_ref("^ (id_of_imgId iap.ia_lhs)^",\""^cid^"\");\n"^
-  *)
   "\t\tclam_img *__IMG = "^(id_of_imgId iap.ia_lhs)^";\n"^
   (inner_c_of_cfunc_calc calclst calcObj) ^
   "\n\t}; "^(id_of_imgId iap.ia_lhs)^"; })"
