@@ -47,7 +47,7 @@ function compile_it() {
 		exit 1
 	fi
 	echo -n "Compiling '$TEST_SRC'..."
-	COMPILE_OUTPUT=$(${CLAM_BINARY} -c -i $TEST_SRC -o ./$TEST_BIN 2>&1)
+	COMPILE_OUTPUT=$(${CLAM_BINARY} -i $TEST_SRC -o ./$TEST_BIN 2>&1)
 	ERRORS=$?
 	if [ ! $ERRORS -eq 0 ]; then error "${COMPILE_OUTPUT#Error: }"; else msgok "."; fi
 }
@@ -59,7 +59,6 @@ function run_it() {
 	fi
 	RUN_OUTPUT=$(./$TEST_BIN $@ 2>&1)
 	ERRORS=$?
-	ERRORS=0
 }
 
 echo "======================================="
