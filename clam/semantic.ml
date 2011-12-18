@@ -184,7 +184,7 @@ and trans_expr = function
   | Integer(bi) -> Debug("Ignoring integer expression: " ^ (string_of_int (int_of_BInt bi)))
   | LitStr(s) -> Debug("Ignoring String literal: " ^ s)
   | CStr(s,ids) -> CalcEx(CRaw(s, ids))
-  | KernCalc(kc) -> KernelEx(KCalcList(kc.allcalc))
+  | KernCalc(kc) -> KernelEx(KCalcList(kc.allcalc,kc.unusedcalc))
   | ChanMat(m) -> CalcEx(cMatrix_of_matrix m)
   | ChanRef(ch) -> ChanRefEx(ChanIdent(trans_chanRefId ch))
   | Convolve(e1,e2) -> ImageEx(trans_conv e1 e2)

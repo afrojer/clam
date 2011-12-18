@@ -56,7 +56,7 @@ and calcEx =
 type kernAppend = { ka_lhs: kernId; ka_rhs: calcEx; }
 type kernAssign = { k_lhs: kernId; k_rhs: kernEx; }
 and kernEx =
-    KCalcList of calcId list
+    KCalcList of calcId list * calcId list
   | KChain of kernAssign
   | KAppend of kernAppend
   | KIdent of kernId

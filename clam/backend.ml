@@ -104,10 +104,15 @@ let c_of_matrix m =
   let raw_rows = List.map c_of_matrix_row rowCol in
   let rows = (List.hd raw_rows) :: (List.map ((^) ", ") (List.tl raw_rows)) in
   "{ " ^ (List.fold_left (^) "" rows) ^ " }"
-  
 
-let c_of_kernCalc ids =
-  "/* XXX: c_of_kernCalc should be an r-value by building up a kernel in memory, but possible memory leak? */"
+let is_kernel_used id unused = if (List.exists (fun c -> c = id) unused) then "0" else "1"
+
+let rec c_of_kernCalc unused = function
+    [] -> "clam_kernel_alloc()"
+(*| [_] -> *)
+  | hd :: tl -> "clam_kernel_addcalc("^(c_of_kernCalc unused tl)^","^
+  (id_of_calcId hd)^","^(is_kernel_used hd unused)^")"
+
 (*
   "/* Kernel of Calcs: " ^ (List.fold_left (^) "" (List.map ((^) " ") ids)) ^ " */\n"
 *)
@@ -143,14 +148,14 @@ and c_of_calcAssign ca =
   | _ -> raise(Failure("Backend trying to assign Calc to non-matrix and non-cstring?"))
   
 let rec c_of_kernEx = function
-    KCalcList(ids) -> c_of_kernCalc ids
+    KCalcList(ids,unused) -> c_of_kernCalc unused ids
   | KChain(ka) -> c_of_kernAssign ka
   | KAppend(kap) -> c_of_kernAppend kap
   | KIdent(id) -> id_of_kernId id
 
 and c_of_kernAssign ka =
   let kernel_needs_cloning = function
-      KCalcList(_) -> false
+      KCalcList(_,_) -> false
     | KChain(_) -> true
     | KAppend(_) -> false
     | KIdent(_) -> true
