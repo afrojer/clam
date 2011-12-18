@@ -178,7 +178,11 @@ and trans_eq_assign s e =
   let ve = trans_expr e in
     match (type_of_ident scope s) with
         CalcType(t) -> (match ve with CalcEx(ce) -> CalcEx(CChain({ c_lhs = s; c_rhs = ce; c_typ = t; })) | _ -> raise(SemanticFailure("Bad assignment")))
-      | KernelType -> (match ve with KernelEx(ke) -> KernelEx(KChain({ k_lhs = s; k_rhs = ke; })) | _ -> raise(SemanticFailure("Bad assignment")))
+      | KernelType -> (match ve with
+              KernelEx(ke) -> KernelEx(KChain({ k_lhs = s; k_rhs = ke; }))
+            | CalcEx(t) -> (match t with CIdent(cnm,typ) ->
+                    KernelEx(KCalcList([cnm],[])) | _ -> raise(SemanticFailure("Bad Kernel Assignment")))
+            | _ -> raise(SemanticFailure("Bad assignment")))
       | ImageType -> (match ve with ImageEx(ie) -> ImageEx(ImChain({ i_lhs = s; i_rhs = ie; })) | _ -> raise(SemanticFailure("Bad assignment")))
       | _ -> raise(SemanticFailure("Identifier claims to be an impossible data type"))
 

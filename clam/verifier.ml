@@ -208,14 +208,22 @@ let check_assignment env rhs rhse op = function (* passes in LHS *)
             DefEq -> (raise (Failure("Cannot define "^
                                      (string_of_vdecl (KernelT(nm)))^
                                      " with ':='")))
-          | Eq -> if not (rhs = KCalcT(kcalc rhs))
-                  then (raise (Failure("Can't assign "^(string_of_vdecl rhs)^
-                                       " to "^(string_of_vdecl (KernelT(nm)))^
-                                       ": Kernel = Kernel only!")))
-                  else
-                    let kc = kcalc rhs in
-                    let env1 = kcalc_add env nm (List.rev kc.allcalc) kc.unusedcalc in
-                    env1
+          | Eq -> ( match rhse with
+                    Id(i) -> (match type_of env i with
+                              CalcT(cnm,typ) -> let env1 = kcalc_add env nm [cnm] [] in env1
+                             | _ -> raise (Failure("Can't assign "^(string_of_vdecl rhs)^" to "^nm)) 
+                             )
+                    | KernCalc(k) -> let env1 = kcalc_add env nm (List.rev k.allcalc) k.unusedcalc in
+                                   env1
+                    | _ -> if not (rhs = KCalcT(kcalc rhs))
+                           then (raise (Failure("Can't assign "^(string_of_vdecl rhs)^
+                                         " to "^(string_of_vdecl (KernelT(nm)))^
+                                         ": Kernel = Kernel only!")))
+                            else
+                              let kc = kcalc rhs in
+                              let env1 = kcalc_add env nm (List.rev kc.allcalc) kc.unusedcalc in
+                              env1
+                   )
           | OrEq -> let chk_calc_add = function
                           CalcT(cnm,t) -> [cnm], []
                         | KCalcT(k) -> k.allcalc, k.unusedcalc
