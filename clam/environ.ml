@@ -82,8 +82,11 @@ let rec var_add env = function
       env1
   | ConvT(_,_) | KCalcT(_) | StrT(_,_) | BareT(_) -> env
 
+let imgt_of_id env name =
+  List.find (fun i -> i.iname = name) env.images
+
 let calct_of_id env name =
-  List.find (fun c -> if c.cname = name then true else false) env.calc
+  List.find (fun c -> c.cname = name) env.calc
 
 (* Find the type of the named variable:
  * raises a "Failure" exception if it's undefined

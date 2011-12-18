@@ -61,7 +61,8 @@ let c_of_fmt = function
   | Bmp -> "BMP"
   | Tga -> "TGA"
 
-let c_of_cfunc_calc calclst ct = if (ct.cismat) then "" else
+
+let inner_c_of_cfunc_calc calclst ct =
   let cinfo_from_id id = (List.fold_left (fun (ii,idx,ct) c ->
                                          if (c.cname = id) then (ii+1,ii,c) else (ii+1,idx,ct))
                          (0,0,ct)
@@ -71,13 +72,17 @@ let c_of_cfunc_calc calclst ct = if (ct.cismat) then "" else
     let _,idx,idcalc = cinfo_from_id id in
     "\t\t#define "^id^"  clam_img_pix("^(pixparms idcalc idx)^")\n" in
   let idlist = (snd ct.cfunc) in
-  "\tdo_"^ct.cname^":\n" ^
   (List.fold_left (^) "" (List.map cdef_of_cfunc_id idlist)) ^
   "\t\t#define cfunc ("^(fst ct.cfunc)^")\n"^
   "\t\tclam_convolve_cfunc("^(id_of_calcId ct.cname)^","^(snd (c_of_atom ct.ctype))^",cfunc)\n"^
   "\t\t#undef cfunc\n"^
-  (List.fold_left (^) "" (List.map (fun x -> "\t\t#undef "^x^"\n") idlist)) ^
+  (List.fold_left (^) "" (List.map (fun x -> "\t\t#undef "^x^"\n") idlist))
+
+let c_of_cfunc_calc calclst ct = if (ct.cismat) then "" else
+  "\tdo_"^ct.cname^":\n" ^
+  (inner_c_of_cfunc_calc calclst ct)^
   "\t\tcontinue;\n"
+
 
 let c_of_convData cvdata =
   let kernId, chanref, calclst, idx = cvdata in
@@ -109,22 +114,9 @@ let is_kernel_used id unused = if (List.exists (fun c -> c = id) unused) then "0
 
 let rec c_of_kernCalc unused = function
     [] -> "clam_kernel_alloc()"
-(*| [_] -> *)
   | hd :: tl -> "clam_kernel_addcalc("^(c_of_kernCalc unused tl)^","^
   (id_of_calcId hd)^","^(is_kernel_used hd unused)^")"
 
-(*
-  "/* Kernel of Calcs: " ^ (List.fold_left (^) "" (List.map ((^) " ") ids)) ^ " */\n"
-*)
-
-(*
-let c_of_conv_listcalcs ke =
-  (List.map (fun s -> "clam_convfunc_chk("^s^")\n") ke.
-let c_of_conv_decl idx cid ke =
-  "clam_convfunc_start("^(string_of_int idx)^","^(fst cid)^","^(snd cid)^")\n"^
-  "/* work goes here */\n"^
-  "clam_convfunc_end("^(string_of_int idx)^")"
-*)
 
 let c_of_declare_matrix cid t mat =
   let ident = id_of_calcId cid in
@@ -173,15 +165,14 @@ and c_of_kernAppend kap =
 
 let c_of_conv kid idx =
   "__convolution"^(string_of_int idx)^"("^(id_of_kernId kid)^")"
-(*
-  let c_of_rhs = c_of_kernEx ke in
-    "/* --> Convolve: Prepare Kernel */\n" ^
-    c_of_rhs ^
-    "/* <-- Convolve: ??? */\n"
-*)
 
 let c_of_imgread fid =
   "imgread(" ^ (c_of_fid fid) ^ ")"
+
+let name_of_calcEx = function
+    CChain(ca) -> ca.c_lhs,ca.c_typ
+  | CIdent(cid,t) -> cid,t
+  | _ -> raise(Failure("Backend can't find name of calc expression"))
 
 let rec c_of_imAssign ia =
   let img_needs_cloning = function
@@ -199,7 +190,20 @@ let rec c_of_imAssign ia =
   "clam_img_assign(" ^ (id_of_imgId ia.i_lhs) ^ ", " ^ c_rhs ^ ")"
 
 and c_of_imAppend iap =
-  "clam_imgchan_addcalc(" ^ (id_of_imgId iap.ia_lhs) ^ ", (" ^ (c_of_calcEx iap.ia_rhs) ^ ") )"
+  let cid,ctype = name_of_calcEx iap.ia_rhs in
+  (* XXX: This is a hack and a shortcut - should be fixed later... *)
+  let calcObj = Environ.calct_of_id !Semantic.scope.venv cid in
+  let imgt = Environ.imgt_of_id !Semantic.scope.venv iap.ia_lhs in
+  let calclst = List.map snd imgt.ichannels in
+  "({ {\n"^
+  (*
+  "\tclam_imgchan_addcalc(" ^ (id_of_imgId iap.ia_lhs) ^ ", (" ^ (c_of_calcEx iap.ia_rhs) ^ ") );\n"^
+  "\t{\n"^"\t\tclam_imgchan *__EVALCHAN = clam_imgchan_ref("^ (id_of_imgId iap.ia_lhs)^",\""^cid^"\");\n"^
+  *)
+  "\t\tclam_img *__IMG = "^(id_of_imgId iap.ia_lhs)^";\n"^
+  (inner_c_of_cfunc_calc calclst calcObj) ^
+  "\n\t}; "^(id_of_imgId iap.ia_lhs)^"; })"
+
 
 and c_of_imgEx = function
     ImConv(kid,_,_,idx) -> c_of_conv kid idx

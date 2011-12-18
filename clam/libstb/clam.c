@@ -92,7 +92,6 @@ out:
 		val = (__type *)malloc(sz * (__ch)->stride); \
 		clam_alloc_check(val); \
 		(__ch)->p = (unsigned char *)val; \
-		printf("\tEVAL: %s:%s [%s]\n", (__img)->name, (__ch)->name, #__type); \
 		clam_img_setup_calc(__img); \
 		for (pix = 0; pix < sz; ++pix) { \
 			pp = (__img)->curr_p; \
