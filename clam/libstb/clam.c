@@ -4,12 +4,6 @@
  * 2011-12-12
  */
 
-#define bail(msg, ...) \
-{ \
-	fprintf(stderr, "CLAM Runtime ERROR: " msg "\n", ## __VA_ARGS__ ); \
-	exit(EXIT_FAILURE); \
-}
-
 /* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
 /*                                                                 */
 /* CLAM heavy lifting functions                                    */
