@@ -48,7 +48,19 @@ let default_image nm =
 (* Add a variable definition to the environment:
  * raises a "Failure" exception if the name isn't unique
  *)
-let rec var_add env = function
+let do_add_ident env vd =
+  let add_unique_var id = if (List.exists (fun c -> c = id) env.allvars)
+        then (raise (Failure("variable re-defined: "^id)))
+        else env.allvars <- id :: env.allvars
+  in
+  match vd with
+    ImageT(nm) -> add_unique_var nm
+  | KernelT(nm) -> add_unique_var nm
+  | CalcT(nm,t) -> add_unique_var nm
+  | _ -> ()
+
+let rec var_add env vd = do_add_ident env vd;
+  match vd with
     ImageT(nm) -> let rec add_unique_img = function
         [] -> [ default_image nm ]
       | hd :: tl -> if hd.iname = nm then

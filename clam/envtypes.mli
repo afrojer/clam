@@ -45,5 +45,6 @@ type envT = {
   conv : convRefT list;
   images  : imgT list;
   kernels : kernelT list;
+  mutable allvars : string list;
 }
 

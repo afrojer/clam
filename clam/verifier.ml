@@ -401,7 +401,8 @@ let verify program =
     ( {calc = [];
        conv = [];
        images = [];
-       kernels = []}, [] ) program)
+       kernels = [];
+       allvars = [];}, [] ) program)
   in
   venv, (List.rev vslist)
 

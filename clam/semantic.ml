@@ -32,7 +32,7 @@ let globalConvIdx = ref 0
 
 let scope = ref {
               mats = [];
-              venv = { calc = []; images = []; kernels = []; conv = []; };
+              venv = { calc = []; images = []; kernels = []; conv = []; allvars = []; };
               max_arg = 0;
               cvdata = [];
             }
