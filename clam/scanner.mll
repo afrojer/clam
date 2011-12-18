@@ -76,7 +76,7 @@ let alpha      = ['_' 'a'-'z' 'A'-'Z']
 let alphanum   = alpha | digit
 let identifier = alpha alphanum*
 let backslash_escapes = ['\\' '"' '\'' 'n' 't' 'b' 'r']
-let invalidcstr_char  = ['{' '}' ';' '#' ] | "/*" | "*/" | "//"
+let invalidcstr_char  = ['{' '}' ';' '#' '"' ''' ] | "/*" | "*/" | "//"
 let cstr_cast = ['('] whitespace* alpha alphanum* whitespace* [')']
 let cstr_libcall = alpha alphanum* ['(']
 
