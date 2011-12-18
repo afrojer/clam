@@ -74,7 +74,7 @@ let c_of_cfunc_calc calclst ct = if (ct.cismat) then "" else
   "\tdo_"^ct.cname^":\n" ^
   (List.fold_left (^) "" (List.map cdef_of_cfunc_id idlist)) ^
   "\t\t#define cfunc ("^(fst ct.cfunc)^")\n"^
-  "\t\tclam_convolve_cfunc("^ct.cname^","^(snd (c_of_atom ct.ctype))^",cfunc)\n"^
+  "\t\tclam_convolve_cfunc("^(id_of_calcId ct.cname)^","^(snd (c_of_atom ct.ctype))^",cfunc)\n"^
   "\t\t#undef cfunc\n"^
   (List.fold_left (^) "" (List.map (fun x -> "\t\t#undef "^x^"\n") idlist)) ^
   "\t\tcontinue;\n"
@@ -84,6 +84,7 @@ let c_of_convData cvdata =
   let chk_wrapper ct = if ct.cismat then "" else "\tclam_convfunc_chk("^ct.cname^")\n" in
   "\nclam_convfunc_start("^(string_of_int idx)^","^(id_of_imgId (fst chanref))^","^(snd chanref)^")\n"^
   (List.fold_left (^) "" (List.map chk_wrapper calclst))^
+  "\t\tclam_convfunc_lastchk()\n"^
   (List.fold_left (^) "" (List.map (c_of_cfunc_calc calclst) calclst))^
   "clam_convfunc_end("^(string_of_int idx)^")"
 
