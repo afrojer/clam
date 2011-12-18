@@ -1,5 +1,5 @@
 #!/bin/bash
-TEST_DESC="test a kernal with 1 calc" #change this
+TEST_DESC="test a kernel with 1 calc" #change this
 . _buildup.sh
 
 # This will compile the test CLAM source file
@@ -13,7 +13,7 @@ if [ $ERRORS -eq 0 ]; then
     run_it
     # STDOUT/STDERR are put into "$RUN_OUTPUT"
     if [ ! $ERRORS -eq 0 ]; then
-        error "cannot declear a kernal with one Calc"
+        error "cannot declear a kernel with one Calc"
     fi
 else
     # compilation errors are here, and you can print them

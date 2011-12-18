@@ -1,5 +1,6 @@
 Image a = imgread("ucla.png");
-Image b;
-b:Red = a:Red;
-b:Blue = a:Blue;
+Calc c := #[1]#;
+Calc d := #[2]#;
+Kernel k = c | d;
+Image b = a:Red ** k;
 imgwrite(b, "png", "fail.png");

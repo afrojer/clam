@@ -6,6 +6,4 @@ Calc c2<Uint8> :=[1 / 1]{ +1 +2 +1 ,  0  0  0 , -1 -2 -1 };
 Kernel k1 = c1 | c2;
 Kernel k2 = c2 | c1;
 
-Kernel ktest;
-
-ktest |= k1 | k2;
+k1 |= k2;
