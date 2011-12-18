@@ -56,8 +56,8 @@ let compile_c code oname =
   let _ = Pervasives.close_out ochan in
   let lpath = Filename.dirname (Array.get Sys.argv 0) in
   let _, _ = syscall (sprintf "%s -c -o %s.o %s" gcc_path fname fname) in
-  let _, _ = syscall (sprintf "%s -o %s -L. %s/%s %s.o"
-                               gcc_path oname lpath
-                               clam_extralib fname) in
+  let _, _ = syscall (sprintf "%s -o %s -L. %s.o %s/%s"
+                               gcc_path oname fname lpath
+                               clam_extralib) in
   Sys.remove fname; Sys.remove (fname^".o");
   ()
