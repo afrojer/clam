@@ -1,4 +1,3 @@
 Image s;
+Calc C;
 s |= C;
-Image t;
-t:Red = s:C;

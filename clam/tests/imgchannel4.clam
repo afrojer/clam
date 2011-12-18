@@ -1,5 +1,3 @@
 Image s = imgread("ucla.png");
-Calc C := #[1]#;
+Calc C := #[Red + Blue]#;
 s |= C;
-Image t;
-t:Red = s:C;

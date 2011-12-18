@@ -10,7 +10,8 @@ if [ $ERRORS -eq 0 ]; then
     # This runs the compiled output, accepts
     # any command-line arguments, and sets ERRORS
     # to the return value of the new binary
-	run_it "$INPUT_IMG" "$OUTPUT_IMG"
+	run_it
+	ERRORS=$?
 	if [ ! $ERRORS -eq 0 ]; then
 		error "$RUN_OUTPUT"
 	fi
