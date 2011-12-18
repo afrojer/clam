@@ -257,6 +257,12 @@ typedef struct clam_imgchan {
 /* internal (compiler) API     */
 /* --- --- --- --- --- --- --- */
 
+#define bail(msg, ...) \
+{ \
+	fprintf(stderr, "CLAM Runtime ERROR: " msg "\n", ## __VA_ARGS__ ); \
+	exit(EXIT_FAILURE); \
+}
+
 #define clam_alloc_check(var) \
 	if (!var) bail("out of memory for " #var)
 
