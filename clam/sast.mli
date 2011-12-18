@@ -13,7 +13,7 @@
 
 
 (* Environment Objects *)
-type sMatrix = (int * int) * int list list
+type sMatrix = (int * int ) * (int * int) * int list list
 type fmtType = Png | Bmp | Tga
 type typeT = CalcType of Ast.atom
            | KernelType

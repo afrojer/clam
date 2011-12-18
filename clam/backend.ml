@@ -57,6 +57,19 @@ let c_of_fid = function
     Arg(i) -> "argv[" ^ (string_of_int i) ^ "]"
   | Const(s) -> "\"" ^ (escaped s) ^ "\""
 
+let c_of_matrix m =
+  let ( (wid, hei), (num, den), rowCol ) = m in
+  (string_of_int wid) ^ ", " ^ (string_of_int hei) ^ ", " ^
+  (string_of_int num) ^ ", " ^ (string_of_int den) ^ ", " ^
+  let c_of_matrix_row int_row =
+    let str_row = List.map string_of_int int_row in
+    let rs = (List.hd str_row) :: (List.map ((^) ", ") (List.tl str_row)) in
+    "{" ^ (List.fold_left (^) "" rs) ^ "}"
+  in
+  let raw_rows = List.map c_of_matrix_row rowCol in
+  let rows = (List.hd raw_rows) :: (List.map ((^) ", ") (List.tl raw_rows)) in
+  "{ " ^ (List.fold_left (^) "" rows) ^ " }"
+  
 
 let c_of_kernCalc ids =
   "/* XXX: c_of_kernCalc should be an r-value by building up a kernel in memory, but possible memory leak? */"
@@ -64,8 +77,9 @@ let c_of_kernCalc ids =
   "/* Kernel of Calcs: " ^ (List.fold_left (^) "" (List.map ((^) " ") ids)) ^ " */\n"
 *)
 
+
 let rec c_of_calcEx = function
-    CMatrix(m) -> "/* TODO: Read-Only Matrix */"
+    CMatrix(m) -> "/* TODO: Read-Only Matrix: " ^ (c_of_matrix m) ^ " */"
   | CRaw(s,ids) -> "/* TODO: Read-Only C String: '" ^ s ^ "' */"
   | CChain(ca) -> c_of_calcAssign ca
   | CIdent(id) -> id_of_calcId id

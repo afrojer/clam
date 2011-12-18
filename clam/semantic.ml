@@ -103,8 +103,10 @@ let cMatrix_of_matrix m =
   let ((bNum, bDen), bColRow) = m in
     let num = int_of_BInt bNum in
     let den = int_of_BInt bDen in
+    let height = List.length bColRow in
+    let width = List.length (List.hd bColRow) in
     let colRow = List.map (List.map int_of_BInt) bColRow in
-      CMatrix((num, den), colRow)
+      CMatrix((width, height), (num, den), colRow)
 
 
 
