@@ -132,7 +132,7 @@ $(TGT): $(TGT).a $(ML_DEP) $(ML_OINC) $(ML_OBJ)
 
 clean:
 	@echo "  CLEAN"
-	@rm -v clam_clib.ml
+	@rm -fv clam_clib.ml
 	@rm -fv $(OUT_BIN)
 	@rm -f $(ML_OBJ)
 	@rm -f $(ML_OINC)

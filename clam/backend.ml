@@ -80,13 +80,7 @@ let rec c_of_kernEx = function
   | KIdent(id) -> id_of_kernId id
 
 and c_of_kernAssign ka =
-  "/* XXX: Assignment needs: kernel *clam_kernel_copy( kernel* ) */"
-(*
-  let c_of_rhs = c_of_kernEx ka.k_rhs in
-    "/* --> Kern Assignment: Prepare RHS */\n" ^
-    c_of_rhs ^
-    "/* <-- Kern Assignment: Store in: " ^ ka.k_lhs ^ " */\n"
-*)
+  "clam_kernel_copy(" ^ (id_of_kernId ka.k_lhs) ^ ", (" ^ (c_of_kernEx ka.k_rhs) ^ ") )"
 
 and c_of_kernAppend kap =
   "clam_kernel_addcalc(" ^ (id_of_kernId kap.ka_lhs) ^ ", (" ^ (c_of_calcEx kap.ka_rhs) ^ ") )"
