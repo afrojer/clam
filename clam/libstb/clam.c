@@ -15,7 +15,7 @@ clam_img *clam_img_copy(clam_img *src)
 	bail("image copy not quite supported... check back later");
 }
 
-clam_kernel *__clam_kernel_copy(clam_kernel *src)
+clam_kernel *clam_kernel_copy(clam_kernel *src)
 {
 	bail("kernel copy not quite supported... check back later");
 }

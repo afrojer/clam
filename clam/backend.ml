@@ -125,10 +125,11 @@ let c_of_declare_matrix cid t mat =
   let ident = id_of_calcId cid in
   let (bigSz, smallSz) = c_of_atom t in
   ident ^ " = clam_calc_alloc(\"" ^ cid ^ "\", " ^ bigSz ^ ");\n  " ^
-  "clam_calc_setmatrix(" ^ ident ^ ", " ^ smallSz ^ ", " ^ (c_of_matrix mat) ^ ");"
+  "clam_calc_setmatrix(" ^ ident ^ ", " ^ smallSz ^ ", " ^ (c_of_matrix mat) ^ ")"
 
 let c_of_declare_cstring cid t str ids =
-  "/* Declare Calc as CString */"
+  let ident = id_of_calcId cid in
+  ident ^ " = clam_calc_alloc(\"" ^ cid ^ "\", " ^ (fst (c_of_atom t)) ^ ")"
 
 let rec c_of_calcEx = function
     CChain(ca) -> c_of_calcAssign ca
@@ -148,7 +149,19 @@ let rec c_of_kernEx = function
   | KIdent(id) -> id_of_kernId id
 
 and c_of_kernAssign ka =
-  "clam_kernel_copy(" ^ (id_of_kernId ka.k_lhs) ^ ", (" ^ (c_of_kernEx ka.k_rhs) ^ ") )"
+  let kernel_needs_cloning = function
+      KCalcList(_) -> false
+    | KChain(_) -> true
+    | KAppend(_) -> false
+    | KIdent(_) -> true
+  in
+  let c_rhs =
+    if (kernel_needs_cloning ka.k_rhs)
+    then "clam_kernel_copy( (" ^ (c_of_kernEx ka.k_rhs) ^ ") )"
+    else c_of_kernEx ka.k_rhs
+  in
+  "clam_kernel_assign(" ^ (id_of_kernId ka.k_lhs) ^ ", (" ^ c_rhs ^ ") )"
+
 
 and c_of_kernAppend kap =
   "TEMP_clam_kernel_addcalc(" ^ (id_of_kernId kap.ka_lhs) ^ ", (" ^ (c_of_calcEx kap.ka_rhs) ^ ") )"

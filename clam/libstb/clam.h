@@ -405,10 +405,11 @@ extern clam_img *clam_img_copy(clam_img *src);
 #define clam_img_assign(DST, SRC) \
 	({ if (DST) clam_img_free(DST); DST = (SRC); })
 
-extern clam_kernel *__clam_kernel_copy(clam_kernel *kern);
 
-#define clam_kernel_copy(DST, SRC) \
-	({ if (DST) clam_kernel_free(DST); DST = __clam_kernel_copy(SRC); })
+extern clam_kernel *clam_kernel_copy(clam_kernel *src);
+
+#define clam_kernel_assign(DST, SRC) \
+	({ if (DST) clam_kernel_free(DST); DST = (SRC); })
 
 extern clam_img *__clam_imgchan_add(clam_img *img, clam_atom type,
 				    const char *name, int should_alloc);
