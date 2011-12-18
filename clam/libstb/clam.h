@@ -11,9 +11,8 @@
 #include <float.h>
 #include <limits.h>
 #include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 
+#define __STDC_LIMIT_MACROS
 #include <stdint.h>
 
 
@@ -396,12 +395,14 @@ DBG(	printf("Adding %s to kernel\n", calc->name);)
 
 extern clam_img *clam_img_copy(clam_img *src);
 
+#define clam_img_assign(DST, SRC) \
+	({ if (DST) clam_img_free(DST); DST = (SRC); })
+
 extern clam_kernel *__clam_kernel_copy(clam_kernel *kern);
 
 #define clam_kernel_copy(DST, SRC) \
-	({if (!DST) \
-		DST = clam_kernel_alloc(); \
-	__clam_kernel_copy(SRC); })
+	({ (DST) ? clam_kernel_free(DST) : DST = clam_kernel_alloc; \
+	   DST = __clam_kernel_copy(SRC); })
 
 extern clam_img *__clam_imgchan_add(clam_img *img, clam_atom type,
 				    const char *name, int should_alloc);

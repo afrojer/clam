@@ -105,9 +105,12 @@ let rec c_of_imAssign ia =
     | ImAppend(iaP)  -> true
     | ImIdent(id)    -> true
   in
-  if (img_needs_cloning ia.i_rhs)
-  then ((id_of_imgId ia.i_lhs) ^ " = clam_img_copy( (" ^ (c_of_imgEx ia.i_rhs) ^ ") )")
-  else ((id_of_imgId ia.i_lhs) ^ " = (" ^ (c_of_imgEx ia.i_rhs) ^ ")")
+  let c_rhs =
+    if (img_needs_cloning ia.i_rhs)
+    then "clam_img_copy( (" ^ (c_of_imgEx ia.i_rhs) ^ ") )"
+    else c_of_imgEx ia.i_rhs
+  in
+  "clam_img_assign(" ^ (id_of_imgId ia.i_lhs) ^ ", " ^ c_rhs ^ ")"
 
 and c_of_imAppend iap =
   "clam_imgchan_addcalc(" ^ (id_of_imgId iap.ia_lhs) ^ ", (" ^ (c_of_calcEx iap.ia_rhs) ^ ") )"
