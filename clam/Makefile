@@ -7,10 +7,12 @@ OUT_BIN = *.out
 ML_TOP   = clam.ml
 
 # The rest of the source files
-ML_SRC   = environ.ml clamsys.ml backend.ml parse_util.ml semantic.ml printer.ml verifier.ml clam_clib.ml
+ML_SRC   = environ.ml clamsys.ml backend.ml parse_util.ml semantic.ml printer.ml verifier.ml
 ML_INC   = envtypes.mli ast.mli sast.mli
 LEX_SRC  = scanner.mll
 YACC_SRC = parser.mly
+ML_GEN    = clam_clib.ml
+ML_GENDEP = libstb/clam.h libstb/clam.c
 
 # extlib from: http://code.google.com/p/ocaml-extlib/
 ML_SRC += extlib/enum.ml extlib/std.ml extlib/extString.ml
@@ -82,25 +84,24 @@ ML_OBJ := $(ML_SRC:%.ml=$(OBJDIR)/%.cmo)
 ML_OBJ += $(filter-out $(ML_OBJ),$(YACC_ML:%.ml=%.cmo))
 ML_OBJ += $(filter-out $(ML_OBJ),$(LEX_ML:%.ml=%.cmo))
 ML_OBJ += $(filter-out $(ML_OBJ),$(ML_TOP:%.ml=$(OBJDIR)/%.cmo))
+ML_OBJ += $(ML_GEN:%.ml=$(OBJDIR)/%.cmo)
 
 ML_DEP     = $(ML_OINC:%.cmi=%.mli.dep)
 ML_DEP    += $(ML_OBJ:%.cmo=%.ml.dep)
 
 create_some_ocaml = \
   $(shell \
-	echo "let clibheader = \"" > clam_clib.ml; \
-	cat libstb/clam.h | sed 's/\\/\\\\/g; s/"/\\"/g' >> clam_clib.ml; \
-	cat libstb/clam.c | sed 's/\\/\\\\/g; s/"/\\"/g' >> clam_clib.ml; \
-	echo "\"" >> clam_clib.ml; \
+	echo "let clibheader = \"" > $(1); \
+	cat libstb/clam.h | sed 's/\\/\\\\/g; s/"/\\"/g' >>$(1); \
+	cat libstb/clam.c | sed 's/\\/\\\\/g; s/"/\\"/g' >> $(1); \
+	echo "\"" >> $(1); \
   )
 
-#$(OBJDIR)/clam_clib.ml.dep: clam_clib.ml
-#	$(call prepdir,$@)
-#	touch $@
+$(ML_GEN): $(ML_GENDEP)
+	$(foreach file,$(ML_GEN),$(call create_some_ocaml,$(file)))
 
 $(OBJDIR)/lex/%.ml: %.mll
 	$(call add_dep,"","clear")
-	$(call create_some_ocaml)
 	@echo "[OCAML  LEX] $*.mll"
 	@$(OCLEX) $(OCLEX_OPTS) -o $@ $<
 
@@ -126,14 +127,14 @@ $(TGT).a: $(STBLIB_OBJ)
 	@echo "[AR        ] $@"
 	@$(AR) -rs $@ $(STBLIB_OBJ)
 
-$(TGT): $(TGT).a $(ML_DEP) $(ML_OINC) $(ML_OBJ)
+$(TGT): $(TGT).a $(ML_GEN) $(ML_DEP) $(ML_OINC) $(ML_OBJ)
 	@echo "[OCAML    L] $(TGT)"
 	@$(OCC) -o $(TGT) $(OCAML_LOPTS) $(call get_link_order)
 
 clean:
 	@echo "  CLEAN"
-	@rm -fv clam_clib.ml
 	@rm -fv $(OUT_BIN)
+	@rm -f $(ML_GEN)
 	@rm -f $(ML_OBJ)
 	@rm -f $(ML_OINC)
 	@rm -f $(ML_DEP)
@@ -187,5 +188,5 @@ endif
 # automatic delection of parser/scanner ML files
 .SECONDARY: $(ML_OBJ:%.cmo=%.ml)
 
-.PHONY: all clean distclean clam_clib.ml
+.PHONY: all clean distclean
 
