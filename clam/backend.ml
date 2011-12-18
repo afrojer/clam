@@ -166,6 +166,11 @@ let generate_c scope vast =
   (c_of_scope scope) ^
   "\n/* GENERATED MAIN C */\n" ^
   "int main(int argc, char **argv) {\n" ^
+  let m = string_of_int scope.max_arg in
+  "  if (argc <= " ^ m ^ ") {\n" ^
+  "    fprintf(stderr, \"This program requires " ^ m ^ " arguments.\\n\");\n" ^
+  "    exit(1);\n" ^
+  "  }\n" ^
   (List.fold_left (^) "" (List.map c_of_vStmt vast)) ^
   "\n  return 0;\n" ^
   "}\n"

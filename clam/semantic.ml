@@ -31,6 +31,7 @@ exception SemanticFailure of string
 let scope = ref {
               mats = [];
               venv = { calc = []; images = []; kernels = [] };
+              max_arg = 0;
             }
 
 let type_of_vdecl = function
@@ -64,6 +65,9 @@ let type_of_ident scope s =
 let int_of_BInt = function
   BInt(i) -> i
 
+let check_max_arg i =
+  if (!scope.max_arg < i) then (!scope.max_arg <- i; ())
+  else ()
 
 (*
  * Recursive Checking Functions
@@ -71,7 +75,7 @@ let int_of_BInt = function
 
 (* Returns: filenameId *)
 let filenameId_of_expr = function
-    Integer(bi) -> let i = int_of_BInt(bi) in Arg(i)
+    Integer(bi) -> let i = int_of_BInt(bi) in check_max_arg i; Arg(i)
   | LitStr(s) -> Const(s)
   | _ -> raise(SemanticFailure("Filenames can only be a string or an integer"))
 
@@ -235,7 +239,7 @@ let trans_stmt = function
     )
 
 let translate_ast env ast =
-  scope.contents <- { venv = env; mats = [] };
+  scope.contents <- { venv = env; mats = []; max_arg = 0; };
   let gather nodes stmt = (trans_stmt stmt) :: nodes in
     let nodelist = List.fold_left gather [] ast in
       (!scope, List.rev nodelist)
