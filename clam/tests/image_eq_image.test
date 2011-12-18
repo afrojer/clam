@@ -11,6 +11,7 @@ if [ $ERRORS -eq 0 ]; then
     # any command-line arguments, and sets ERRORS
     # to the return value of the new binary
     run_it
+    ERRORS=$?
     # STDOUT/STDERR are put into "$RUN_OUTPUT"
     if [ ! $ERRORS -eq 0 ]; then
         error "Problem running this test!"
