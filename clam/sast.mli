@@ -11,6 +11,13 @@
  *)
 
 
+(* Identifiers *)
+type calcId = string
+type kernId = string
+type imgId = string
+type chanRefId = imgId * calcId
+type convData = kernId * chanRefId * Envtypes.calcT list * int
+type filenameId = Const of string | Arg of int
 
 (* Environment Objects *)
 type sMatrix = (int * int ) * (int * int) * int list list
@@ -33,15 +40,9 @@ type scopeT = {
   venv: Envtypes.envT;
   mutable mats: sMatrix list;
   mutable max_arg: int;
+  mutable cvdata : convData list;
 }
 
-
-(* Identifiers *)
-type calcId = string
-type kernId = string
-type imgId = string
-type chanRefId = imgId * calcId
-type filenameId = Const of string | Arg of int
 
 (* Assignment to a Calc *)
 type calcAssign = { c_lhs: calcId; c_rhs: calcEx; c_typ: Ast.atom; }
@@ -64,7 +65,7 @@ and kernEx =
 type imgAppend = { ia_lhs: imgId; ia_rhs: calcEx; }
 type imgAssign = { i_lhs: imgId; i_rhs: imgEx; }
 and imgEx =
-    ImConv of kernId * chanRefId * Envtypes.calcT list *int
+    ImConv of convData
   | ImRead of filenameId
   | ImChain of imgAssign
   | ImAppend of imgAppend

@@ -372,6 +372,9 @@ static inline void clam_kernel_free(clam_kernel *kern)
 	free(kern);
 }
 
+#define TEMP_clam_kernel_addcalc(K,C) \
+	clam_kernel_addcalc(K, C, 1)
+
 static clam_kernel *clam_kernel_addcalc(clam_kernel *kern, clam_calc *calc, int used)
 {
 	clam_kcalc *kc;

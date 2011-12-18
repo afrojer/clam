@@ -211,7 +211,7 @@ let check_assignment env rhs rhse op = function (* passes in LHS *)
                                        ": Kernel = Kernel only!")))
                   else
                     let kc = kcalc rhs in
-                    let env1 = kcalc_add env nm kc.allcalc kc.unusedcalc in
+                    let env1 = kcalc_add env nm (List.rev kc.allcalc) kc.unusedcalc in
                     env1
           | OrEq -> let chk_calc_add = function
                           CalcT(cnm,t) -> [cnm], []

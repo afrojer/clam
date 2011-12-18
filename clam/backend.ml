@@ -35,8 +35,6 @@ let c_of_imgDecl imgT = "clam_img *" ^ (id_of_imgT imgT) ^ " = NULL;\n"
 let c_of_kernDecl kernT = "clam_kernel *" ^ (id_of_kernT kernT) ^ " = NULL;\n"
 let c_of_calcDecl calcT = "clam_calc *" ^ (id_of_calcT calcT) ^ " = NULL;\n"
 
-
-
 (*
  * Variable Definitions
  *)
@@ -55,12 +53,39 @@ let c_of_atom = function
   | Int8   -> ("INT8", "int8_t")
   | Int16  -> ("INT16", "int16_t")
   | Int32  -> ("INT32", "int32_t")
+  | Angle  -> ("ANGLE", "float")
   | _ -> raise(Failure("Backend finding the Calc type of Unknown or Angle?"))
 
 let c_of_fmt = function
     Png -> "PNG"
   | Bmp -> "BMP"
   | Tga -> "TGA"
+
+let c_of_cfunc_calc calclst ct = if (ct.cismat) then "" else
+  let cinfo_from_id id = (List.fold_left (fun (ii,idx,ct) c ->
+                                         if (c.cname = id) then (ii+1,ii,c) else (ii+1,idx,ct))
+                         (0,0,ct)
+                         calclst) in
+  let pixparms ct idx = (snd (c_of_atom ct.ctype))^","^(string_of_int idx) in
+  let cdef_of_cfunc_id id =
+    let _,idx,idcalc = cinfo_from_id id in
+    "\t\t#define "^id^"  clam_img_pix("^(pixparms idcalc idx)^")\n" in
+  let idlist = (snd ct.cfunc) in
+  "\tdo_"^ct.cname^":\n" ^
+  (List.fold_left (^) "" (List.map cdef_of_cfunc_id idlist)) ^
+  "\t\t#define cfunc ("^(fst ct.cfunc)^")\n"^
+  "\t\tclam_convolve_cfunc("^ct.cname^","^(snd (c_of_atom ct.ctype))^",cfunc)\n"^
+  "\t\t#undef cfunc\n"^
+  (List.fold_left (^) "" (List.map (fun x -> "\t\t#undef "^x^"\n") idlist)) ^
+  "\t\tcontinue;\n"
+
+let c_of_convData cvdata =
+  let kernId, chanref, calclst, idx = cvdata in
+  let chk_wrapper ct = if ct.cismat then "" else "\tclam_convfunc_chk("^ct.cname^")\n" in
+  "\nclam_convfunc_start("^(string_of_int idx)^","^(id_of_imgId (fst chanref))^","^(snd chanref)^")\n"^
+  (List.fold_left (^) "" (List.map chk_wrapper calclst))^
+  (List.fold_left (^) "" (List.map (c_of_cfunc_calc calclst) calclst))^
+  "clam_convfunc_end("^(string_of_int idx)^")"
 
 let c_of_fid = function
     Arg(i) -> "argv[" ^ (string_of_int i) ^ "]"
@@ -125,7 +150,7 @@ and c_of_kernAssign ka =
   "clam_kernel_copy(" ^ (id_of_kernId ka.k_lhs) ^ ", (" ^ (c_of_kernEx ka.k_rhs) ^ ") )"
 
 and c_of_kernAppend kap =
-  "clam_kernel_addcalc(" ^ (id_of_kernId kap.ka_lhs) ^ ", (" ^ (c_of_calcEx kap.ka_rhs) ^ ") )"
+  "TEMP_clam_kernel_addcalc(" ^ (id_of_kernId kap.ka_lhs) ^ ", (" ^ (c_of_calcEx kap.ka_rhs) ^ ") )"
 
 let c_of_conv kid idx =
   "__convolution"^(string_of_int idx)^"("^(id_of_kernId kid)^")"
@@ -188,7 +213,8 @@ let c_of_scope scope =
   let venv = scope.venv in
     (List.fold_left (^) "" (List.map c_of_imgDecl venv.images)) ^
     (List.fold_left (^) "" (List.map c_of_kernDecl venv.kernels)) ^
-    (List.fold_left (^) "" (List.map c_of_calcDecl venv.calc))
+    (List.fold_left (^) "" (List.map c_of_calcDecl venv.calc)) ^
+    (List.fold_left (^) "" (List.map c_of_convData scope.cvdata))
 
 let c_of_vExpr = function
     Debug(s) -> "/* DEBUG: " ^ s ^ " */"

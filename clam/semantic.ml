@@ -34,6 +34,7 @@ let scope = ref {
               mats = [];
               venv = { calc = []; images = []; kernels = []; conv = []; };
               max_arg = 0;
+              cvdata = [];
             }
 
 let type_of_vdecl = function
@@ -147,8 +148,10 @@ and trans_conv cref id =
   let convref = (List.find (fun cv -> if (cv.cvidx = !globalConvIdx) then true else false)
                             !scope.venv.conv) in
   let chanlist = List.map (Environ.calct_of_id !scope.venv) convref.cvkernel.kallcalc in
-  let retval = ImConv(id,chanIdent,chanlist,!globalConvIdx) in
+  let imconv_stuff = id,chanIdent,chanlist,!globalConvIdx in
+  let retval = ImConv(imconv_stuff) in
   globalConvIdx := !globalConvIdx + 1;
+  !scope.cvdata <- imconv_stuff :: !scope.cvdata;
   retval
 
 (*
@@ -250,7 +253,7 @@ let trans_stmt = function
     )
 
 let translate_ast env ast =
-  scope.contents <- { venv = env; mats = []; max_arg = 0; };
+  scope.contents <- { venv = env; mats = []; max_arg = 0; cvdata = []; };
   let gather nodes stmt = (trans_stmt stmt) :: nodes in
     let nodelist = List.fold_left gather [] ast in
       (!scope, List.rev nodelist)
