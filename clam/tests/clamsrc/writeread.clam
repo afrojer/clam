@@ -1,0 +1,5 @@
+Image a;
+Image b;
+Image c;
+imgwrite( b = c = a = imgread(1), "png", 2);
+imgwrite(c, "png", "atest.png");

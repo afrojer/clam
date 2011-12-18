@@ -1,0 +1,21 @@
+Image a = imgread(1);
+Image b = imgread(2);
+
+a:bRed = b:Red;
+a:bGreen = b:Green;
+a:bBlue = b:Blue;
+
+Calc subR := #[ abs((int)Red - (int)bRed) ]#;
+Calc subG := #[ abs((int)Green - (int)bGreen) ]#;
+Calc subB := #[ abs((int)Blue - (int)bBlue) ]#;
+
+a |= subR;
+a |= subG;
+a |= subB;
+
+Image out;
+out:Red = a:subR;
+out:Green = a:subG;
+out:Blue = a:subB;
+
+imgwrite(out, "png", "out.png");

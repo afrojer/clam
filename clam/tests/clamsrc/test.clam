@@ -1,0 +1,33 @@
+Image srcimg = imgread(1);
+
+Calc Lum := #[(3*Red + 6*Green + 1*Blue)/10]#;
+Calc sobelG<Uint8>:= #[sqrt((float)sobelGx*sobelGx + (float)sobelGy*sobelGy)]#;
+Calc sobelTheta<Angle>:= #[atan((float)sobelGy/(float)sobelGx)]#;
+
+srcimg |= Lum;
+
+Calc sobelGx<Uint8> := [1 / 1]{ -1  0 +1 , -2  0 +2 , -1  0 +1 };
+Calc sobelGy<Uint8>:=[1 / 1]{ +1 +2 +1 ,  0  0  0 , -1 -2 -1 };
+
+Calc blurnel<Uint8> := [ 1 / 64 ]{ 1 2 3 2 1, 1 3 5 3 1, 1 5 9 5 1, 1 3 5 3 1, 1 2 3 2 1 };
+
+Kernel sobel = @sobelGx | @sobelGy | sobelG;
+sobel |= sobelTheta;
+
+Kernel bk = @sobelGx | blurnel;
+
+Image edges = srcimg:Lum ** sobel;
+Image blurry = edges:sobelG ** bk;
+
+Image output;
+output:Red   = blurry:blurnel;
+output:Green = blurry:blurnel;
+output:Blue  = blurry:blurnel;
+
+imgwrite( output, "png", 2);
+
+Image tmp;
+tmp:Blue = srcimg:Blue;
+tmp:Red = srcimg:Red;
+tmp:Green = srcimg:Green;
+imgwrite( tmp, "png", "testing.png");
