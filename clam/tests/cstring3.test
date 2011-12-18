@@ -1,14 +1,16 @@
 #!/bin/bash
-TEST_DESC="Empty C-String"
+TEST_DESC="Accept empty C-string"
 . _buildup.sh
-
 
 compile_it
 if [ $ERRORS -eq 0 ]; then
-    ERRORS=1
-    error "Empty C-String!"
+	run_it
+	ERRORS=$?
+	if [ $ERRORS -ne 0 ]; then
+		error "Binary did not exit normally: $ERRORS: $RUN_OUTPUT"
+	fi
 else
-    ERRORS=0
+	error $COMPILE_OUTPUT
 fi
 
 . _breakdown.sh
