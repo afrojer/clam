@@ -333,7 +333,7 @@ static inline void clam_img_setup_calc(clam_img *img)
 	} \
 	}
 
-#define clam_img_pix(type, pp, chidx) \
+#define clam_img_pix(type, chidx) \
 	(*((type *)((pp)[chidx])))
 
 static inline clam_calc *clam_calc_alloc(const char *name, clam_atom type)

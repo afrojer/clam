@@ -64,7 +64,7 @@ and kernEx =
 type imgAppend = { ia_lhs: imgId; ia_rhs: calcEx; }
 type imgAssign = { i_lhs: imgId; i_rhs: imgEx; }
 and imgEx =
-    ImConv of chanRefId * kernId
+    ImConv of kernId * chanRefId * Envtypes.calcT list *int
   | ImRead of filenameId
   | ImChain of imgAssign
   | ImAppend of imgAppend

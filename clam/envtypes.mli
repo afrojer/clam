@@ -1,5 +1,5 @@
 (*
- * File: env.mli
+ * File: envtypes.mli
  * Date: 2011-11-09
  *
  * PLT Fall 2011
@@ -34,8 +34,15 @@ type kernelT = {
   mutable kunusedcalc : string list;
 }
 
+type convRefT = {
+  cvchan : string * string;
+  cvkernel : kernelT;
+  cvidx : int;
+}
+
 type envT = {
   mutable calc : calcT list;
+  conv : convRefT list;
   images  : imgT list;
   kernels : kernelT list;
 }

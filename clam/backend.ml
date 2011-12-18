@@ -86,6 +86,15 @@ let c_of_kernCalc ids =
   "/* Kernel of Calcs: " ^ (List.fold_left (^) "" (List.map ((^) " ") ids)) ^ " */\n"
 *)
 
+(*
+let c_of_conv_listcalcs ke =
+  (List.map (fun s -> "clam_convfunc_chk("^s^")\n") ke.
+let c_of_conv_decl idx cid ke =
+  "clam_convfunc_start("^(string_of_int idx)^","^(fst cid)^","^(snd cid)^")\n"^
+  "/* work goes here */\n"^
+  "clam_convfunc_end("^(string_of_int idx)^")"
+*)
+
 let c_of_declare_matrix cid t mat =
   let ident = id_of_calcId cid in
   let (bigSz, smallSz) = c_of_atom t in
@@ -118,8 +127,8 @@ and c_of_kernAssign ka =
 and c_of_kernAppend kap =
   "clam_kernel_addcalc(" ^ (id_of_kernId kap.ka_lhs) ^ ", (" ^ (c_of_calcEx kap.ka_rhs) ^ ") )"
 
-let c_of_conv cid ke =
-  "/* XXX: CONVOLUTION */"
+let c_of_conv kid idx =
+  "__convolution"^(string_of_int idx)^"("^(id_of_kernId kid)^")"
 (*
   let c_of_rhs = c_of_kernEx ke in
     "/* --> Convolve: Prepare Kernel */\n" ^
@@ -132,11 +141,11 @@ let c_of_imgread fid =
 
 let rec c_of_imAssign ia =
   let img_needs_cloning = function
-      ImConv(cid,ke) -> false
-    | ImRead(fid)    -> false
-    | ImChain(ia)    -> true
-    | ImAppend(iaP)  -> true
-    | ImIdent(id)    -> true
+      ImConv(_,_,_,_) -> false
+    | ImRead(_)    -> false
+    | ImChain(_)    -> true
+    | ImAppend(_)  -> true
+    | ImIdent(_)    -> true
   in
   let c_rhs =
     if (img_needs_cloning ia.i_rhs)
@@ -149,7 +158,7 @@ and c_of_imAppend iap =
   "clam_imgchan_addcalc(" ^ (id_of_imgId iap.ia_lhs) ^ ", (" ^ (c_of_calcEx iap.ia_rhs) ^ ") )"
 
 and c_of_imgEx = function
-    ImConv(cid,ke) -> c_of_conv cid ke
+    ImConv(kid,_,_,idx) -> c_of_conv kid idx
   | ImRead(fid) -> c_of_imgread fid
   | ImChain(ia) -> c_of_imAssign ia
   | ImAppend(iap) -> c_of_imAppend iap

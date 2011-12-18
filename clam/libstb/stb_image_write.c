@@ -512,6 +512,7 @@ int imgwrite(clam_img *img, clam_img_fmt fmt, const char *filename)
 	int pix, sz;
 	int r, g, b;
 	unsigned char *pixels;
+	unsigned char **pp;
 
 	if (!filename || !img || img->num_chan <= 0) {
 		fprintf(stderr, "imgwrite: Invalid parameters!\n");
@@ -539,9 +540,10 @@ int imgwrite(clam_img *img, clam_img_fmt fmt, const char *filename)
 	pixels = img->p;
 	clam_img_setup_calc(img);
 	for ( pix = 0; pix < sz; ++pix ) {
-		pixels[0] = clam_img_pix(uint8_t,img->curr_p,r);
-		pixels[1] = clam_img_pix(uint8_t,img->curr_p,g);
-		pixels[2] = clam_img_pix(uint8_t,img->curr_p,b);
+		pp = img->curr_p;
+		pixels[0] = clam_img_pix(uint8_t,r);
+		pixels[1] = clam_img_pix(uint8_t,g);
+		pixels[2] = clam_img_pix(uint8_t,b);
 		pixels += 3;
 		clam_img_next_pix(img);
 	}

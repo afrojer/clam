@@ -24,6 +24,32 @@ clam_kernel *sobel;
 clam_img *edges;
 clam_img *output;
 
+clam_convfunc_start(0, srcimg, Lum)
+	clam_convfunc_chk(sobelG)
+	clam_convfunc_chk(sobelTheta)
+	clam_convfunc_lastchk()
+		do_sobelG:
+			#define sobelGx clam_img_pix(uint8_t,0)
+			#define sobelGy clam_img_pix(uint8_t,1)
+			#define cfunc ( sqrt(sobelGx*sobelGx + sobelGy*sobelGy) )
+			clam_convolve_cfunc(sobelG,uint8_t,cfunc)
+			#undef cfunc
+			#undef sobelGx
+			#undef sobelGy
+			continue;
+		do_sobelTheta:
+			#define sobelGx clam_img_pix(uint8_t,0)
+			#define sobelGy clam_img_pix(uint8_t,1)
+			#define sobelG  clam_img_pix(uint8_t,3)
+			#define cfunc ( atan((float)sobelGy/(float)sobelGx) )
+			clam_convolve_cfunc(sobelTheta,float,cfunc)
+			#undef cfunc
+			#undef sobelGx
+			#undef sobelGy
+			#undef sobelG
+			continue;
+clam_convfunc_end(0);
+
 /* main program loop */
 int main(int argc, char **argv)
 {
@@ -66,9 +92,9 @@ DBG(	srcimg->name = "srcimg";)
 	clam_imgchan_addcalc(srcimg, Lum);
 	{
 		clam_imgchan *__EVALCHAN = clam_imgchan_ref(srcimg, "Lum");
-		#define Red   clam_img_pix(uint8_t,pp,0)
-		#define Green clam_img_pix(uint8_t,pp,1)
-		#define Blue  clam_img_pix(uint8_t,pp,2)
+		#define Red   clam_img_pix(uint8_t,0)
+		#define Green clam_img_pix(uint8_t,1)
+		#define Blue  clam_img_pix(uint8_t,2)
 		#define cfunc ( (3*Red + 6*Green + 1*Blue)/10 )
 		clam_imgchan_eval(srcimg,uint8_t,__EVALCHAN);
 		#undef cfunc
@@ -94,6 +120,8 @@ DBG(	srcimg->name = "srcimg";)
 		clam_kernel_addcalc(sobel, sobelGx, 0), sobelGy, 1), sobelG, 1), sobelTheta, 1);
 
 	/* Image edges = srcimg:Lum ** sobel */
+	edges = __convolution0(sobel);
+#if 0
 	{
 		clam_kcalc *__kc;
 		clam_img *__IMG;
@@ -147,6 +175,7 @@ DBG(			printf("\tcalc=%s\n", __c->name);)
 		/* cleanup unused channels */
 		clam_img_cleanup(__IMG, sobel);
 	}
+#endif
 
 	output = clam_img_alloc();
 	clam_alloc_check(output);

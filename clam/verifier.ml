@@ -16,6 +16,8 @@ open Envtypes
 open Environ
 open Printer
 
+let globalConvIdx = ref 0
+
 (*
  * Find an image by name from the environment
  *)
@@ -119,13 +121,6 @@ let image_add env img channel typ isvalid ismat cfuncstr cmat =
  *)
 let check_convolve env chanref kref =
   let allC, unusedC = find_kernel env kref in
-(*
-  let get_kcalc = function
-                  KernCalc(k) -> k.allcalc, k.unusedcalc
-                | Id(i) -> find_kernel env i
-                | _ -> (raise (Failure("Invalid convolution kernel!"))) in
-  let allC, unusedC = get_kcalc kernelref in
-*)
   let calc_is_used chname =
         if (List.exists
             (fun nm -> if nm = chname then true else false)
@@ -135,7 +130,13 @@ let check_convolve env chanref kref =
                   (fun lst calc ->
                           if (calc_is_used calc) then calc :: lst else lst)
                   [] allC) in
-  env, chanlist
+  let cvref = { cvchan = chanref.image, chanref.channel;
+                cvkernel = { kname = kref; kallcalc = allC; kunusedcalc = unusedC; };
+                cvidx = !globalConvIdx;
+              } in
+  let env1 = { env with conv = cvref :: env.conv } in
+  globalConvIdx := !globalConvIdx + 1;
+  env1, chanlist
 
 (*
  * VERIFY:
@@ -397,6 +398,7 @@ let verify program =
     (fun (envO,slist) s -> let env, vstmt =
                              check_stmt envO s in env, vstmt :: slist)
     ( {calc = [];
+       conv = [];
        images = [];
        kernels = []}, [] ) program)
   in

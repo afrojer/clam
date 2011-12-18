@@ -12,10 +12,12 @@
 
 clam_img *clam_img_copy(clam_img *src)
 {
+	bail("image copy not quite supported... check back later");
 }
 
 clam_kernel *__clam_kernel_copy(clam_kernel *src)
 {
+	bail("kernel copy not quite supported... check back later");
 }
 
 clam_img *__clam_imgchan_add(clam_img *img, clam_atom type,
@@ -345,6 +347,32 @@ void clam_convolve_matrix(clam_img *outimg,
 	__clam_imgchan_add(__IMG, (CALC)->type, (CALC)->name, 0); \
 	__outchanref = clam_imgchan_ref(__IMG, (CALC)->name); \
 	clam_imgchan_eval(__IMG, TYPE, __outchanref); \
+}
+
+#define clam_convfunc_start(IDX,IMGNAME,CHANNAME) \
+clam_img *__convolution ## IDX(clam_kernel *kern) { \
+	clam_kcalc *__kc; \
+	clam_img *__IMG; \
+	clam_imgchan *__CONVCHAN = clam_imgchan_ref(IMGNAME, #CHANNAME); \
+	__IMG = clam_img_alloc(); \
+	list_for_each_entry_reverse(__kc, &kern->allcalc, list) { \
+		clam_calc *__c = __kc->calc; \
+		if (__c->ismat) { \
+			clam_convolve_matrix(__IMG, __CONVCHAN, __c); \
+		} else { \
+
+#define clam_convfunc_chk(CHAN) \
+			if (strcmp(__c->name, #CHAN) == 0) \
+				goto do_ ## CHAN;
+
+#define clam_convfunc_lastchk() \
+			continue;
+
+#define clam_convfunc_end(IDX) \
+		} \
+	} \
+	clam_img_cleanup(__IMG, kern); \
+	return __IMG; \
 }
 
 void clam_img_cleanup(clam_img *img, clam_kernel *kern)

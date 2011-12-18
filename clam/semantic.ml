@@ -28,9 +28,11 @@ open Printer
 
 exception SemanticFailure of string
 
+let globalConvIdx = ref 0
+
 let scope = ref {
               mats = [];
-              venv = { calc = []; images = []; kernels = [] };
+              venv = { calc = []; images = []; kernels = []; conv = []; };
               max_arg = 0;
             }
 
@@ -142,7 +144,12 @@ and trans_libf libf elist =
 (* Returns: ImConv *)
 and trans_conv cref id =
   let chanIdent = trans_chanRefId cref in
-  ImConv(chanIdent,id)
+  let convref = (List.find (fun cv -> if (cv.cvidx = !globalConvIdx) then true else false)
+                            !scope.venv.conv) in
+  let chanlist = List.map (Environ.calct_of_id !scope.venv) convref.cvkernel.kallcalc in
+  let retval = ImConv(id,chanIdent,chanlist,!globalConvIdx) in
+  globalConvIdx := !globalConvIdx + 1;
+  retval
 
 (*
 and trans_conv e1 e2 =

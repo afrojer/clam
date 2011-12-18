@@ -582,6 +582,7 @@ clam_img * imgread(const char *filename)
 	clam_imgchan *ch;
 	int x, y, pix, sz, comp;
 	unsigned char *pixels;
+	unsigned char **pp;
 
 	if (!filename) {
 		fprintf(stderr, "imgread: Invalid filename!\n");
@@ -615,9 +616,10 @@ clam_img * imgread(const char *filename)
 
 	clam_img_setup_calc(img);
 	for ( pix = 0; pix < sz; ++pix ) {
-		clam_img_pix(uint8_t,img->curr_p,0) = pixels[0];
-		clam_img_pix(uint8_t,img->curr_p,1) = pixels[1];
-		clam_img_pix(uint8_t,img->curr_p,2) = pixels[2];
+		pp = img->curr_p;
+		clam_img_pix(uint8_t,0) = pixels[0];
+		clam_img_pix(uint8_t,1) = pixels[1];
+		clam_img_pix(uint8_t,2) = pixels[2];
 		pixels += 3;
 		clam_img_next_pix(img);
 	}
