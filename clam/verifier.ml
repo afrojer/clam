@@ -325,7 +325,46 @@ let rec check_expr env = function
                   (raise (Failure(s)));
           )
         in envNew, ChanAssign(ref,ve)
-  | LibCall(f,args) -> env, LibCall(f,args)
+  | LibCall(f,args) -> check_libf env f args
+
+and check_libf env libf args =
+  match libf with
+      ImgRead  -> check_imgRead env args
+    | ImgWrite -> check_imgWrite env args
+
+and check_imgRead env args =
+  match args with
+      hd :: [] -> let env1, file = check_expr env hd in
+                    (match file with
+                        LitStr(s) -> env1, LibCall(ImgRead, [file])
+                      | Integer(bi) -> env1, LibCall(ImgRead, [file])
+                      | _ -> raise(Failure("ImgRead parameter must be a string or an integer"))
+                    )
+    | _ -> raise(Failure("ImgRead must have exactly one argument"))
+
+and check_imgWrite env args =
+  match args with
+      raw_fname_expr :: raw_fmt_expr :: raw_img_expr :: [] -> (
+        (* 1 Check fname_expr is string literal or an integer *)
+        (* 2 Check fmt_expr is string literal *)
+        (* 3 Check img_expr is a valid image expression *)
+        let fname_expr = match raw_fname_expr with
+            LitStr(s) -> LitStr(s)
+          | Integer(bi) -> Integer(bi)
+          | _ -> raise(Failure("3rd parameter of ImgWrite must be a string or an integer"))
+        in
+        let fmt_expr = match raw_fmt_expr with
+            LitStr(s) -> LitStr(s)
+          | _ -> raise(Failure("2nd parameter of ImgWrite must be a string representing the format"))
+        in
+        let env1, img_expr = check_expr env raw_img_expr in
+        let _ = match type_of_expr env1 img_expr with
+                    ImageT(s) -> ()
+                  | _ -> raise(Failure("At the moment, the validator is not pleased unless ImgWrite's 1st argument is an image identifier"))
+        in
+        env1, LibCall(ImgWrite, [fname_expr; fmt_expr; img_expr])
+      )
+    | _ -> raise(Failure("Wrong number of arguments supplied to ImgWrite function"))
 
 
 (*
