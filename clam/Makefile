@@ -187,5 +187,5 @@ endif
 # automatic delection of parser/scanner ML files
 .SECONDARY: $(ML_OBJ:%.cmo=%.ml)
 
-.PHONY: all clean distclean
+.PHONY: all clean distclean clam_clib.ml
 
