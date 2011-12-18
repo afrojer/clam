@@ -334,8 +334,7 @@ static inline clam_calc *clam_calc_alloc(const char *name, clam_atom type)
 {
 	clam_calc *c;
 	c = (clam_calc *)malloc(sizeof(*c));
-	if (!c)
-		return NULL;
+	clam_alloc_check(c);
 	memset(c, 0, sizeof(*c));
 	c->name = name;
 	c->type = type;
@@ -346,8 +345,7 @@ static inline clam_kernel *clam_kernel_alloc(void)
 {
 	clam_kernel *k;
 	k = (clam_kernel *)malloc(sizeof(*k));
-	if (!k)
-		return NULL;
+	clam_alloc_check(k);
 	memset(k, 0, sizeof(*k));
 	INIT_LIST_HEAD(&k->allcalc);
 	return k;
@@ -401,8 +399,7 @@ extern clam_img *clam_img_copy(clam_img *src);
 extern clam_kernel *__clam_kernel_copy(clam_kernel *kern);
 
 #define clam_kernel_copy(DST, SRC) \
-	({ (DST) ? clam_kernel_free(DST) : DST = clam_kernel_alloc; \
-	   DST = __clam_kernel_copy(SRC); })
+	({ if (DST) clam_kernel_free(DST); DST = __clam_kernel_copy(SRC); })
 
 extern clam_img *__clam_imgchan_add(clam_img *img, clam_atom type,
 				    const char *name, int should_alloc);
