@@ -64,7 +64,7 @@ let string_of_chan ch =
  * Printing CLAM compiler messages
  *)
 let print_clamerr = function
-    Parse_util.ParseErr(exn,(file,line,cnum,tok,tail)) ->
+    Parseutil.ParseErr(exn,(file,line,cnum,tok,tail)) ->
       let extra = Printexc.to_string exn in
       let fname = if file = "" then "<stdin>" else file in
       let estr =

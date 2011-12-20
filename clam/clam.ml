@@ -52,9 +52,9 @@ let _ =
   Arg.parse (Arg.align args) clam_anon_fcn clam_usage;
   try
     let input_prog = if clam_srcin = ref "-" then
-                       Parse_util.parse_stdin ()
+                       Parseutil.parse_stdin ()
                      else
-                       Parse_util.parse_file !clam_srcin in
+                       Parseutil.parse_file !clam_srcin in
     let program = List.rev input_prog in
     (* print out the AST if requested *)
     let _ = if !clam_print_ast then
@@ -72,7 +72,7 @@ let _ =
   with
       Failure(s)           -> prerr_endline ("Error: "^s); exit 1
     | Semantic.SemanticFailure(s) -> prerr_endline ("Semantic Error: "^s); exit 1
-    | Parse_util.ParseErr(e,s) as err -> Printer.print_clamerr err; exit 1
+    | Parseutil.ParseErr(e,s) as err -> Printer.print_clamerr err; exit 1
     | Sys_error(s)         -> prerr_endline 
                               ("System error - check permissions on '"^
                                 Filename.temp_dir_name^"': "^s); exit 1
