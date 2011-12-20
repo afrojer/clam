@@ -10,6 +10,7 @@ paper.dvi
 paper.ps
 paper.bbl
 paper.blg
+paper.toc
 
 clam/obj/*
 clam/clam

@@ -1,0 +1,41 @@
+% Adapted from vim Ocaml syntax highlighting
+
+\definecolor{ocamlLightBlue}{cmyk}{0.8, 0.1, 0.0, 0.1}
+\definecolor{ocamlDarkBlue}{rgb}{0.0, 0.08, 0.65}
+\definecolor{ocamlDarkRed}{rgb}{0.65, 0.08, 0.0}
+\definecolor{ocamlDarkGreen}{rgb}{0.08, 0.35, 0.08}
+\definecolor{ocamlYellow}{cmyk}{0.0, 0.08, 0.5, 0.3}
+\definecolor{ocamlPurple}{rgb}{0.58, 0.0, 0.83}
+\definecolor{ocamlBrown}{rgb}{0.55, 0.27, 0.08}
+\definecolor{ocamlGrey}{rgb}{0.55, 0.55, 0.55}
+\lstdefinelanguage{OCaml}{
+    classoffset=0,
+    keywordstyle={\color{ocamlPurple}\bfseries},
+    morekeywords={somethingsomethingsomething},
+    classoffset=1,
+    morekeywords={and,as,assert,class,constraint,else,exception,external,fun,function,in,inherit,initializer,land,lazy,let,match,method,module,mutable,new,of,open,parser,private,raise,rec,then,try,type,val,virtual,when,while,with,do,value},
+    keywordstyle={\color{ocamlDarkRed}\bfseries},
+    classoffset=2,
+    morekeywords={true,false,array,bool,char,exn,float,format,format64,int,int32,int64,lazy\_t,list,nativeint,option,string,uint},
+    keywordstyle={\color{ocamlDarkBlue}\bfseries},
+    classoffset=3,
+    morekeywords={StringMap,String,List,Printf,Lexing,Scanner,Map,Make,Pervasives,Failure,VarMap,Parser,Ast},
+    keywordstyle={\color{ocamlDarkGreen}},
+    classoffset=4,
+    otherkeywords={asr,lor,lsl,lsr,lxor,mod,not,::,;,|,@,->,<-,[],:=,;;,^,&&},
+    morecomment=[l]{//},
+    morecomment=[n]{(*}{*)},
+    commentstyle={\color{ocamlGrey}\bfseries},
+    morestring=[b]",
+    stringstyle={\color{ocamlBrown}},
+    moredelim=*[s][\color{ocamlBrown}]{'}{'},
+    sensitive=true,
+    showstringspaces=false,
+    showspaces=false,
+    showtabs=false,
+    numbers=left,
+    frame=single,
+    breaklines=true,
+    basicstyle=\ttfamily\scriptsize,
+}
+

@@ -1,2 +1,60 @@
-\chapter{Appendix}
-Complete code reference goes here\ldots
+\chapter{Complete Code Reference}
+The \sys{} programming language was implemented in OCaml. It uses the
+C/C++ programming languages as backend targets, and invokes the \texttt{g++}
+compiler on the \sys{} compilation output to produce a final binary. The
+final binary is statically linked against a \sys{} implementation library,
+\texttt{clam.a}, which contains the low-level image manipulation functions. Additionally,
+\sys{} leveraged several OCaml functions from the \emph{extlib}~\cite{extlib:googlecode}
+project. Code listings of the \sys{} compiler and \sys{} implementation library
+as well as the subset of \emph{extlib} used by \sys{} follow:
+
+\clearpage
+\section{\sys{} Compiler}
+\lstinputlisting[language=Ocaml]{../clam/clam.ml} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/ast.mli} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/backend.ml} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/clamsys.ml} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/environ.ml} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/envtypes.mli} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/parseutil.ml} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/parser.mly} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/printer.ml} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/sast.mli} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/scanner.mll} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/semantic.ml} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/verifier.ml} \clearpage
+
+\subsection{Subset of \emph{extlib} Used by \sys{}}
+\lstinputlisting[language=Ocaml]{../clam/extlib/enum.ml} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/extlib/enum.mli} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/extlib/extString.ml} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/extlib/extString.mli} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/extlib/std.ml} \clearpage
+\lstinputlisting[language=Ocaml]{../clam/extlib/std.mli} \clearpage
+
+\section{\sys{} Implementation Library (\texttt{clam.a})}
+\definecolor{cstyleDarkRed}{rgb}{0.65, 0.08, 0.0}
+\definecolor{cstyleDarkBlue}{rgb}{0.0, 0.08, 0.65}
+\definecolor{cstyleGrey}{rgb}{0.55, 0.55, 0.55}
+\lstset{
+    keywordstyle={\color{cstyleDarkRed}\bfseries},
+    commentstyle={\color{cstyleGrey}\bfseries},
+    %directivestyle={\color{cstyleDarkBlue}},
+    sensitive=true,
+    showstringspaces=false,
+    showspaces=false,
+    showtabs=false,
+    numbers=left,
+    frame=single,
+    breaklines=true,
+    basicstyle=\ttfamily\scriptsize,
+}
+\lstinputlisting[language=C]{../clam/libstb/clam.h} \clearpage
+\lstinputlisting[language=C]{../clam/libstb/clam.c} \clearpage
+%\lstinputlisting[language=C]{../clam/libstb/stb-image-read.c} \clearpage
+%\lstinputlisting[language=C]{../clam/libstb/stb-image-write.c} \clearpage
+
+\section{Unit Test Framework}
+
+\section{\texttt{git} shortlog of Project Repository}
+
