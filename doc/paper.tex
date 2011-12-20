@@ -28,7 +28,7 @@
   \documentclass[10pt,letterpaper,onecolumn,oneside]{article}
 \fi
 
-\usepackage[margin=2.8cm]{geometry}
+\usepackage[margin=1.0in]{geometry}
 \usepackage[utf8x]{inputenc}
 \usepackage{ucs}
 \usepackage{amsmath}
@@ -37,7 +37,6 @@
 \usepackage[usenames]{color}
 \usepackage{listings}
 \usepackage{graphicx}
-\usepackage{url}
 \usepackage{underscore}
 % hyphenat redefines "BreakableUnderscore", so I need
 % to do some LaTeX gymnastics to make it work...
@@ -55,6 +54,7 @@
     pdfauthor={\authorlist{}},
     pdfdisplaydoctitle=true,
     plainpages=false]{hyperref}
+\usepackage{breakurl}
 
 \setlength{\parindent}{0in}
 \addtolength{\parskip}{\baselineskip}
@@ -96,6 +96,7 @@
     \input{lessons}
     \appendix
     \input{appendix}
+    \clearpage
   \fi
   {
     \balance

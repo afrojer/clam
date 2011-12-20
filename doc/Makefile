@@ -4,7 +4,7 @@ SRC = paper
 SRCTEX = $(SRC).tex
 SRCBIB = $(SRC)*.bib
 # additional dependencies
-ADD = 
+ADD =
 
 # commands
 BIBTEX = bibtex
@@ -25,25 +25,25 @@ DVIOPTS =
 
 SRCARG=
 ifeq ($(BOOK)$(PROPOSAL)$(REFMAN),)
-  $(warning Defaulting to Language Reference Manual [for now])
-  REFMAN=1
+  $(warning Defaulting to Final Report format [BOOK=1])
+  BOOK=1
 endif
 
 ifeq ($(BOOK),1)
-  SRCARG += "\let\ifbook\iftrue"
+  SRCARG := $(SRCARG)\let\ifbook\iftrue
 else
-  SRCARG += "\let\ifbook\iffalse"
+  SRCARG := $(SRCARG)\let\ifbook\iffalse
 endif
 ifeq ($(PROPOSAL),1)
-  SRCARG += "\let\ifproposal\iftrue"
+  SRCARG := $(SRCARG)\let\ifproposal\iftrue
   NOBIB=1
 else
-  SRCARG += "\let\ifproposal\iffalse"
+  SRCARG := $(SRCARG)\let\ifproposal\iffalse
 endif
 ifeq ($(REFMAN),1)
-  SRCARG += "\let\ifrefman\iftrue"
+  SRCARG := $(SRCARG)\let\ifrefman\iftrue
 else
-  SRCARG += "\let\ifrefman\iffalse"
+  SRCARG := $(SRCARG)\let\ifrefman\iffalse
 endif
 
 #
@@ -51,7 +51,7 @@ endif
 #
 
 # compile the final SRCARG value
-SRCARG += "\input{$(SRC).tex}"
+SRCARG := $(SRCARG)\input{$(SRC).tex}
 
 # force a dependency on all data files.
 DEP := $(wildcard *.tex)
@@ -90,13 +90,13 @@ force: do_force all
 	@$(RM) $*.ps
 
 $(SRC).pdf: $(FORCE) $(PDFDEPEND) $(SRC).bbl Makefile
-	@$(WHICHLATEX) $(LATEXOPTS) $(SRCARG)
+	@$(WHICHLATEX) $(LATEXOPTS) "$(SRCARG)"
 
 $(SRC).dvi: $(FORCE) $(DVIDEPEND) $(SRC).bbl Makefile
-	@$(DVILATEX) $(DVIOPTS) $(SRCARG)
+	@$(DVILATEX) $(DVIOPTS) "$(SRCARG)"
 
 $(SRC).ps: $(FORCE) $(SRC).dvi $(SRC).bbl Makefile
-	@$(WHICHPS) $(PSOPTS) $(SRCARG)
+	@$(WHICHPS) $(PSOPTS) "$(SRCARG)"
 
 ifeq ($(NOBIB),1)
 $(SRC).bbl:
@@ -104,11 +104,11 @@ $(SRC).bbl:
 else
 $(SRC).bbl: $(FORCE) $(SRC).bib Makefile
 	@echo "[$(WHICHLATEX)]: first pass to generate *.aux files"
-	@$(WHICHLATEX) $(LATEXOPTS) $(SRCARG) 2>&1 >> $(SRC).build.log
+	@$(WHICHLATEX) $(LATEXOPTS) "$(SRCARG)" 2>&1 >> $(SRC).build.log
 	@echo "[$(BIBTEX)] $(SRC)"
 	@$(BIBTEX) $(SRC) 2>&1 >> $(SRC).build.log
 	@echo "[$(WHICHLATEX)]: second pass to generate *.bib files"
-	@$(WHICHLATEX) $(LATEXOPTS) $(SRCARG) 2>&1 >> $(SRC).build.log
+	@$(WHICHLATEX) $(LATEXOPTS) "$(SRCARG)" 2>&1 >> $(SRC).build.log
 endif
 
 pdf: $(SRC).pdf
