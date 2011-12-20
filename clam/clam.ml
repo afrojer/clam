@@ -10,7 +10,6 @@
  *
  *)
 
-
 let clamversion = "0.1"
 let clam_binout = ref "a.out"
 let clam_c_out  = ref "clam_gen.c"
@@ -20,23 +19,18 @@ let clam_srcin  = ref "-"
 
 let clam_usage =
   let s1 = "CLAM v"^clamversion^"\n" in
-  let s2 = Printf.sprintf "Usage: %s [options] {{<} inputfile}\n"
+  let s2 = Printf.sprintf "Usage: %s {options} [{<} inputfile]\n"
            (Filename.basename Sys.executable_name) in
   let s3 = "Options are:" in
   s1 ^ s2 ^ s3
 
-let set_clam_output s =
-  clam_binout := s;
-  clam_c_out := s
+let set_clam_output s = clam_binout := s; clam_c_out := s
 
-let set_clam_input s =
-  clam_srcin := s
+let set_clam_input s = clam_srcin := s
 
-let set_clam_gen_c_only () =
-  clam_c_only := true
+let set_clam_gen_c_only () = clam_c_only := true
 
-let set_clam_print_ast () =
-  clam_print_ast := true
+let set_clam_print_ast () = clam_print_ast := true
 
 let clam_anon_fcn = function
   | "-" -> clam_srcin := "-"
@@ -56,7 +50,7 @@ let _ =
                      else
                        Parseutil.parse_file !clam_srcin in
     let program = List.rev input_prog in
-    (* print out the AST if requested *)
+    (* print out the AST if requested: before verification == debugging :-) *)
     let _ = if !clam_print_ast then
               print_endline (Printer.string_of_ast program) else () in
     let (env, verified_ast) = Verifier.verify program in
@@ -77,4 +71,3 @@ let _ =
                               ("System error - check permissions on '"^
                                 Filename.temp_dir_name^"': "^s); exit 1
     | Clamsys.Compile_error(s) -> prerr_endline ("C-Backend error: "^s); exit 1
-
