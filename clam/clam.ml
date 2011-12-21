@@ -6,7 +6,8 @@
  * CLAM Project
  * Jeremy C. Andrus <jeremya@cs.columbia.edu>
  * Robert Martin <rdm2128@columbia.edu>
- * Kevin Sun <kfs2110@columbia.edu> * Yongxu Zhang <yz2419@columbia.edu>
+ * Kevin Sun <kfs2110@columbia.edu>
+ * Yongxu Zhang <yz2419@columbia.edu>
  *
  *)
 

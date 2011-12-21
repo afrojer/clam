@@ -18,7 +18,7 @@ ML_GENDEP = libstb/clam.h libstb/clam.c
 ML_SRC += extlib/enum.ml extlib/std.ml extlib/extString.ml
 ML_INC += extlib/enum.mli extlib/std.mli extlib/extString.mli
 
-STBLIB_SRC = libstb/stb_image_write.c libstb/stb_image_read.c
+STBLIB_SRC = libstb/stb-image-write.c libstb/stb-image-read.c
 
 # env config
 OBJDIR = obj
