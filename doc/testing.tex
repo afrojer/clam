@@ -1,11 +1,45 @@
 \chapter{Test Plan}
 
-Show two or three representative source language programs along with the target language program generated for each
+The test of CLAM contains three parts: CLAM syntax, wrapped C syntax, and linear algebra functionalities. We start from part 1, using small unit tests to find out bugs in the syntax of CLAM. We carefully went through those data types and operators defined in CLAM to ensure the convergence. In detail, the default value of each basic type, the validity operands of all kinds of operators, and different ways of declaration are main points in this part. We also plan to fix those syntax bugs, especially in the parser and the verifier, immediately after them were found. Thus, at the end of the part 1, our  parser become more robust and capable of handling syntax errors.
 
-Show the test suites used to test your translator
+In part two, we test the acceptance of wrapped C expression. The code in CLAM is translated into C language before being compiled, and C language expressions are supported during variable declaration. As a reason of that,  the parser needs to detect syntax errors in those wrapped C statements that may affect the compiling. Some tests about unreasonable statements are also involved such as 0 being denominator, or unclosed comment.
 
-Explain why and how these test cases were chosen
+The functionalities of built-in functions and calculation operators in CLAM are tested in part 3. The actual images are required in the tests as input and output. The output of each test is observed and compared with desired result.
 
-What kind of automation was used in testing
+CLAM Syntax:
+	Assignments: 
+		image_eq_image.clam, image_oreq_image.clam
+		image_oreq_image2.clam, image_defeq.clam 
+		addker2img.clam, addker.clam, DefEq.clam
 
-State who did what
+	** operator:
+		convoperand.clam
+
+	Variable deceleration:
+		1calc_ker.clam, zerocalc1.clam, zerocalc2.clam
+		matrix1.clam, matrix2.clam, matrix3.clam, matrix4.clam 
+		defcalc1.clam, defcalc2.clam, defcalc3.clam
+		keyword_id.clam,  id_overlap.clam, invalid_identifier.clam
+		undefined_atomtype.clam
+		
+
+	Image operations syntax (not testing actual implementation):
+		imgchannel1.clam, imgchannel2.clam, imgchannel3.clam, imgchannel4.clam
+		imgread_bad.clam, imgwrite_bad1.clam, imgread_bad2.clam, imgread_bad3.clam
+		defchannels.clam, sizediff.clam, equality_trans.clam
+
+	The @ operator: at_channel.clam
+	Comment: comment1.clam
+
+	rval_calc.clam, rval_matrix.clam, rval_chanref.clam, rval_conv.clam, 
+	rval_cstr.clam, rval_image.clam, rval_imgread.clam, rval_kernel.clam
+
+
+Warped C syntax:
+	cstring1.clam, cstring2.clam, cstring3.clam, cstring4.clam, cstring5.clam, cstring6.clam
+	cimage.clam
+	ckernel.clam
+
+Image functionality:
+	imgwrite_norgb.clam,  imgcopy.clam,  imgread.clam
+	sobel.clam (general test)
