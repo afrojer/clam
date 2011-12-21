@@ -6,7 +6,7 @@
 The tokens in \sys{} are broken down as follows: We have reserved
 keywords, identifiers, constants, control characters, and operators.
 The end of a token is defined by the presence of a newline, space,
-or tab character (whitespace), or by the presence of a character that
+tab character (whitespace), or other character that
 cannot possibly be part of the current token.
 
 \subsection{Comments}
@@ -44,14 +44,13 @@ calculation constants, and string literals.
 % the negative sign is dealt with by the unary '-' operator
 
 Angles are represented by a series of number characters with an
-optional period character, followed by a lower-case ``a''.
+optional period character.
 
 Floats are represented by a series of number characters with an
-optional period character, followed by a lower-case ``f''.
+optional period character.
 
-\subsubsection{Calculation Constants}
-\label{sssec:calcconstants}
-Calculation constants are represented by an opening curly brace, followed
+\subsubsection{Matrix Constants}
+Matrix calculation constants are represented by an opening curly brace, followed
 by a series of \emph{numeric-expressions} separated by whitespace or
 comma characters. The comma  characters represents the division between
 the rows of the matrix. Each row must have the same number of
@@ -71,7 +70,23 @@ representing the denominator, and a closing bracket character.
 
 The following is an example of a calculation constant.
 \begin{lstlisting}[language=CLAM,escapechar=\%]
-Calc sobelGy := [1 / 9]{1 3 1 , 2 -5 2 , 1 3 1 }
+Calc sobelGy := [1 / 9]{1 3 1 , 2 -5 2 , 1 3 1 };
+\end{lstlisting}
+
+\subsubsection{Escaped C String Constants}
+Escaped C string constants are enclosed in \texttt{\#[...]\#} braces, and can contain any characters
+except \texttt{\# \{ \} " ' /* */ ;}. Any parentheses must be matched.
+Escaped C strings are inserted into C code and appended with a
+semicolon during compilation, so any string that is not valid C is by definition unacceptable.
+Escaped C strings may contain references to \texttt{Channel}s of \texttt{Image}s the calculation is applied to.
+
+\startsyn
+\texttt{\#[} \ldots \emph{valid C Code (with restrictions)} \ldots\texttt{]\#} \\
+\stopsyn
+
+The following is an example of a calculation constant.
+\begin{lstlisting}[language=CLAM,escapechar=\%]
+Calc Lum := #[6*Red + 3*Green + 1*Blue]#;
 \end{lstlisting}
 
 \subsubsection{String Literals}
@@ -80,6 +95,8 @@ Calc sobelGy := [1 / 9]{1 3 1 , 2 -5 2 , 1 3 1 }
 String constants are demarcated by double quote characters or single
 quote characters. Consecutive string constants will be automatically
 appended together into a single string constant.
+String constants may contain escaped characters, but since Strings
+are only used by for filenames this is of limited utility.
 \startsyn
 \texttt{"}\emph{string-constant}\texttt{"}
 \stopsyn
