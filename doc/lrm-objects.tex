@@ -28,9 +28,10 @@ outImg:Blue = calcImg:G;
 
 \subsection{\texttt{Kernel} objects}
 \label{ssec:kernels}
-A \texttt{Kernel} is an ordered collection of calculation basis which is used by the convolution
-operator (see section~\ref{ssec:convolutionop}). Each calculation basis can be either
-a calculation constant (see~\ref{sssec:calcconstants}) or a calculation expression
+A \texttt{Kernel} is an ordered collection of calculation bases which is used by the convolution
+operator (see section~\ref{ssec:convolutionop}). Each calculation has to be identified with a \texttt{Calc}
+identifier, but the underlying basis can be either
+a matrix calculation constant (see~\ref{sssec:calcconstants}) or a escaped C expression
 (see~\ref{ssec:escapedC}). A \texttt{Kernel} is composed either using the composition
 operator (see section~\ref{sssec:barop}), or the \texttt{|=} assignment operator (see section~\ref{sssec:barequalop}).
 

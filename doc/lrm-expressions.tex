@@ -63,7 +63,8 @@ Also note that even single \texttt{Calc}s need to be preceded by \texttt{|}
 \label{ssec:convolutionop}
 
 The convlution operator, or \texttt{**}, performs the calculations of a
-\texttt{Kernel} on a \texttt{Channel}, and evaluates to a new \texttt{Image}.
+\texttt{Kernel} on a \texttt{Channel}, and evaluates to a new \texttt{Image} 
+with a \texttt{Channel} for the result of each (non-transient) calculation.
 When the \texttt{Kernel} is evaluated, as many operations as possible are
 parallelized to improve performance.
 
