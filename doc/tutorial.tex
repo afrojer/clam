@@ -1,35 +1,116 @@
 \chapter{Language Tutorial}
 
-Show examples of our language here.
+\section{Input and Output}
+\begin{lstlisting}[language=CLAM,escapechar=\%]
+Image my_img = imgread(<file-name>);
 
-Reading a file
+imgwrite(<image-identifier>, <img-type>, <file-name>);
+\end{lstlisting}
 
-The one of first things you'll usually want to do in CLAM is read an image file. This is easy:
+Your first program (Image Copier/Converter):
 
-Image image = imgread("input.jpg");
+\begin{lstlisting}[language=CLAM,escapechar=\%]
+Image input = imgread("source.jpg");
+imgwrite(input, "png", "dest.png");
 
-Writing a file
+Also can use command line arguments:
+imgread(1); /* reads first  argument */
+imgwrite(input, "png", 2); /* writes to second arguments */
+\end{lstlisting}
 
-After processing, you'll usually want to output an image as well. This is done as follows:
+\section{Running Your Program}
 
-imgwrite(image, "jpg", "output.jpg");
+> ./clam program1.clam
+Translates to C, compiles, outputs to a.out
+> ./clam -i program1.clam -o out
+Translates to C, compiles, outputs to "-o" file
+> ./clam -c program1.clam
+Translates to C, prints C code to clam_gen.c
+> ./clam -t program1.clam
+Debugging: Print abstract syntax tree
 
-So the simplest possible (useful) CLAM program simply reads an image from on file and writes it to another file, essentially copying it. But there are many interesting things you can do in between reading and writing.
+\section{Channels}
 
-Extracting channels
+Channels are arrays of values for each pixel, such as Red, Green, and Blue.
 
--The default channels: Red, Green, and Blue
+Images come with these three default channels when read.
+Access using ":" operator (img:Red, img:Green, img:Blue)
+Set/create channels using "=" operator
 
--Defining new channels
+\begin{lstlisting}[language=CLAM,escapechar=\%]
+Image img1 = imgread("image.jpg");
 
-Kernels \& Calculations
+img1:temp = img1:Blue;
+img1:Blue = img1:Red;
+img1:Red = img1:temp; /* swap channels */
 
--Matrix Calculations
+/*Only Red, Green, and Blue channels are written:*/
+imgwrite(img1,"jpg","image.jpg");
+\end{lstlisting}
 
--Embedded C Calculations
+\section{Calculations}
 
-Convolutions
+Calculations, which are to be applied to each pixel,
+can be defined in two ways: 
+    matrices (containing weights for neighboring pixels)
+    or C strings (containing references to the same pixel in other channels)
 
-Advanced topics
+\begin{lstlisting}[language=CLAM,escapechar=\%]
+Calc m<Uint8> := [1 / 9] {1 1 1, 1 1 1, 1 1 1};
+Calc Lum := #[(3*Red + 6*Green + 1*Blue) / 10]#;
+\end{lstlisting}
 
-Command line arguments
+C string calculations can be added to Images,
+creating new channels (with the same name as the Calc):
+\begin{lstlisting}[language=CLAM,escapechar=\%]
+srcimg |= Lum; /* srcimg:Lum is now valid */
+\end{lstlisting}
+
+The values of the Channel will be calculated on first use.
+
+Calcs must have names! (defined once with ":="):
+\begin{lstlisting}[language=CLAM,escapechar=\%]
+srcimg |= #[Red + Green + Blue]#; /* INVALID */
+\end{lstlisting}
+
+Adding matrix calculations to Images is meaningless,
+but they have other important uses...
+
+\section{Kernels}
+
+Kernels are ordered collections of calculations.
+
+\begin{lstlisting}[language=CLAM,escapechar=\%]
+Calc sobelGx<Uint8> := {-1 0 +1, -2 0 +2, -1 0 +1};
+Calc sobelGy<Uint8> := {+1 +2 +1, 0 0 0, -1 -2 -1};
+Calc sobelG<Uint8> := 
+    #[sqrt(sobelGx * sobelGx + sobelGy * sobelGy)]#;
+Kernel k = @sobelGx | @sobelGy | sobelG;
+/* Calcs can refer to preceding Calcs in kernel */
+/* "@" means generate value, but don't generate channel */
+/* (this will make sense when we see convolutions) */
+
+Calc sobelTheta := #[arctan(sobelGx/sobelGy)]#;
+k |= sobelTheta; 
+/* don't have to add all Calcs at once */
+\end{lstlisting}
+
+\section{Convolutions}
+
+The "**" operator takes a Channel reference and a Kernel,
+applies the calcs in sequence (matrices are applied to the specific Channel given),
+and generates an Image with all the channels (Calcs) defined in that Kernel not prefixed with "@"
+
+Continuing the previous example:
+
+\begin{lstlisting}[language=CLAM,escapechar=\%]
+Image edges = srcimg:Lum ** sobel;
+/* edges:sobelG and edges:sobelTheta now valid */
+/* but not edges:sobelGx or edges:sobelGy */
+\end{lstlisting}
+
+\section{Full Program (Sobel Operator)}
+
+\lstinputlisting[language=CLAM]{src/sobel.clam} \clearpage
+
+
