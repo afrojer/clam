@@ -14,3 +14,5 @@ paper.toc
 
 clam/obj/*
 clam/clam
+
+doc/clam.gitlog.tex
