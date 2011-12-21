@@ -13,18 +13,23 @@ then you need to mathematically combine this with the luminance of adjacent pixe
 and finally re-calculate red, green, and blue values for an output image.
 
 \sys{} will simplify image processing, and more generally linear algebra, through
-domain-specific data types and operators. The basic data type in \sys{} is a 
-\texttt{Matrix}. Matrices can be manipulated by operators that perform functions
-such as matrix multiplication, or rotation. An \texttt{Image} is another \sys{}
-data type which is expressed as a collection of matrices, or channels. For example,
-when reading an image into memory, \sys{} creates a \emph{Red}, \emph{Green}, and
-\emph{Blue} channel automatically. Additional Image channels can either be assigned,
-or calculated using an expression syntax which defines a calculation involving the
+domain-specific data types and operators. A basic data type in \sys{} is a 
+\texttt{Calc}, which can either be a \texttt{Matrix} or a \texttt{CString}. 
+Matrices can be variable sized with an optional rational coefficient, and are
+used in image convolution operations. \texttt{CString}s are simple calcuations
+based on previously defined channels and basic C math operations such as \texttt{sqrt}
+or \texttt{atan}.
+
+An \texttt{Image} is another \sys{} data type which is expressed as a collection
+of channels. For example, when reading an image into memory, \sys{} creates a
+\emph{Red}, \emph{Green}, and \emph{Blue} channel automatically. Additional
+Image channels can either be assigned from other images, or calculated
+using an expression syntax which defines a calculation involving the
 values of other, previously defined, channels. The basic image processing operator
-in \sys{} is the convolution operator. This operator takes a channel and a
+in \sys{} is the convolution operator. This operator takes a \texttt{Calc} and a
 \texttt{Kernel}, another basic data type, and outputs an \texttt{Image}. This
 operator convolves each \texttt{Matrix} within the \texttt{Kernel} with the input channel,
-and collects the resulting output channels into an \texttt{Image}.
+and collects the resulting output channels into a new \texttt{Image}.
 
 Two primary use cases of \sys{} are basic image information extraction, and
 filtering. The compact syntax and powerful basic data types of \sys{} will make
