@@ -1,84 +1,135 @@
 \chapter{Language Tutorial}
 
 \section{Input and Output}
-\begin{lstlisting}[language=CLAM,escapechar=\%]
-Image my_img = imgread(<file-name>);
 
-imgwrite(<image-identifier>, <img-type>, <file-name>);
-\end{lstlisting}
+\texttt{imgread} and \texttt{imgwrite} are CLAM's I/O operators, and every program 
+will have to call them at least once each to do anything useful. \texttt{imgread}
+takes a filename (or integer, see below) as its sole argument and returns an \texttt{Image}.
+\textt{imgwrite} take an \texttt{Image}, a format, and and filename (or integer). 
 
-Your first program (Image Copier/Converter):
+\subsection{Your first program}
+
+Using only I/O operators, you can already write a simple program that copies an image from
+one location to another. Or, if the output is in a different format than the input,
+you have a simple image converter. In either case, you only need two lines of code!
 
 \begin{lstlisting}[language=CLAM,escapechar=\%]
 Image input = imgread("source.jpg");
 imgwrite(input, "png", "dest.png");
+\end{lstlisting}
 
-Also can use command line arguments:
-imgread(1); /* reads first  argument */
-imgwrite(input, "png", 2); /* writes to second arguments */
+\subsection{Using command-line arguments}
+
+But, you might notice, this program only copies from \texttt{"source.jpg"} to \texttt{"dest.png"}.
+You'd need to edit the code and recompile to change the source and destination!
+To avoid this problem, \texttt{imgread} and \texttt{imgwrite} can both be called with integers
+which refer to items in the command-line argument list, giving your code much greater
+flexibility. (CLAM will automatically enforce the correct number of command-line arguments.)
+
+\begin{lstlisting}[language=CLAM,escapechar=\%]
+imgread(1); /* Get filename from argv[1]*/
+imgwrite(input, "png", 2); /* Get filename from argv[2]*/
 \end{lstlisting}
 
 \section{Running Your Program}
 
-> ./clam program1.clam
-Translates to C, compiles, outputs to a.out
-> ./clam -i program1.clam -o out
-Translates to C, compiles, outputs to "-o" file
-> ./clam -c program1.clam
-Translates to C, prints C code to clam_gen.c
-> ./clam -t program1.clam
-Debugging: Print abstract syntax tree
+You can compile your clam program by simply passing your file to \texttt{clam} as the sole argument.
+This will automatically output a binary to \texttt{a.out}. You can also specify the name of
+the binary with the \texttt{-o} flag, and mark the source file with \texttt{-i}:\\
 
-\section{Channels}
+\texttt{
+./clam prog1.clam\\*
+./a.out source.jpg dest.png\\*
+./clam -i prog1.clam -o copyimg\\*
+./copyimg source.jpg dest.png\\*
+}
 
-Channels are arrays of values for each pixel, such as Red, Green, and Blue.
+\section{Basic Types}
 
-Images come with these three default channels when read.
-Access using ":" operator (img:Red, img:Green, img:Blue)
-Set/create channels using "=" operator
+\subsection{Channels}
+
+\texttt{Channel}s are arrays of values associated each pixel in an \texttt{Image}.
+For example, each pixel in an \texttt{Image} usually has \emph{Red}, \emph{Green}, and \emph{Blue} values
+associated with it, and we can further define \emph{Luminosity}, \emph{Hue}, \emph{Saturation} etc.
+Thus we can refer to the \emph{Red} channel or the \emph{Saturation} channel of an \texttt{Image}.\\
+
+When first read into CLAM, \texttt{Image}s come with three default \texttt{Channel}s - 
+\texttt{Red}, \texttt{Green}, and \texttt{Blue}. These can be accessed using the \texttt{:} (colon) operator.
+The values in one \texttt{Channel} can be copied to another using the \texttt{=} (equals) operator.
+If the \texttt{Channel} on the left-hand side is undefined, it is created on the spot.\\
+
+The following program uses a \texttt{temp} channel to swap the \texttt{Red} and \texttt{Blue} values of an image:
 
 \begin{lstlisting}[language=CLAM,escapechar=\%]
-Image img1 = imgread("image.jpg");
+Image img1 = imgread(1);
 
 img1:temp = img1:Blue;
 img1:Blue = img1:Red;
 img1:Red = img1:temp; /* swap channels */
 
 /*Only Red, Green, and Blue channels are written:*/
-imgwrite(img1,"jpg","image.jpg");
+imgwrite(img1, "jpg" ,2);
 \end{lstlisting}
 
-\section{Calculations}
+\subsection{Calculations}
 
-Calculations, which are to be applied to each pixel,
-can be defined in two ways: 
-    matrices (containing weights for neighboring pixels)
-    or C strings (containing references to the same pixel in other channels)
+While the equals operator is enough to create new channels that are copies of old ones,
+\texttt{Calc} objects allow you to create new \texttt{Channel}s with a wide range of properties.
+The \texttt{:=} (colon-equals) operator is used to define \texttt{Calc}s of either kind, and they cannot be redefined.
+When declared, a \texttt{Calc} can be assigned an \emph{atomic type} such as \texttt{<Uint16>} or \texttt{<Angle>},
+and all values resulting from that calculation will be clamped to the appropriate range.
+The default type is \texttt{<Uint8>}, which corresponds to a range of 0-255.\\
+  
+\texttt{Calc} objects can be defined in two ways - as \emph{escaped-C strings} or as \emph{matrices}.\\
+
+
+\emph{Escaped-C string} \texttt{Calc}s are enclosed in \texttt{\#[...]\#} brackets. These strings can contain basic mathematical
+operators and functions, as well as references to other \texttt{Channel}s. A \texttt{Calc} 
+defined in this manner can be applied to an \texttt{Image} using the \texttt{|=} (or-equal) operator -
+provided that the \texttt{Image} has all the requisite \texttt{Channel}s - 
+thereby creating a new \texttt{Channel} with the same name as the \texttt{Calc}, and with values calculated according 
+to the contents of the string. (It follows that anonymous \texttt{Calc}s are not allowed.)\\
 
 \begin{lstlisting}[language=CLAM,escapechar=\%]
-Calc m<Uint8> := [1 / 9] {1 1 1, 1 1 1, 1 1 1};
-Calc Lum := #[(3*Red + 6*Green + 1*Blue) / 10]#;
+/* Define a calculation for Luminosity */
+Calc Lum<Uint8> := #[(3*Red + 6*Green + 1*Blue) / 10]#;
+Calc Zero := #[0]#;
+
+Image srcimg = imgread(1);
+/* Add luminosity channel to Image*/
+srcimg |= Lum;
+
+/* The following is invalid - no name! */
+srcimg |= #[Red + Green + Blue]#;
+
+/* Calcs cannot be redefined! */
+Lum := #[Red * Green * Blue]#
 \end{lstlisting}
 
-C string calculations can be added to Images,
-creating new channels (with the same name as the Calc):
+\emph{Matrix} \texttt{Calc}s can be of any size, and are represented as lists of number enclosed in
+\texttt{\{...\}} braces and with rows separated by commas, optionally preceded by
+a scaling factor of the form \texttt{[} \emph{numerator} \texttt{/} \emph{denominator} \texttt{]}.
+Matrices represent a weighted (and scaled) sum of values in the neighborhood of a pixel.
+Because matrix \texttt{Calc}s contain no reference to other \texttt{Channel}s, they cannot be applied
+directly to \texttt{Image}s. However they can be added to \texttt{Kernels} and then \emph{convoluted}
+with \texttt{Image}s, as we will see below, and are useful in a wide range of applications.\\
+
 \begin{lstlisting}[language=CLAM,escapechar=\%]
-srcimg |= Lum; /* srcimg:Lum is now valid */
+Calc Avg<Uint8> := [1/9] { 1 1 1, 1 1 1, 1 1 1 };
+/* This matrix averages the values in a 3x3 square
+	centered on a given pixel */
+
+/* This doesn't work: */
+srcimg |= Avg;
 \end{lstlisting}
 
-The values of the Channel will be calculated on first use.
+\subsection{Kernels}
 
-Calcs must have names! (defined once with ":="):
-\begin{lstlisting}[language=CLAM,escapechar=\%]
-srcimg |= #[Red + Green + Blue]#; /* INVALID */
-\end{lstlisting}
-
-Adding matrix calculations to Images is meaningless,
-but they have other important uses...
-
-\section{Kernels}
-
-Kernels are ordered collections of calculations.
+\texttt{Kernel} are ordered collections of \texttt{Calc}s. They are defined with the \texttt{=} (equals) operator
+and a list of \texttt{Calc}s separated by the | (or) operator. More \texttt{Calc}s can be added to
+an \texttt{Image} afterwards using the \texttt{|=} (or-equal) operator. A \texttt{Calc} in a \texttt{Kernel}
+can be prefixed with an \texttt{@} to indicate that it is an intermediate calculation. (This will make
+more sense when we introduce \emph{convolutions}.)
 
 \begin{lstlisting}[language=CLAM,escapechar=\%]
 Calc sobelGx<Uint8> := {-1 0 +1, -2 0 +2, -1 0 +1};
@@ -86,9 +137,7 @@ Calc sobelGy<Uint8> := {+1 +2 +1, 0 0 0, -1 -2 -1};
 Calc sobelG<Uint8> := 
     #[sqrt(sobelGx * sobelGx + sobelGy * sobelGy)]#;
 Kernel k = @sobelGx | @sobelGy | sobelG;
-/* Calcs can refer to preceding Calcs in kernel */
-/* "@" means generate value, but don't generate channel */
-/* (this will make sense when we see convolutions) */
+/* Calcs can refer to preceding Calcs in same kernel */
 
 Calc sobelTheta := #[arctan(sobelGx/sobelGy)]#;
 k |= sobelTheta; 
@@ -97,11 +146,14 @@ k |= sobelTheta;
 
 \section{Convolutions}
 
-The "**" operator takes a Channel reference and a Kernel,
-applies the calcs in sequence (matrices are applied to the specific Channel given),
-and generates an Image with all the channels (Calcs) defined in that Kernel not prefixed with "@"
+The \texttt{**} operator takes a \texttt{Channel} reference and a \texttt{Kernel},
+applies the \texttt{Kernel}'s \texttt{Calc}s in sequence (matrices are applied to the specific Channel given,
+while escaped-C strings access whatever \texttt{Channel}s necessary, possibly including preceding \texttt{Calc}s
+in the same \texttt{Kernel}),
+and generates an \texttt{Image} with all the channels (\texttt{Calcs}) defined in that \texttt{Kernel} (except those prefixed with \texttt{@},
+which are only used to store intermediate values.)\\
 
-Continuing the previous example:
+Continuing the previous example, we can take the previously defined kernel and apply it to an \texttt{Image}:\\
 
 \begin{lstlisting}[language=CLAM,escapechar=\%]
 Image edges = srcimg:Lum ** sobel;
@@ -109,7 +161,13 @@ Image edges = srcimg:Lum ** sobel;
 /* but not edges:sobelGx or edges:sobelGy */
 \end{lstlisting}
 
-\section{Full Program (Sobel Operator)}
+\section{Full Example}
+
+The last few examples have included portions of the \emph{Sobel operator}, an operation on an image
+that generates the gradient of its intensity, enabling edge detection. 
+While in most programming languages implementing Sobel
+is complicated and error-prone (with multiple nested loops), the CLAM version is straightforward and
+given in its entirety below:\\
 
 \lstinputlisting[language=CLAM]{src/sobel.clam} \clearpage
 

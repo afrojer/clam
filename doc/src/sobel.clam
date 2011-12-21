@@ -1,19 +1,39 @@
+/* Open file given as first command-line argument */
 Image srcimg = imgread(1);
 
+/* Define some escaped-C calculations */
 Calc Lum := #[(3*Red + 6*Green + 1*Blue)/10]#;
-Calc sobelG<Uint8>:= #[sqrt((float)sobelGx*sobelGx + (float)sobelGy*sobelGy)]#;
+Calc sobelG<Uint8>:=
+	#[sqrt((float)sobelGx*sobelGx + (float)sobelGy*sobelGy)]#;
 Calc sobelTheta<Angle>:= #[atan((float)sobelGy/(float)sobelGx)]#;
 
 srcimg |= Lum;
+/* srcimg:Lum created, with values calculated from Red, Green, Blue */
 
-Calc sobelGx<Uint8> := [1 / 1]{ -1  0 +1 , -2  0 +2 , -1  0 +1 };
-Calc sobelGy<Uint8>:=[1 / 1]{ +1 +2 +1 ,  0  0  0 , -1 -2 -1 };
+/* The horizontal and vertical gradients at a given pixel */
+Calc sobelGx<Uint8> := [1 / 1] { -1  0 +1 ,
+                                 -2  0 +2 ,
+                                 -1  0 +1 };
+Calc sobelGy<Uint8> := [1 / 1] { +1 +2 +1 ,
+                                  0  0  0 ,
+                                 -1 -2 -1 };
 
+/* Intermediate calculations sobelGx and Gy 
+   (marked with @) are used to calculate sobelG,
+   but don't create their own channels in convolution*/
 Kernel sobel = @sobelGx | @sobelGy | sobelG;
+
+/* sobelTheta also uses the intermediate Calcs Gx and Gy */
 sobel |= sobelTheta;
 
+/* Apply sobel to the Lum channel, to get gradient of Luminance */
 Image edges = srcimg:Lum ** sobel;
+/* edges:sobelG and edges:sobelTheta are defined,
+   edges:sobelGx and edges:sobelGy are not */
+
 Image output;
+/* An image must have Red, Green and Blue channels
+   in order to output properly */
 output:Red   = edges:sobelG;
 output:Green = edges:sobelG;
 output:Blue  = edges:sobelG;
