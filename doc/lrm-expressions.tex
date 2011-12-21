@@ -12,14 +12,14 @@ numeric-valued operand such as a numeric constant
 (see~\ref{sssec:numericconstants}).
 These expressions are grouped right-to-left:
 \startsyn
-\texttt{+}\emph{numeric-expression} \\
-\texttt{-}\emph{numeric-expression}
+\texttt{+}\emph{unsigned-integer} \\
+\texttt{-}\emph{unsigned-integer}
 \stopsyn
 
 \subsubsection{\texttt{+} operator}
 This operator forces the value of its numeric operand to be positive.
 The resulting expression is of numeric type with a value equal to the
-absolute value of the numeric operand.
+value of the numeric operand.
 
 \subsubsection{\texttt{-} operator}
 This operator forces the value of its numeric operand to be negative.
@@ -48,31 +48,16 @@ All channel composition operators are left-to-right associative.
 
 \subsubsection{\texttt{|} operator}
 \label{sssec:barop}
-Compose two (or more) \texttt{Channel}s or \texttt{Calc}s. The resulting expression is a
-\emph{multi-channel-expression}, or \emph{multi-calc} expression, and can be assigned
-to either an \texttt{Image} or a \texttt{Kernel} object respectively.
+Define of list of (one or more) \texttt{Calc}s. The resulting expression is a
+\emph{multi-calc} expression, and can be assigned
+to a \texttt{Kernel} object.
 \startsyn
-\emph{channel-expression} \texttt{|} \emph{channel-expression} \\
-\emph{multi-channel-expression} \texttt{|} \emph{channel-expression} \\
-\emph{calc-expression} \texttt{|} \emph{calc-expression} \\
+\texttt{|} \emph{calc-expression} \\
 \emph{multi-calc-expression} \texttt{|} \emph{calc-expression} \\
 \stopsyn
-Note that \texttt{Channel}s and \texttt{Calc}s are appended in order, and
+Note that \texttt{Calc}s are appended in order, and
 subsequent operations may rely on this order.
-
-\comment{
-\subsubsection{\texttt{||} operator}
-\label{sssec:doublebarop}
-Compose two (or more) \texttt{Channel}s. The resulting expression is a
-\emph{multi-channel-expression}, and can be assigned to either an \texttt{Image}
-or a \texttt{Kernel} object. This operator differs from the \texttt{|} operator in that
-it forces the serial computation of channel values. This allows subsequent channel
-value calculations to use neighboring pixels of previously calculated channels.
-\startsyn
-\emph{channel-expression} \texttt{||} \emph{channel-expression} \\
-\emph{multi-channel-expression} \texttt{||} \emph{channel-expression}
-\stopsyn
-} % END comment (save this for later...)
+Also note that even single \texttt{Calc}s are preceded by \texttt{|}
 
 \subsection{\texttt{**} operator}
 \label{ssec:convolutionop}
