@@ -3,9 +3,11 @@ A program in the \sys{} language is simply a sequence of statements which
 are executed in order.
 
 \section{Scope Rules}
-All identifiers in the \sys{} language are global, except for the
-identifiers prefixed with an \texttt{@} symbol, which can only be
-accessed by their own calculation.
+All identifiers in the \sys{} language are global.
+%Removed:
+%, except for the
+%identifiers prefixed with an \texttt{@} symbol, which can only be
+%accessed by their own calculation.
 
 In an escaped C block that defines a channel, the existing channels
 for an image will be in scope when the block is executed. Because
@@ -17,5 +19,5 @@ defined.
 \section{Declarations}
 All variables must be declared before they can be used. However,
 variable declarations can be made at any point in a program.
-Variables become usable after the end of the semi-colon of the statement
-in which its contained.
+A variable becomes usable after the end of the semi-colon of the statement
+in which it's contained.

@@ -12,14 +12,14 @@ numeric-valued operand such as a numeric constant
 (see~\ref{sssec:numericconstants}).
 These expressions are grouped right-to-left:
 \startsyn
-\texttt{+}\emph{numeric-expression} \\
-\texttt{-}\emph{numeric-expression}
+\texttt{+}\emph{unsigned-integer} \\
+\texttt{-}\emph{unsigned-integer}
 \stopsyn
 
 \subsubsection{\texttt{+} operator}
 This operator forces the value of its numeric operand to be positive.
 The resulting expression is of numeric type with a value equal to the
-absolute value of the numeric operand.
+value of the numeric operand.
 
 \subsubsection{\texttt{-} operator}
 This operator forces the value of its numeric operand to be negative.
@@ -48,37 +48,22 @@ All channel composition operators are left-to-right associative.
 
 \subsubsection{\texttt{|} operator}
 \label{sssec:barop}
-Compose two (or more) \texttt{Channel}s or \texttt{Calc}s. The resulting expression is a
-\emph{multi-channel-expression}, or \emph{multi-calc} expression, and can be assigned
-to either an \texttt{Image} or a \texttt{Kernel} object respectively.
+Define of list of (one or more) \texttt{Calc}s. The resulting expression is a
+\emph{multi-calc} expression, and can be assigned
+to a \texttt{Kernel} object.
 \startsyn
-\emph{channel-expression} \texttt{|} \emph{channel-expression} \\
-\emph{multi-channel-expression} \texttt{|} \emph{channel-expression} \\
-\emph{calc-expression} \texttt{|} \emph{calc-expression} \\
+\texttt{|} \emph{calc-expression} \\
 \emph{multi-calc-expression} \texttt{|} \emph{calc-expression} \\
 \stopsyn
-Note that \texttt{Channel}s and \texttt{Calc}s are appended in order, and
+Note that \texttt{Calc}s are appended in order, and
 subsequent operations may rely on this order.
-
-\comment{
-\subsubsection{\texttt{||} operator}
-\label{sssec:doublebarop}
-Compose two (or more) \texttt{Channel}s. The resulting expression is a
-\emph{multi-channel-expression}, and can be assigned to either an \texttt{Image}
-or a \texttt{Kernel} object. This operator differs from the \texttt{|} operator in that
-it forces the serial computation of channel values. This allows subsequent channel
-value calculations to use neighboring pixels of previously calculated channels.
-\startsyn
-\emph{channel-expression} \texttt{||} \emph{channel-expression} \\
-\emph{multi-channel-expression} \texttt{||} \emph{channel-expression}
-\stopsyn
-} % END comment (save this for later...)
+Also note that even single \texttt{Calc}s need to be preceded by \texttt{|}
 
 \subsection{\texttt{**} operator}
 \label{ssec:convolutionop}
 
 The convlution operator, or \texttt{**}, performs the calculations of a
-\texttt{Kernel} on an \texttt{Image}, and evaluates to a new \texttt{Image}.
+\texttt{Kernel} on a \texttt{Channel}, and evaluates to a new \texttt{Image}.
 When the \texttt{Kernel} is evaluated, as many operations as possible are
 parallelized to improve performance.
 
@@ -96,7 +81,8 @@ are not added to the result \texttt{Image}.
 Escaped ``C'' expressions can be used on the right side of the \texttt{:=}
 when defining a \texttt{Channel}. The escaped code must be a single expression
 in C that will evaluate to the equivalent type as the \texttt{Channel} in C.
-The expression should not end in a semicolon.
+The expression cannot contain these characters/tokens:
+\texttt{; \# \{ \} " ' /* */}. All parentheses within the expression must be matched.
 
 The equivalent types are:
 
@@ -160,24 +146,17 @@ should be written (or an integer which represents a command-line argument, as fo
 \subsubsection{\texttt{=} assignment operator}
 \label{sssec:equalop}
 Assigns the value of the right operand to the left operand, copying data as necessary.
-The types of both operands must match.
+The types of both operands must match. Cannot be used with \texttt{Calc}s, which are
+defined once only (see \texttt{:=} below).
 
 \subsubsection{\texttt{:=} assignment operator}
 \label{sssec:colonequalop}
 Assigns a calculation constant (see section~\ref{sssec:calcconstants}), or
 escaped ``C'' expression (see section~\ref{ssec:escapedC}) to a \texttt{Calc}
-object.
+object. Only used once for each \texttt{Calc}, with declaration.
 
 \subsubsection{\texttt{|=} assignment operator}
 \label{sssec:barequalop}
-Add a \texttt{Channel} or a \texttt{Calc} object to an \texttt{Image} or
+Add a single \texttt{Channel} or a (possible one-member) list of \texttt{Calc}s object to an \texttt{Image} or
 \texttt{Kernel} object. Assignments using this operator are ordered by statement
 order, and subsequent operations can rely on this order.
-
-Note that a \texttt{Calc} object assigned to an \texttt{Image} object must be
-evaluated using the \texttt{\$()} operator (see section~\ref{sssec:evalop}) before
-being using in calculation or further assignment.
-
-\comment{
-\subsubsection{\texttt{\^=} assignment operator}
-} % END comment - save for later...
