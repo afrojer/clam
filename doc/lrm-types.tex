@@ -11,14 +11,15 @@ of zero or more legal identifier characters. The list of built-in types is as fo
 \texttt{Image} \\
 \texttt{Calc} \\
 \texttt{Kernel}
-\stopsyn
+\stopsyn 
 
 \subsubsection{Atom Types}
 \label{sssec:atomtypes}
 The \texttt{Channel} and \texttt{Calc} built-in types may be further modified
 to specify individual element, or ``atom'' types. This specifies either the type
 of each element of the matrix which makes up the \texttt{Channel}, or the type
-of the resulting calculation performed by a \texttt{Calc} object.
+of the resulting calculation performed by a \texttt{Calc} object. (When calculation
+results go out of bounds for their type, their values are clamped - set to the max or min value.)
 An \emph{atom-type} identifier is denoted using the \texttt{<} and \texttt{>}
 characters immediately following the identifier of the object whose atom type
 is being specified:
@@ -35,11 +36,6 @@ Int16 \\
 Int32 \\
 Angle
 \stopsyn
-
-\subsection{Type Qualifiers}
-\label{ssec:typequal}
-Discuss the use of the \texttt{@} symbol to denote a special matrix which when used
-in calculation does not produce in a discrete channel in the result.
-
-Discuss the use of another symbol which tells the matrix composition that calculation must finish before proceeding (i.e. it actively inhibits parallel execution of convolution - probably useful if a subsequent calculation requires a neighborhood of previously calculated values).
+In the absence of an atom-type specification, the atom-type defaults to Uint8,
+which implies a range of integers from 0-255 inclusive.
 

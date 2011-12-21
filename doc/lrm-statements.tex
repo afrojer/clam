@@ -2,8 +2,11 @@
 \label{sec:statements}
 
 Statements in \sys{} always end in a semi-colon. No statement
-can return a value. All statements either declare a variable,
+can return a value. All statements should either declare a variable,
 define or modify the definition of a variable, or execute
 some calculation based on previously declared variables with
 the result stored in previously declared variables.
-
+"Statements" consisting of a lone r-value (an identifier,
+channel reference, escaped-C string, matrix, or \texttt{imgread()} call)
+will be accepted but will perform no useful action - they are evaluated but
+their return values are discarded (or are they erased during translation?)
