@@ -8,7 +8,6 @@
    * Robert Martin <rdm2128@columbia.edu>
    * Kevin Sun <kfs2110@columbia.edu>
    * Yongxu Zhang <yz2419@columbia.edu>
-   *
    *)
 
 
@@ -70,15 +69,13 @@ bareint:
  *   snd = list of IDs (channels) whose output is discarded
  */
 kerncalc:
-    ID PIPE ID                  { { allcalc = ($3 :: [$1]); unusedcalc = [] } }
-  | ID PIPE ATSYM ID            { { allcalc = ($4 :: [$1]); unusedcalc = [$4] } }
-  | ATSYM ID PIPE ID            { { allcalc = ($4 :: [$2]); unusedcalc = [$2] } }
-  | ATSYM ID PIPE ATSYM ID      { { allcalc = ($5 :: [$2]);
-                                    unusedcalc = ($5 :: [$2]) } }
-  | kerncalc PIPE ID            { { allcalc = ($3 :: ($1).allcalc);
-                                    unusedcalc = ($1).unusedcalc } }
-  | kerncalc PIPE ATSYM ID      { { allcalc = ($4 :: ($1).allcalc);
-                                    unusedcalc = ($4 :: ($1).unusedcalc) } }
+  | ATSYM ID               { { allcalc = [$2]; unusedcalc = [$2] } }
+  | PIPE ID                { { allcalc = [$2]; unusedcalc = [] } }
+  | PIPE ATSYM ID          { { allcalc = [$3]; unusedcalc = [$3] } }
+  | kerncalc PIPE ID       { { allcalc = ($3 :: ($1).allcalc);
+                               unusedcalc = ($1).unusedcalc } }
+  | kerncalc PIPE ATSYM ID { { allcalc = ($4 :: ($1).allcalc);
+                               unusedcalc = ($4 :: ($1).unusedcalc) } }
 
 matrix_scale:
     LBRKT bareint FSLASH bareint RBRKT { ($2, $4) }

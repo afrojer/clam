@@ -8,7 +8,6 @@
  * Robert Martin <rdm2128@columbia.edu>
  * Kevin Sun <kfs2110@columbia.edu>
  * Yongxu Zhang <yz2419@columbia.edu>
- *
  *)
 open Printf
 
@@ -26,9 +25,15 @@ exception Compile_error of string
  *)
 let syscall_check_exit_status procname stderr = function
   | Unix.WEXITED 0 -> ()
-  | Unix.WEXITED r -> raise (Compile_error (sprintf "%s terminated with exit code (%d)\n  %s" procname r stderr))
-  | Unix.WSIGNALED n -> raise (Compile_error (sprintf "%s was killed by a signal (%d)\n%!" procname n))
-  | Unix.WSTOPPED n -> raise (Compile_error (sprintf "%s was stopped by a signal (%d)\n%!" procname n))
+  | Unix.WEXITED r ->
+      raise (Compile_error (sprintf "%s terminated with exit code (%d)\n  %s"
+                                    procname r stderr))
+  | Unix.WSIGNALED n ->
+      raise (Compile_error (sprintf "%s was killed by a signal (%d)\n%!"
+                                    procname n))
+  | Unix.WSTOPPED n ->
+      raise (Compile_error (sprintf "%s was stopped by a signal (%d)\n%!"
+                                    procname n))
 ;;
 
 let syscall ?(env=(Unix.environment ())) cmd =

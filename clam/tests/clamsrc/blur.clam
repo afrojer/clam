@@ -2,7 +2,6 @@ Image a = imgread(1);
 
 Calc grey := #[ (3*Red + 6*Green + 1*Blue)/10 ]#;
 
-Calc dummy := [1 / 1] { 1 };
 Calc gauss := [1 / 159]
 {
 	2  4  5  4  2,
@@ -12,8 +11,10 @@ Calc gauss := [1 / 159]
 	2  4  5  4  2
 };
 
+/* Add a Luminance channel to the image */
 a |= grey;
-Kernel dogauss = @dummy | gauss;
+/* Create a kernel object for computing the blur */
+Kernel dogauss = | gauss;
 
 Image outR = a:Red ** dogauss;
 Image outG = a:Green ** dogauss;

@@ -8,7 +8,6 @@
  * Robert Martin <rdm2128@columbia.edu>
  * Kevin Sun <kfs2110@columbia.edu>
  * Yongxu Zhang <yz2419@columbia.edu>
- *
  *)
 
 open String
@@ -26,7 +25,9 @@ let id_of_calcId calcId = "__calcT_" ^ calcId
 let id_of_imgT imgT = id_of_imgId imgT.iname
 let id_of_kernT kernT = id_of_kernId kernT.kname
 let id_of_calcT calcT = id_of_calcId calcT.cname
-let id_of_chanT chanT = "clam_imgchan_ref( " ^ (id_of_imgId(fst chanT)) ^ ", \"" ^ (escaped(snd chanT)) ^ "\")"
+let id_of_chanT chanT = "clam_imgchan_ref( " ^
+                        (id_of_imgId(fst chanT)) ^ ", \"" ^
+                        (escaped(snd chanT)) ^ "\")"
 
 (*
  * Variable Declarations
@@ -62,6 +63,9 @@ let c_of_fmt = function
   | Tga -> "TGA"
 
 
+(* Generate the #define CHANNEL (VALUE) statements for a convolution
+ * based on channel identifiers parsed out of the literal C string
+ *)
 let inner_c_of_cfunc_calc calclst ct =
   let cinfo_from_id id = (List.fold_left (fun (ii,idx,ct) c ->
                                           if (c.cname = id) then (ii+1,ii,c) else (ii+1,idx,ct))
@@ -70,11 +74,13 @@ let inner_c_of_cfunc_calc calclst ct =
   let pixparms ct idx = (snd (c_of_atom ct.ctype))^","^(string_of_int idx) in
   let cdef_of_cfunc_id id =
     let _,idx,idcalc = cinfo_from_id id in
-    "\t\t#define "^id^"  clam_img_pix("^(pixparms idcalc idx)^")\n" in
+    "\t\t#define "^id^"  clam_img_pix("^(pixparms idcalc idx)^")\n"
+  in
   let idlist = (snd ct.cfunc) in
   (List.fold_left (^) "" (List.map cdef_of_cfunc_id idlist)) ^
   "\t\t#define cfunc ("^(fst ct.cfunc)^")\n"^
-  "\t\tclam_convolve_cfunc("^(id_of_calcId ct.cname)^","^(snd (c_of_atom ct.ctype))^",cfunc)\n"^
+  "\t\tclam_convolve_cfunc("^(id_of_calcId ct.cname)^","^
+                            (snd (c_of_atom ct.ctype))^",cfunc)\n"^
   "\t\t#undef cfunc\n"^
   (List.fold_left (^) "" (List.map (fun x -> "\t\t#undef "^x^"\n") idlist))
 
@@ -83,11 +89,11 @@ let c_of_cfunc_calc calclst ct = if (ct.cismat) then "" else
   (inner_c_of_cfunc_calc calclst ct)^
   "\t\tcontinue;\n"
 
-
 let c_of_convData cvdata =
   let kernId, chanref, calclst, idx = cvdata in
   let chk_wrapper ct = if ct.cismat then "" else "\tclam_convfunc_chk("^ct.cname^")\n" in
-  "\nclam_convfunc_start("^(string_of_int idx)^","^(id_of_imgId (fst chanref))^","^(snd chanref)^")\n"^
+  "\nclam_convfunc_start("^(string_of_int idx)^","^
+                          (id_of_imgId (fst chanref))^","^(snd chanref)^")\n"^
   (List.fold_left (^) "" (List.map chk_wrapper calclst))^
   "\t\tclam_convfunc_lastchk()\n"^
   (List.fold_left (^) "" (List.map (c_of_cfunc_calc calclst) calclst))^
@@ -112,10 +118,11 @@ let c_of_matrix m =
 
 let is_kernel_used id unused = if (List.exists (fun c -> c = id) unused) then "0" else "1"
 
-let rec c_of_kernCalc unused = function
-    [] -> "clam_kernel_alloc()"
-  | hd :: tl -> "clam_kernel_addcalc("^(c_of_kernCalc unused tl)^","^
-  (id_of_calcId hd)^","^(is_kernel_used hd unused)^")"
+let rec c_of_kernCalc assignTo unused = function
+    [] -> (if assignTo = "" then "clam_kernel_alloc()" else (id_of_kernId assignTo))
+  | hd :: tl -> "clam_kernel_addcalc("^(c_of_kernCalc assignTo unused tl)^","^
+                                      (id_of_calcId hd)^","^
+                                      (is_kernel_used hd unused)^")"
 
 
 let c_of_declare_matrix cid t mat =
@@ -140,14 +147,14 @@ and c_of_calcAssign ca =
   | _ -> raise(Failure("Backend trying to assign Calc to non-matrix and non-cstring?"))
   
 let rec c_of_kernEx = function
-    KCalcList(ids,unused) -> c_of_kernCalc unused ids
+    KCalcList(ids,unused,assignTo) -> c_of_kernCalc assignTo unused ids
   | KChain(ka) -> c_of_kernAssign ka
   | KAppend(kap) -> c_of_kernAppend kap
   | KIdent(id) -> id_of_kernId id
 
 and c_of_kernAssign ka =
   let kernel_needs_cloning = function
-      KCalcList(_,_) -> false
+      KCalcList(_,_,_) -> false
     | KChain(_) -> true
     | KAppend(_) -> false
     | KIdent(_) -> true
@@ -159,7 +166,7 @@ and c_of_kernAssign ka =
   in
   "clam_kernel_assign(" ^ (id_of_kernId ka.k_lhs) ^ ", (" ^ c_rhs ^ ") )"
 
-
+(* This appends a _used_ calculation to a Kernel object *)
 and c_of_kernAppend kap =
   "TEMP_clam_kernel_addcalc(" ^ (id_of_kernId kap.ka_lhs) ^ ", (" ^ (c_of_calcEx kap.ka_rhs) ^ ") )"
 
@@ -246,19 +253,19 @@ let c_of_vExpr = function
 let c_of_vStmt vExpr =
   "  " ^ (c_of_vExpr vExpr) ^ ";\n"
 
-let generate_c scope vast =
-  "\n/* GENERATED HEADER C */\n" ^
+let generate_c scope sast =
+  "\n/* CLAM: Standard C-Library Support */\n" ^
   Clam_clib.clibheader ^
-  "\n/* GENERATED ENVIRONMENT C */\n" ^
+  "\n/* CLAM: Generated Environment (vars/convolution funcs)*/\n" ^
   (c_of_scope scope) ^
-  "\n/* GENERATED MAIN C */\n" ^
+  "\n/* CLAM: Generated main() */\n" ^
   "int main(int argc, char **argv) {\n" ^
   let m = string_of_int scope.max_arg in
   "  if (argc <= " ^ m ^ ") {\n" ^
   "    fprintf(stderr, \"This program requires " ^ m ^ " arguments.\\n\");\n" ^
   "    exit(1);\n" ^
   "  }\n" ^
-  (List.fold_left (^) "" (List.map c_of_vStmt vast)) ^
+  (List.fold_left (^) "" (List.map c_of_vStmt sast)) ^
   "\n  return 0;\n" ^
   "}\n"
 

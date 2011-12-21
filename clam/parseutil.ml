@@ -8,12 +8,9 @@
  * Robert Martin <rdm2128@columbia.edu>
  * Kevin Sun <kfs2110@columbia.edu>
  * Yongxu Zhang <yz2419@columbia.edu>
- *
  *)
 
-(* adapted from:
- * http://repo.or.cz/w/sqlgg.git
- *)
+(* adapted from: http://repo.or.cz/w/sqlgg.git *)
 
 open Scanner
 

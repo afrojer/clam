@@ -8,12 +8,11 @@
  * Robert Martin <rdm2128@columbia.edu>
  * Kevin Sun <kfs2110@columbia.edu>
  * Yongxu Zhang <yz2419@columbia.edu>
- *
  *)
 
 open Ast
 
-(* Environment Types *)
+(* Environment types for verifier *)
 type calcT = {
   cname    : string;
   ctype    : Ast.atom;

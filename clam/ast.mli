@@ -1,11 +1,13 @@
 (*
  * File: ast.mli
- * Author: Jeremy C. Andrus <jeremya@cs.columbia.edu>
  * Date: 2011-10-10
  *
  * PLT Fall 2011
- * Homework 1
- * Problem 3
+ * CLAM Project
+ * Jeremy C. Andrus <jeremya@cs.columbia.edu>
+ * Robert Martin <rdm2128@columbia.edu>
+ * Kevin Sun <kfs2110@columbia.edu>
+ * Yongxu Zhang <yz2419@columbia.edu>
  *)
 
 type atom = Uint8 | Uint16 | Uint32 | Int8 | Int16 | Int32 | Angle | Unknown

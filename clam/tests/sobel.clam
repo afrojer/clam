@@ -9,7 +9,7 @@ srcimg |= Lum;
 Calc sobelGx<Uint8> := [1 / 1]{ -1  0 +1 , -2  0 +2 , -1  0 +1 };
 Calc sobelGy<Uint8>:=[1 / 1]{ +1 +2 +1 ,  0  0  0 , -1 -2 -1 };
 
-Kernel sobel = @sobelGx | @sobelGy | sobelG;
+Kernel sobel = | @sobelGx | @sobelGy | sobelG;
 sobel |= sobelTheta;
 
 Image edges = srcimg:Lum ** sobel;

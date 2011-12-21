@@ -160,7 +160,7 @@ and trans_expr = function
   | Integer(bi) -> Debug("Ignoring integer expression: " ^ (string_of_int (int_of_BInt bi)))
   | LitStr(s) -> Debug("Ignoring String literal: " ^ s)
   | CStr(s,ids) -> CalcEx(CRaw(s, ids))
-  | KernCalc(kc) -> KernelEx(KCalcList(kc.allcalc,kc.unusedcalc))
+  | KernCalc(kc) -> KernelEx(KCalcList(kc.allcalc,kc.unusedcalc,""))
   | ChanMat(m) -> CalcEx(cMatrix_of_matrix m)
   | ChanRef(ch) -> ChanRefEx(ChanIdent(trans_chanRefId ch))
   | Convolve(e1,e2) -> ImageEx(trans_conv e1 e2)
@@ -177,11 +177,15 @@ and trans_expr = function
 and trans_eq_assign s e =
   let ve = trans_expr e in
     match (type_of_ident scope s) with
-        CalcType(t) -> (match ve with CalcEx(ce) -> CalcEx(CChain({ c_lhs = s; c_rhs = ce; c_typ = t; })) | _ -> raise(SemanticFailure("Bad assignment")))
+        CalcType(t) -> (match ve with
+              CalcEx(ce) -> CalcEx(CChain({ c_lhs = s; c_rhs = ce; c_typ = t; }))
+            | _ -> raise(SemanticFailure("Bad assignment")))
       | KernelType -> (match ve with
               KernelEx(ke) -> KernelEx(KChain({ k_lhs = s; k_rhs = ke; }))
-            | CalcEx(t) -> (match t with CIdent(cnm,typ) ->
-                    KernelEx(KCalcList([cnm],[])) | _ -> raise(SemanticFailure("Bad Kernel Assignment")))
+            | CalcEx(t) ->
+                (match t with   CIdent(cnm,typ) -> KernelEx(KChain({ k_lhs = s; k_rhs = KCalcList([cnm],[],"")}))
+                              | _ -> raise(SemanticFailure("Bad Kernel Assignment"))
+                )
             | _ -> raise(SemanticFailure("Bad assignment")))
       | ImageType -> (match ve with ImageEx(ie) -> ImageEx(ImChain({ i_lhs = s; i_rhs = ie; })) | _ -> raise(SemanticFailure("Bad assignment")))
       | _ -> raise(SemanticFailure("Identifier claims to be an impossible data type"))
@@ -192,8 +196,14 @@ and trans_or_assign s e =
         CalcEx(c) -> (match (type_of_ident scope s) with
                   KernelType -> KernelEx(KAppend({ ka_lhs = s; ka_rhs = c; }))
                 | ImageType -> ImageEx(ImAppend({ ia_lhs = s; ia_rhs = c; }))
-                | _ -> raise(SemanticFailure("OrEq operation must have Kernel or Image as its L-Value"))
+                | _ -> raise(SemanticFailure("|= Calc must have Kernel or Image as its L-Value"))
               )
+      | KernelEx(ke) -> (match (type_of_ident scope s) with
+                | KernelType -> (match ke with   KCalcList(all,unused,_) -> KernelEx(KCalcList((List.rev all),unused,s))
+                                               | KIdent(ki) -> let v_kc = kernt_of_id !scope.venv ki in
+                                                    KernelEx(KCalcList((List.rev v_kc.kallcalc),v_kc.kunusedcalc,s))
+                                               | _ -> raise (Failure("|= Kernel can't be complex?!")))
+                | _ -> raise(SemanticFailure("|= Kernel must have Kernel as its L-Value")) )
       | _ -> raise(SemanticFailure("Unexpected expression is an R-Value for OrEq operation"))
 
 

@@ -209,10 +209,6 @@ let check_assignment env rhs rhse op = function (* passes in LHS *)
                                      (string_of_vdecl (KernelT(nm)))^
                                      " with ':='")))
           | Eq -> ( match rhse with
-                    Id(i) -> (match type_of env i with
-                              CalcT(cnm,typ) -> let env1 = kcalc_add env nm [cnm] [] in env1
-                             | _ -> raise (Failure("Can't assign "^(string_of_vdecl rhs)^" to "^nm)) 
-                             )
                     | KernCalc(k) -> let env1 = kcalc_add env nm (List.rev k.allcalc) k.unusedcalc in
                                    env1
                     | _ -> if not (rhs = KCalcT(kcalc rhs))
@@ -227,6 +223,10 @@ let check_assignment env rhs rhse op = function (* passes in LHS *)
           | OrEq -> let chk_calc_add = function
                           CalcT(cnm,t) -> [cnm], []
                         | KCalcT(k) -> k.allcalc, k.unusedcalc
+                        | KernelT(nm) -> (try
+                                            let kc = kernt_of_id env nm in
+                                            kc.kallcalc, kc.kunusedcalc
+                                          with _ -> raise (Failure("Undefined Kernel "^nm)) )
                         | _ as t -> (raise (Failure("Can't add "^
                                              (string_of_vdecl t)^" to "^
                                              (string_of_vdecl (KernelT(nm)))^

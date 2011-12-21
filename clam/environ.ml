@@ -8,12 +8,10 @@
  * Robert Martin <rdm2128@columbia.edu>
  * Kevin Sun <kfs2110@columbia.edu>
  * Yongxu Zhang <yz2419@columbia.edu>
- *
  *)
 
 open Ast
 open Envtypes
-
 
 let default_matrix () = (BInt(1),BInt(1)),[[BInt(1)]]
 
@@ -60,6 +58,7 @@ let do_add_ident env vd =
   | CalcT(nm,t) -> add_unique_var nm
   | _ -> ()
 
+(* add a strongly-typed variable (for easier/faster searching) *)
 let rec var_add env vd = do_add_ident env vd;
   match vd with
     ImageT(nm) -> let rec add_unique_img = function
@@ -100,6 +99,9 @@ let imgt_of_id env name =
 
 let calct_of_id env name =
   List.find (fun c -> c.cname = name) env.calc
+
+let kernt_of_id env name =
+  List.find (fun k -> k.kname = name) env.kernels
 
 (* Find the type of the named variable:
  * raises a "Failure" exception if it's undefined
