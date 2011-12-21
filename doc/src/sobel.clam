@@ -21,7 +21,7 @@ Calc sobelGy<Uint8> := [1 / 1] { +1 +2 +1 ,
 /* Intermediate calculations sobelGx and Gy 
    (marked with @) are used to calculate sobelG,
    but don't create their own channels in convolution*/
-Kernel sobel = @sobelGx | @sobelGy | sobelG;
+Kernel sobel = | @sobelGx | @sobelGy | sobelG;
 
 /* sobelTheta also uses the intermediate Calcs Gx and Gy */
 sobel |= sobelTheta;
