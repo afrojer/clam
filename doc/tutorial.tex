@@ -70,15 +70,15 @@ Options are:
 
 \subsection{Channels}
 
-\texttt{Channel}s are arrays of values associated each pixel in an \texttt{Image}.
+\emph{Channels} are arrays of values associated each pixel in an \texttt{Image}.
 For example, each pixel in an \texttt{Image} usually has \emph{Red}, \emph{Green}, and \emph{Blue} values
 associated with it, and we can further define \emph{Luminosity}, \emph{Hue}, \emph{Saturation} etc.
 Thus we can refer to the \emph{Red} channel or the \emph{Saturation} channel of an \texttt{Image}.
 
-When first read into \sys{}, \texttt{Image}s come with three default \texttt{Channel}s:
+When first read into \sys{}, \texttt{Image}s come with three default Channels:
 \texttt{Red}, \texttt{Green}, and \texttt{Blue}. These can be accessed using the \texttt{:} (colon) operator.
-The values in one \texttt{Channel} can be copied to another using the \texttt{=} (equals) operator.
-If the \texttt{Channel} on the left-hand side is undefined, it is created dynamically.
+The values in one Channel can be copied to another using the \texttt{=} (equals) operator.
+If the Channel on the left-hand side is undefined, it is created dynamically.
 
 The following program uses a \texttt{temp} channel to swap the \texttt{Red} and \texttt{Blue} values of an image:
 
@@ -96,21 +96,21 @@ imgwrite(img1, "jpg" ,2);
 \subsection{Calculations}
 
 While the equals operator is enough to create new channels that are copies of old ones,
-\texttt{Calc} objects allow you to create new \texttt{Channel}s via calculation.
+\texttt{Calc} objects allow you to create new Channels via calculation.
 The \texttt{:=} (colon-equals) operator is used to define \texttt{Calc}s object.
 Once defined, a \texttt{Calc} object cannot be redefined.
 A \texttt{Calc} can be assigned an \emph{atomic type} such as \texttt{<Uint16>} or \texttt{<Angle>},
 and all values resulting from that calculation will be clamped to the appropriate range.
 The default type is \texttt{<Uint8>}, which corresponds to a range of 0-255.
   
-\texttt{Calc} objects can be defined in two ways - as \emph{escaped-C strings} or as \emph{matrices}.
+\texttt{Calc} objects can be defined in two ways - as \emph{escaped-C strings} (\emph{CStrings}) or as \emph{matrices}.
 
-\emph{Escaped-C string} \texttt{Calc}s are enclosed in \texttt{\#[\ldots]\#} brackets. These strings can contain basic mathematical
-operators and functions, as well as references to other \texttt{Channel}s. A \texttt{Calc}
+CString \texttt{Calc}s are enclosed in \texttt{\#[\ldots]\#} brackets. These strings can contain basic mathematical
+operators and functions, as well as references to other Channels. A \texttt{Calc}
 defined in this manner can be applied to an \texttt{Image} using the \texttt{|=} (or-equal) operator,
-provided that the \texttt{Image} has all the requisite \texttt{Channel}s,
-thereby creating a new \texttt{Channel} with the same name as the \texttt{Calc}. The values of this new
-\texttt{Channel} will be calculated according
+provided that the \texttt{Image} has all the requisite Channels,
+thereby creating a new Channel with the same name as the \texttt{Calc}. The values of this new
+Channel will be calculated according
 to the contents of the string. (It follows that anonymous \texttt{Calc}s are not allowed.)\\
 
 \begin{lstlisting}[language=CLAM,escapechar=\%]
@@ -173,12 +173,12 @@ k |= sobelTheta;
 
 \section{Convolutions}\label{sec:tutorial:convolutions}
 
-The \texttt{**} operator takes a \texttt{Channel} reference and a \texttt{Kernel}, and
-applies the \texttt{Kernel}'s \texttt{Calc}s in sequence to the \texttt{Channel}.
-Matrices are applied to the specific Channel given,
-while escaped-C strings generally calculate a value using other \texttt{Channel}s. Any \texttt{Channel} which has
-already been calculated in the convolution may be use by an escaped-C string \texttt{Calc}.
-The result of a convolution is an \texttt{Image} which has an initialized \texttt{Channel} corresponding to
+The \texttt{**} operator takes a Channel reference and a \texttt{Kernel}, and
+applies the \texttt{Kernel}'s \texttt{Calc}s in sequence to the Channel.
+Matrices are applied to the directly to the \texttt{Image} Channel specified,
+while CStrings generally calculate a value using other Channels. Any Channel which has
+already been calculated in the convolution may be used by a CString \texttt{Calc}.
+The result of a convolution is an \texttt{Image} that has an initialized Channel corresponding to
 each \texttt{Calc} defined in the \texttt{Kernel} which was \emph{not} marked as intermediate
 (prefixed with \texttt{@} symbol).
 
@@ -190,6 +190,7 @@ Image edges = srcimg:Lum ** sobel;
 /* but not edges:sobelGx or edges:sobelGy */
 \end{lstlisting}
 
+\clearpage
 \section{Full Example}
 
 The last few examples have included portions of the \emph{Sobel} edge detecting operator.
