@@ -4,7 +4,7 @@ SRC = paper
 SRCTEX = $(SRC).tex
 SRCBIB = $(SRC)*.bib
 # additional dependencies
-ADD =
+GEN = clam.gitlog.tex
 
 # commands
 BIBTEX = bibtex
@@ -63,7 +63,7 @@ DVIDEPEND = $(DEP) $(RESULTS:%.pdf=%.eps) $(FIGURES:%.pdf=%.eps)
 
 FORCE = .silly_file_to_force_rebuild
 
-.PHONY: all check_tools clean distclean force do_force pdf
+.PHONY: all check_tools clean distclean force do_force $(GEN) pdf
 
 all: check_tools $(FORCE) $(SRC).pdf
 
@@ -98,11 +98,15 @@ $(SRC).dvi: $(FORCE) $(DVIDEPEND) $(SRC).bbl Makefile
 $(SRC).ps: $(FORCE) $(SRC).dvi $(SRC).bbl Makefile
 	@$(WHICHPS) $(PSOPTS) "$(SRCARG)"
 
+clam.gitlog.tex:
+	@echo "[Generating Git log]"
+	@./gen_gitshortlog.pl > $@
+
 ifeq ($(NOBIB),1)
-$(SRC).bbl:
+$(SRC).bbl: $(GEN)
 	@echo "[no bib]"
 else
-$(SRC).bbl: $(FORCE) $(SRC).bib Makefile
+$(SRC).bbl: $(FORCE) $(SRC).bib Makefile $(GEN)
 	@echo "[$(WHICHLATEX)]: first pass to generate *.aux files"
 	@$(WHICHLATEX) $(LATEXOPTS) "$(SRCARG)" 2>&1 >> $(SRC).build.log
 	@echo "[$(BIBTEX)] $(SRC)"

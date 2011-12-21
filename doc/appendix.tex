@@ -5,7 +5,8 @@ compiler on the \sys{} compilation output to produce a final binary. The
 final binary is statically linked against a \sys{} implementation library,
 \texttt{clam.a}, which contains the low-level image manipulation functions. Additionally,
 \sys{} leveraged several OCaml functions from the \emph{extlib}~\cite{extlib:googlecode}
-project. Code listings of the \sys{} compiler and \sys{} implementation library
+project, and a stand-alone image reader~\cite{stbimage:read} and writer~\cite{stbimage:write}
+library written by Sean Barrett. Code listings of the \sys{} compiler and \sys{} implementation library
 as well as the subset of \emph{extlib} used by \sys{} follow:
 
 \clearpage
@@ -25,12 +26,24 @@ as well as the subset of \emph{extlib} used by \sys{} follow:
 \lstinputlisting[language=Ocaml]{../clam/verifier.ml} \clearpage
 
 \subsection{Subset of \emph{extlib} Used by \sys{}}
-\lstinputlisting[language=Ocaml]{../clam/extlib/enum.ml} \clearpage
-\lstinputlisting[language=Ocaml]{../clam/extlib/enum.mli} \clearpage
-\lstinputlisting[language=Ocaml]{../clam/extlib/extString.ml} \clearpage
-\lstinputlisting[language=Ocaml]{../clam/extlib/extString.mli} \clearpage
-\lstinputlisting[language=Ocaml]{../clam/extlib/std.ml} \clearpage
-\lstinputlisting[language=Ocaml]{../clam/extlib/std.mli} \clearpage
+\sys{} compiled the following source files from the \texttt{extlib}~\cite{extlib:googlecode}
+project. Their full source is omitted for brevity -- see the project website.
+\begin{itemize}
+  \item{\texttt{enum.ml}}
+  \item{\texttt{enum.mli}}
+  \item{\texttt{extString.ml}}
+  \item{\texttt{extString.mli}}
+  \item{\texttt{std.ml}}
+  \item{\texttt{std.mli}}
+\end{itemize}
+\comment{
+  \lstinputlisting[language=Ocaml]{../clam/extlib/enum.ml} \clearpage
+  \lstinputlisting[language=Ocaml]{../clam/extlib/enum.mli} \clearpage
+  \lstinputlisting[language=Ocaml]{../clam/extlib/extString.ml} \clearpage
+  \lstinputlisting[language=Ocaml]{../clam/extlib/extString.mli} \clearpage
+  \lstinputlisting[language=Ocaml]{../clam/extlib/std.ml} \clearpage
+  \lstinputlisting[language=Ocaml]{../clam/extlib/std.mli} \clearpage
+} % END-COMMENT
 
 \section{\sys{} Implementation Library (\texttt{clam.a})}
 \definecolor{cstyleDarkRed}{rgb}{0.65, 0.08, 0.0}
@@ -49,12 +62,199 @@ as well as the subset of \emph{extlib} used by \sys{} follow:
     breaklines=true,
     basicstyle=\ttfamily\scriptsize,
 }
+%\subsection{\sys{} C Source}
 \lstinputlisting[language=C]{../clam/libstb/clam.h} \clearpage
 \lstinputlisting[language=C]{../clam/libstb/clam.c} \clearpage
-\lstinputlisting[language=C]{../clam/libstb/stb-image-read.c} \clearpage
-\lstinputlisting[language=C]{../clam/libstb/stb-image-write.c} \clearpage
+%\subsection{\texttt{stb\_image} Source}
+%\lstinputlisting[language=C]{../clam/libstb/stb-image-read.c} \clearpage
+%\lstinputlisting[language=C]{../clam/libstb/stb-image-write.c} \clearpage
 
 \section{Unit Test Framework}
+Our unit testing framework was built on two custom shell scripts that provided
+a framework to compile a test program, determine success/failure of compilation,
+compare image outputs and report overall success or failure of the test.
+The framework simply runs all shell scripts in the \emph{test} directory and
+reports the success/failure of each one (with a summary of failures at the end).
+The \texttt{_buildup.sh}, \texttt{_breakdown.sh}, and \texttt{all.test} scripts are
+reported here, followed by all of the tests and a sample run of the
+\texttt{all.test} script.
+\vskip -4mm
+
+\vskip -4mm
+\subsection*{_buildup.sh}
+\vskip -2mm
+\lstinputlisting[language=bash]{../clam/tests/build-up-script-link.sh} \clearpage
+\subsection*{_breakdown.sh}
+\lstinputlisting[language=bash]{../clam/tests/breakdown-script-link.sh}
+\subsection*{all.test}
+\lstinputlisting[language=bash]{../clam/tests/all.test} \clearpage
+% all the tests 
+\subsection*{The tests (shell script followed by \sys{} source)}
+\subsection*{Unit Test: 1calc-ker}
+\lstinputlisting[language=bash]{../clam/tests/1calc-ker.test}
+\lstinputlisting[language=bash]{../clam/tests/1calc-ker.clam} \clearpage
+\subsection*{Unit Test: DefEq}
+\lstinputlisting[language=bash]{../clam/tests/DefEq.test}
+\lstinputlisting[language=bash]{../clam/tests/DefEq.clam} \clearpage
+\subsection*{Unit Test: addker}
+\lstinputlisting[language=bash]{../clam/tests/addker.test}
+\lstinputlisting[language=bash]{../clam/tests/addker.clam} \clearpage
+\subsection*{Unit Test: addker2img}
+\lstinputlisting[language=bash]{../clam/tests/addker2img.test}
+\lstinputlisting[language=bash]{../clam/tests/addker2img.clam} \clearpage
+\subsection*{Unit Test: at-channel}
+\lstinputlisting[language=bash]{../clam/tests/at-channel.test}
+\lstinputlisting[language=bash]{../clam/tests/at-channel.clam} \clearpage
+\subsection*{Unit Test: cimage}
+\lstinputlisting[language=bash]{../clam/tests/cimage.test}
+\lstinputlisting[language=bash]{../clam/tests/cimage.clam} \clearpage
+\subsection*{Unit Test: ckernel}
+\lstinputlisting[language=bash]{../clam/tests/ckernel.test}
+\lstinputlisting[language=bash]{../clam/tests/ckernel.clam} \clearpage
+\subsection*{Unit Test: comment1}
+\lstinputlisting[language=bash]{../clam/tests/comment1.test}
+\lstinputlisting[language=bash]{../clam/tests/comment1.clam} \clearpage
+\subsection*{Unit Test: convoperand}
+\lstinputlisting[language=bash]{../clam/tests/convoperand.test}
+\lstinputlisting[language=bash]{../clam/tests/convoperand.clam} \clearpage
+\subsection*{Unit Test: cstring1}
+\lstinputlisting[language=bash]{../clam/tests/cstring1.test}
+\lstinputlisting[language=bash]{../clam/tests/cstring1.clam} \clearpage
+\subsection*{Unit Test: cstring2}
+\lstinputlisting[language=bash]{../clam/tests/cstring2.test}
+\lstinputlisting[language=bash]{../clam/tests/cstring2.clam} \clearpage
+\subsection*{Unit Test: cstring3}
+\lstinputlisting[language=bash]{../clam/tests/cstring3.test}
+\lstinputlisting[language=bash]{../clam/tests/cstring3.clam} \clearpage
+\subsection*{Unit Test: cstring4}
+\lstinputlisting[language=bash]{../clam/tests/cstring4.test}
+\lstinputlisting[language=bash]{../clam/tests/cstring4.clam} \clearpage
+\subsection*{Unit Test: cstring5}
+\lstinputlisting[language=bash]{../clam/tests/cstring5.test}
+\lstinputlisting[language=bash]{../clam/tests/cstring5.clam} \clearpage
+\subsection*{Unit Test: cstring6}
+\lstinputlisting[language=bash]{../clam/tests/cstring6.test}
+\lstinputlisting[language=bash]{../clam/tests/cstring6.clam} \clearpage
+\subsection*{Unit Test: defcalc1}
+\lstinputlisting[language=bash]{../clam/tests/defcalc1.test}
+\lstinputlisting[language=bash]{../clam/tests/defcalc1.clam} \clearpage
+\subsection*{Unit Test: defcalc2}
+\lstinputlisting[language=bash]{../clam/tests/defcalc2.test}
+\lstinputlisting[language=bash]{../clam/tests/defcalc2.clam} \clearpage
+\subsection*{Unit Test: defcalc3}
+\lstinputlisting[language=bash]{../clam/tests/defcalc3.test}
+\lstinputlisting[language=bash]{../clam/tests/defcalc3.clam} \clearpage
+\subsection*{Unit Test: defchannels}
+\lstinputlisting[language=bash]{../clam/tests/defchannels.test}
+\lstinputlisting[language=bash]{../clam/tests/defchannels.clam} \clearpage
+\subsection*{Unit Test: equality-trans}
+\lstinputlisting[language=bash]{../clam/tests/equality-trans.test}
+\lstinputlisting[language=bash]{../clam/tests/equality-trans.clam} \clearpage
+\subsection*{Unit Test: id-overlap}
+\lstinputlisting[language=bash]{../clam/tests/id-overlap.test}
+\lstinputlisting[language=bash]{../clam/tests/id-overlap.clam} \clearpage
+\subsection*{Unit Test: image-defeq}
+\lstinputlisting[language=bash]{../clam/tests/image-defeq.test}
+\lstinputlisting[language=bash]{../clam/tests/image-defeq.clam} \clearpage
+\subsection*{Unit Test: image-eq-image}
+\lstinputlisting[language=bash]{../clam/tests/image-eq-image.test}
+\lstinputlisting[language=bash]{../clam/tests/image-eq-image.clam} \clearpage
+\subsection*{Unit Test: image-oreq-image}
+\lstinputlisting[language=bash]{../clam/tests/image-oreq-image.test}
+\lstinputlisting[language=bash]{../clam/tests/image-oreq-image.clam} \clearpage
+\subsection*{Unit Test: image-oreq-image2}
+\lstinputlisting[language=bash]{../clam/tests/image-oreq-image2.test}
+\lstinputlisting[language=bash]{../clam/tests/image-oreq-image2.clam} \clearpage
+\subsection*{Unit Test: imgchannel1}
+\lstinputlisting[language=bash]{../clam/tests/imgchannel1.test}
+\lstinputlisting[language=bash]{../clam/tests/imgchannel1.clam} \clearpage
+\subsection*{Unit Test: imgchannel2}
+\lstinputlisting[language=bash]{../clam/tests/imgchannel2.test}
+\lstinputlisting[language=bash]{../clam/tests/imgchannel2.clam} \clearpage
+\subsection*{Unit Test: imgchannel3}
+\lstinputlisting[language=bash]{../clam/tests/imgchannel3.test}
+\lstinputlisting[language=bash]{../clam/tests/imgchannel3.clam} \clearpage
+\subsection*{Unit Test: imgchannel4}
+\lstinputlisting[language=bash]{../clam/tests/imgchannel4.test}
+\lstinputlisting[language=bash]{../clam/tests/imgchannel4.clam} \clearpage
+\subsection*{Unit Test: imgcopy}
+\lstinputlisting[language=bash]{../clam/tests/imgcopy.test}
+\lstinputlisting[language=bash]{../clam/tests/imgcopy.clam} \clearpage
+\subsection*{Unit Test: imgread}
+\lstinputlisting[language=bash]{../clam/tests/imgread.test}
+\lstinputlisting[language=bash]{../clam/tests/imgread.clam} \clearpage
+\subsection*{Unit Test: imgread-bad}
+\lstinputlisting[language=bash]{../clam/tests/imgread-bad.test}
+\lstinputlisting[language=bash]{../clam/tests/imgread-bad.clam} \clearpage
+\subsection*{Unit Test: imgread-bad2}
+\lstinputlisting[language=bash]{../clam/tests/imgread-bad2.test}
+\lstinputlisting[language=bash]{../clam/tests/imgread-bad2.clam} \clearpage
+\subsection*{Unit Test: imgread-bad3}
+\lstinputlisting[language=bash]{../clam/tests/imgread-bad3.test}
+\lstinputlisting[language=bash]{../clam/tests/imgread-bad3.clam} \clearpage
+\subsection*{Unit Test: imgwrite-bad1}
+\lstinputlisting[language=bash]{../clam/tests/imgwrite-bad1.test}
+\lstinputlisting[language=bash]{../clam/tests/imgwrite-bad1.clam} \clearpage
+\subsection*{Unit Test: imgwrite-norgb}
+\lstinputlisting[language=bash]{../clam/tests/imgwrite-norgb.test}
+\lstinputlisting[language=bash]{../clam/tests/imgwrite-norgb.clam} \clearpage
+\subsection*{Unit Test: invalid1}
+\lstinputlisting[language=bash]{../clam/tests/invalid1.test}
+\lstinputlisting[language=bash]{../clam/tests/invalid1.clam} \clearpage
+\subsection*{Unit Test: keyword-id}
+\lstinputlisting[language=bash]{../clam/tests/keyword-id.test}
+\lstinputlisting[language=bash]{../clam/tests/keyword-id.clam} \clearpage
+\subsection*{Unit Test: matrix1}
+\lstinputlisting[language=bash]{../clam/tests/matrix1.test}
+\lstinputlisting[language=bash]{../clam/tests/matrix1.clam} \clearpage
+\subsection*{Unit Test: matrix2}
+\lstinputlisting[language=bash]{../clam/tests/matrix2.test}
+\lstinputlisting[language=bash]{../clam/tests/matrix2.clam} \clearpage
+\subsection*{Unit Test: matrix3}
+\lstinputlisting[language=bash]{../clam/tests/matrix3.test}
+\lstinputlisting[language=bash]{../clam/tests/matrix3.clam} \clearpage
+\subsection*{Unit Test: matrix4}
+\lstinputlisting[language=bash]{../clam/tests/matrix4.test}
+\lstinputlisting[language=bash]{../clam/tests/matrix4.clam} \clearpage
+\subsection*{Unit Test: rval-calc}
+\lstinputlisting[language=bash]{../clam/tests/rval-calc.test}
+\lstinputlisting[language=bash]{../clam/tests/rval-calc.clam} \clearpage
+\subsection*{Unit Test: rval-chanref}
+\lstinputlisting[language=bash]{../clam/tests/rval-chanref.test}
+\lstinputlisting[language=bash]{../clam/tests/rval-chanref.clam} \clearpage
+\subsection*{Unit Test: rval-conv}
+\lstinputlisting[language=bash]{../clam/tests/rval-conv.test}
+\lstinputlisting[language=bash]{../clam/tests/rval-conv.clam} \clearpage
+\subsection*{Unit Test: rval-cstr}
+\lstinputlisting[language=bash]{../clam/tests/rval-cstr.test}
+\lstinputlisting[language=bash]{../clam/tests/rval-cstr.clam} \clearpage
+\subsection*{Unit Test: rval-image}
+\lstinputlisting[language=bash]{../clam/tests/rval-image.test}
+\lstinputlisting[language=bash]{../clam/tests/rval-image.clam} \clearpage
+\subsection*{Unit Test: rval-imgread}
+\lstinputlisting[language=bash]{../clam/tests/rval-imgread.test}
+\lstinputlisting[language=bash]{../clam/tests/rval-imgread.clam} \clearpage
+\subsection*{Unit Test: rval-kernel}
+\lstinputlisting[language=bash]{../clam/tests/rval-kernel.test}
+\lstinputlisting[language=bash]{../clam/tests/rval-kernel.clam} \clearpage
+\subsection*{Unit Test: rval-matrix}
+\lstinputlisting[language=bash]{../clam/tests/rval-matrix.test}
+\lstinputlisting[language=bash]{../clam/tests/rval-matrix.clam} \clearpage
+\subsection*{Unit Test: sizediff}
+\lstinputlisting[language=bash]{../clam/tests/sizediff.test}
+\lstinputlisting[language=bash]{../clam/tests/sizediff.clam} \clearpage
+\subsection*{Unit Test: sobel}
+\lstinputlisting[language=bash]{../clam/tests/sobel.test}
+\lstinputlisting[language=bash]{../clam/tests/sobel.clam} \clearpage
+\subsection*{Unit Test: undefined1}
+\lstinputlisting[language=bash]{../clam/tests/undefined1.test}
+\lstinputlisting[language=bash]{../clam/tests/undefined1.clam} \clearpage
+\subsection*{Unit Test: zerocalc1}
+\lstinputlisting[language=bash]{../clam/tests/zerocalc1.test}
+\lstinputlisting[language=bash]{../clam/tests/zerocalc1.clam} \clearpage
+\subsection*{Unit Test: zerocalc2}
+\lstinputlisting[language=bash]{../clam/tests/zerocalc2.test}
+\lstinputlisting[language=bash]{../clam/tests/zerocalc2.clam} \clearpage
 
 \section{\texttt{git} shortlog of Project Repository}
-
+\input{clam.gitlog}

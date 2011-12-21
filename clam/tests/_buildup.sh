@@ -1,17 +1,13 @@
 #!/bin/bash
+# _buildup.sh
 
-# do this automagically :-)
 TEST_NAME=$(basename ${0%\.*})
 TEST_SRC=${TEST_NAME}.clam
 TEST_BIN=${TEST_NAME}.bin
 
-function msgok() {
-	echo -e "\033[00;34mOK $1\033[00m"
-}
+function msgok() { echo -e "\033[00;34mOK $1\033[00m"; }
 
-function error() {
-	echo -e "\033[00;33mERROR $1\033[00m"
-}
+function error() { echo -e "\033[00;33mERROR $1\033[00m"; }
 
 # Check that necessary unit test variables exist
 if [ -z "$TEST_DESC" ]; then
@@ -21,11 +17,9 @@ fi
 
 # Check if we're asking for help. If so, provide usage
 if [ $# == 1 ] && ([ "$1" == "-help" ] || [ "$1" == "--help" ] || [ "$1" == "-h" ]); then
-	echo
 	echo "CLAM Unit Test: $TEST_NAME"
 	echo "Description: $TEST_DESC"
 	echo "Usage: $0 [optional/path/to/clam/binary]"
-	echo
 	exit 0
 fi
 		
