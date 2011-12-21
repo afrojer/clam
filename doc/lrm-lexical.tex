@@ -49,7 +49,8 @@ optional period character.
 Floats are represented by a series of number characters with an
 optional period character.
 
-\subsubsection{Matrix Constants}
+\subsubsection{Calculation Constants}
+\label{sssec:calcconstants}
 Matrix calculation constants are represented by an opening curly brace, followed
 by a series of \emph{numeric-expressions} separated by whitespace or
 comma characters. The comma  characters represents the division between
@@ -71,22 +72,6 @@ representing the denominator, and a closing bracket character.
 The following is an example of a calculation constant.
 \begin{lstlisting}[language=CLAM,escapechar=\%]
 Calc sobelGy := [1 / 9]{1 3 1 , 2 -5 2 , 1 3 1 };
-\end{lstlisting}
-
-\subsubsection{Escaped C String Constants}
-Escaped C string constants are enclosed in \texttt{\#[...]\#} braces, and can contain any characters
-except \texttt{\# \{ \} " ' /* */ ;}. Any parentheses must be matched.
-Escaped C strings are inserted into C code and appended with a
-semicolon during compilation, so any string that is not valid C is by definition unacceptable.
-Escaped C strings may contain references to \texttt{Channel}s of \texttt{Image}s the calculation is applied to.
-
-\startsyn
-\texttt{\#[} \ldots \emph{valid C Code (with restrictions)} \ldots\texttt{]\#} \\
-\stopsyn
-
-The following is an example of a calculation constant.
-\begin{lstlisting}[language=CLAM,escapechar=\%]
-Calc Lum := #[6*Red + 3*Green + 1*Blue]#;
 \end{lstlisting}
 
 \subsubsection{String Literals}

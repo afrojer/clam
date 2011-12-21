@@ -81,7 +81,8 @@ are not added to the result \texttt{Image}.
 Escaped ``C'' expressions can be used on the right side of the \texttt{:=}
 when defining a \texttt{Channel}. The escaped code must be a single expression
 in C that will evaluate to the equivalent type as the \texttt{Channel} in C.
-The expression should not end in a semicolon.
+The expression cannot contain these characters/tokens:
+\texttt{; \# \{ \} " ' /* */}. All parentheses within the expression must be matched.
 
 The equivalent types are:
 
