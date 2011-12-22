@@ -1,0 +1,18 @@
+Image a = imgread(1);
+
+Calc Lum   := #[ (3*Red + 6*Green + Blue)/10 ]#;
+Calc highC := #[ Lum > 200 ? 255 : 0 ]#;
+Calc midC  := #[ Lum > 80 ? (Lum <= 200 ? 255 : 0) : 0 ]#;
+Calc lowC  := #[ Lum <= 80 ? 255 : 0 ]#;
+
+a |= Lum;
+a |= highC;
+a |= midC;
+a |= lowC;
+
+Image out;
+out:Red = a:highC;
+out:Green = a:midC;
+out:Blue = a:lowC;
+
+imgwrite(out, "png", 2);

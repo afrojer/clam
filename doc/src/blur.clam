@@ -1,17 +1,13 @@
 Image a = imgread(1);
-
 Calc gauss := [1 / 159]
-{
-	2  4  5  4  2,
-	4  9 12  9  4,
-	5 12 15 12  5,
-	4  9 12  9  4,
-	2  4  5  4  2
+{  2  4  5  4  2,
+   4  9 12  9  4,
+   5 12 15 12  5,
+   4  9 12  9  4,
+   2  4  5  4  2
 };
-
 /* Create a kernel object for computing the blur */
 Kernel dogauss = | gauss;
-
 Image outR = a:Red ** dogauss;
 Image outG = a:Green ** dogauss;
 Image outB = a:Blue ** dogauss;
@@ -20,5 +16,4 @@ Image out;
 out:Red = outR:gauss;
 out:Green = outG:gauss;
 out:Blue = outB:gauss;
-
 imgwrite( out, "png", 2);
