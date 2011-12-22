@@ -1,12 +1,8 @@
-/* read an image into the 'srcimg' variable */
 Image srcimg = imgread("ucla.png");
 
-/* define a luninance channel for this image
- * (Red, Green, and Blue channels are implicit from imgread)
- * No type specification with <> defaults to Uint8 */
 Calc Lum := #[(3*Red + 6*Green + 1*Blue)/10]#;
 srcimg |= Lum;
 
 Image output;
-output:foo = srcEimg:foo;
+output:foo = srcimg:foo; /* srcimg:foo doesn't exist! */
 

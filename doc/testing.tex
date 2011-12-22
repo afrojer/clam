@@ -6,8 +6,8 @@ Each pair consists of a CLAM program with extension \texttt{.clam} and an execut
 with extension \texttt{.test}. The CLAM file contains the code to be tested, while the shell script
 specifies how to test that code: whether to compile and run or only compile, whether the test is supposed to fail,
 what the expected output should look like, and what command line arguments to pass.
-The \texttt{_buildup.sh} sets up the testing environment and defines common procedures such as
-\texttt{compile_it} and \texttt{run_it}. Furthermore, \texttt{all.test} runs all tests in the directory,
+The \texttt{-buildup.sh} sets up the testing environment and defines common procedures such as
+\texttt{compile-it} and \texttt{run-it}. Furthermore, \texttt{all.test} runs all tests in the directory,
 tallies successes and failures and outputs a summary at the end.\\
 
 Our testing is divided into four sections: syntax verification, semantic/type verification, CString verification, and functional output verification (image processing results comparison). 
@@ -15,100 +15,163 @@ Our testing is divided into four sections: syntax verification, semantic/type ve
 \section{Syntax Verification}
 \label{testing:syntax}
 
-Syntax verification is meant to confirm that the parser accepts all token strings,
+Syntax verification testing is meant to confirm that the parser accepts all valid token strings,
 and rejects all invalid ones as defined in our language reference manual.
 We achieve this by inspecting \texttt{clam/parser.mly} and writing unit tests for
 potentially problematic cases (many of the more straightforward rules were not deemed test-worthy).
-The testing process uncovered a number of errors
+All of these tests are only compiled and not executed. The testing process uncovered a number of errors
 in matrix parsing and definition of kernel calculation lists.\\
 
-\texttt{matrix1.clam} tests that a simple matrix parses correctly, and should pass:
+\texttt{matrix1.clam} tests that a simple matrix parses correctly, and should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/matrix1.clam}
 (This originally failed because a scale factor was required, but now it is accepted.)
 
-\texttt{matrix2.clam} tests that a matrix with scaling factor parses correctly, and should pass:
+\texttt{matrix2.clam} tests that a matrix with scaling factor parses correctly, and should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/matrix2.clam}
 
-\texttt{matrix3.clam} tests whether the parser catches ill-formed matrices, and should fail:
+\texttt{matrix3.clam} tests whether the parser catches ill-formed matrices, and should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/matrix3.clam}
 (This originally succeeded due to incorrect matrix parsing rules, but now it fails.)
 
-\texttt{matrix4.clam} tests whether the parser catches another type of ill-formed matrix, and should also fail:
+\texttt{matrix4.clam} tests whether the parser catches another type of ill-formed matrix, and should also not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/matrix4.clam}
 (This originally succeeded due to incorrect matrix parsing rules, but now it fails.)
 
-\texttt{keyword-id.clam} tests whether the parser allows keywords to be identifiers, and should fail:
+\texttt{keyword-id.clam} tests whether the parser allows keywords to be identifiers, and should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/keyword-id.clam}
 
+\texttt{1calc-ker.clam} tests whether the parser allows \texttt{Kernel} definitions with only one \texttt{Calc}, and should compile:
+\lstinputlisting[language=CLAM]{../clam/tests/keyword-id.clam}
+(This originally failed because the original syntax caused reduce/reduce errors, so we changed both the parser and the test.
+There was originally no \texttt{|} after the \texttt{=}.)
+
+\texttt{convoperand.clam} tests whether the \texttt{**} enforces a strict order of operands, and should not compile:
+\lstinputlisting[language=CLAM]{../clam/tests/convoperand.clam}
+(We only allow convolutions of the form \emph{channel-ref} \texttt{**} \emph{identifier}, in order to simplify
+to translation into C code.)
+
+\texttt{defcalc1.clam}, \texttt{defcalc2.clam}, and \texttt{defcalc3.clam} test various ways of declaring \texttt{Calc}s,
+and all three should compile:
+\lstinputlisting[language=CLAM]{../clam/tests/defcalc1.clam}
+\lstinputlisting[language=CLAM]{../clam/tests/defcalc2.clam}
+\lstinputlisting[language=CLAM]{../clam/tests/defcalc3.clam}
+
+\texttt{rval-calc.clam}, \texttt{rval-matrix.clam}, \texttt{rval-chanref.clam}, \texttt{rval-conv.clam},
+\texttt{rval-cstr.clam}, \texttt{rval-image.clam}, \texttt{rval-imgread.clam}, and \texttt{rval-kernel.clam}
+test various "do nothing" statements consisting solely of r-values. Theses should all compile, though their
+return values of the last line of each test are discarded so they do nothing:
+\lstinputlisting[language=CLAM]{../clam/tests/rval-calc.clam}
+\lstinputlisting[language=CLAM]{../clam/tests/rval-matrix.clam}
+\lstinputlisting[language=CLAM]{../clam/tests/rval-chanref.clam}
+\lstinputlisting[language=CLAM]{../clam/tests/rval-conv.clam}
+\lstinputlisting[language=CLAM]{../clam/tests/rval-cstr.clam}
+\lstinputlisting[language=CLAM]{../clam/tests/rval-image.clam}
+\lstinputlisting[language=CLAM]{../clam/tests/rval-imgread.clam}
+\lstinputlisting[language=CLAM]{../clam/tests/rval-kernel.clam}
+(The parser accepted all of these, though most originally caused errors in the C translator
+that had to be fixed (see "C Compiler Verification" below).)
+
+\texttt{comment1.clam} checks that a program with only a comment (and zero statements) compiles. It should compile:
+\lstinputlisting[language=CLAM]{../clam/tests/comment1.clam}
 
 \section{Semantic Verification}
 \label{testing:semantic}
 
-Semantic verification is meant to confirm that the verifier accepts all valid parse trees,
-and rejects all invalid ones as defined our language reference manual.
-We achieve this by going through the various rules in \texttt{clam/verifier.ml}
-and one of more unit tests for each. The testing process uncovered a number of errors
-in matrix parsing and definition of kernel calculation lists.\\
+Semantic verification testing is meant to confirm that the verifier accepts all valid parse trees,
+and rejects all invalid ones according to the specifications of our language
+(and according to what makes sense).
+These tests depend on \texttt{clam/verifier.ml}, as well as \texttt{clam/environ.ml} and \texttt{envtypes.mli}. 
+The testing process uncovered a number of errors in matrix verification (separate from syntax)
+and the creation of default RGB Channels.\\
+
+\texttt{zerocalc1.clam} and \texttt{zerocalc2.clam} check that a matrix scaling-factor can
+have a numerator of zero, but not a denominator of zero.
+The former should certainly compile, while the latter should not:
+\lstinputlisting[language=CLAM]{../clam/tests/zerocalc1.clam}
+\lstinputlisting[language=CLAM]{../clam/tests/zerocalc2.clam}
+(\texttt{zerocalc2.clam} originally passed verification, but that was fixed.)
+
+\texttt{invalid1.clam} checks that undeclared identifiers are caught. This should not compile:
+\lstinputlisting[language=CLAM]{../clam/tests/invalid1.clam}
+
+\texttt{undefined1.clam} checks that an undefined Channel reference cannot be an r-value. This should not compile:
+\lstinputlisting[language=CLAM]{../clam/tests/undefined1.clam}
+
+\texttt{imgchannel1.clam} checks that an \texttt{Image} has default channels when read. This should compile:
+\lstinputlisting[language=CLAM]{../clam/tests/imgchannel1.clam}
+
+\texttt{imgchannel2.clam} checks that an undefined \texttt{Calc} cannot be applied to an \texttt{Image}. This should not compile:
+\lstinputlisting[language=CLAM]{../clam/tests/imgchannel2.clam}
+
+\texttt{imgchannel3.clam} checks that a \texttt{Calc} defined as a matrix cannot be applied to an \texttt{Image}. This should not compile:
+\lstinputlisting[language=CLAM]{../clam/tests/imgchannel3.clam}
+
+\texttt{imgchannel4.clam} checks that a \texttt{Calc} defined as a CString \emph{can} be applied to an \texttt{Image}. This should compile:
+\lstinputlisting[language=CLAM]{../clam/tests/imgchannel4.clam}
 
 \texttt{image-eq-image.clam} checks \texttt{=} assignment for images to images. This should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/image-eq-image.clam}
 
-\texttt{image-oreq-image.clam} checks \texttt{|=} assignment for images to images. This is not supported and fails:
+\texttt{image-oreq-image.clam} checks \texttt{|=} assignment for images to images. This is not supported and doesn't compile:
 \lstinputlisting[language=CLAM]{../clam/tests/image-oreq-image.clam}
 
-\texttt{image-defeq.clam} checks \texttt{:=} assignment for images. This is not supported and fails:
+\texttt{image-defeq.clam} checks \texttt{:=} assignment for images. This is not supported and doesn't compile:
 \lstinputlisting[language=CLAM]{../clam/tests/image-defeq.clam}
+
+\texttt{imgread-bad.clam} checks that l-value identifiers have to be declared first. This shouldn't compile:
+\lstinputlisting[language=CLAM]{../clam/tests/imgread-bad.clam}
+
+\texttt{imgread-bad2.clam} checks that \texttt{imgread} must be called with only one argument. This shouldn't compile:
+\lstinputlisting[language=CLAM]{../clam/tests/imgread-bad2.clam}
+
+\texttt{imgread-bad3.clam} checks that \texttt{imgread} can only be called with a literal string or integer. This shouldn't compile:
+\lstinputlisting[language=CLAM]{../clam/tests/imgread-bad3.clam}
+
+\texttt{imgwrite-bad1.clam} checks that \texttt{imgwrite} can't be called with incorrect number and type of arguments. This shouldn't compile:
+\lstinputlisting[language=CLAM]{../clam/tests/imgwrite-bad1.clam}
+
+
 
 \section{CString Verification}
 \label{testing:cstrings}
 
-CString verification checks that invalid CStrings are caught before being passed to GCC, where they
+CString verification testing checks that invalid CStrings are caught before being passed to GCC, where they
 could cause fatal errors. Of course, it is impossible to catch \emph{all} possible errors without
 building an understanding of C syntax directly into CLAM, so we are satisfied with catching common
-errors and rely on the user and GCC error messages for everything else. (For example, a CString of the form \texttt{\#[while(1)]\#},
+mistakes and rely on the user and GCC error messages for everything else. (For example, a CString of the form \texttt{\#[while(1)]\#},
 while certainly disruptive, will compile and it is the user's fault that the program stalls.)
-For each possible issue that we \emph{did} chose to catch, we wrote unit tests to confirm that they were caught.\\
+For each possible issue that we \emph{did} choose to catch, we wrote unit tests to confirm that they were caught.\\
 
+\section{C Compiler Verification}
+\label{test:ccompiler}
 
+A few of the above tests, which originally compiled, began failing once the C backend was hooked up.
+The most common errors were with C syntax and memory allocation.
+So while we didn't write tests specifically targeted at the C backend,
+the tests we wrote for other parts of the architecture also helped us identify problems in the C translator. 
 
 \section{Image Processing Verification}
 \label{test:output}
 
-Image processing verification consists of full-fledged programs that actually read, manipulate and write images.
-While the testing framework provides image-comparison functionality, most verification here is actually done
-with the naked eye.
+These are comprehensive tests, consisting of full-fledged programs that actually
+read, manipulate and write images. While the testing framework provides image-comparison functionality,
+most verification here is actually done with the naked eye.
 
-
-We start from part 1, using small unit tests to find out bugs in the syntax of CLAM. We carefully went through those data types and operators defined in CLAM to ensure the convergence. In detail, the default value of each basic type, the validity operands of all kinds of operators, and different ways of declaration are main points in this part. We also plan to fix those syntax bugs, especially in the parser and the verifier, immediately after them were found. Thus, at the end of the part 1, our  parser become more robust and capable of handling syntax errors.
-
-In part two, we test the acceptance of wrapped C expression. The code in CLAM is translated into C language before being compiled, and C language expressions are supported during variable declaration. As a reason of that,  the parser needs to detect syntax errors in those wrapped C statements that may affect the compiling. Some tests about unreasonable statements are also involved such as 0 being denominator, or unclosed comment.
-
-The functionalities of built-in functions and calculation operators in CLAM are tested in part 3. The actual images are required in the tests as input and output. The output of each test is observed and compared with desired result.
 
 CLAM Syntax:
 	Assignments: 
 		addker2img.clam, addker.clam, DefEq.clam
 
-	** operator:
-		convoperand.clam
 
-	Variable deceleration:
-		1calc_ker.clam, zerocalc1.clam, zerocalc2.clam
-		defcalc1.clam, defcalc2.clam, defcalc3.clam
-id_overlap.clam, invalid_identifier.clam
-		undefined_atomtype.clam
-		
+, 
+
+id-overlap.clam
 
 	Image operations syntax (not testing actual implementation):
-		imgchannel1.clam, imgchannel2.clam, imgchannel3.clam, imgchannel4.clam
-		imgread_bad.clam, imgwrite_bad1.clam, imgread_bad2.clam, imgread_bad3.clam
-		defchannels.clam, sizediff.clam, equality_trans.clam
+		, 
+		defchannels.clam, sizediff.clam, equality-trans.clam
 
-	The @ operator: at_channel.clam
-	Comment: comment1.clam
-
-	rval_calc.clam, rval_matrix.clam, rval_chanref.clam, rval_conv.clam, 
-	rval_cstr.clam, rval_image.clam, rval_imgread.clam, rval_kernel.clam
+	The @ operator: at-channel.clam
 
 
 Warped C syntax:
@@ -116,6 +179,5 @@ Warped C syntax:
 	cimage.clam
 	ckernel.clam
 
-Image functionality:
-	imgwrite_norgb.clam,  imgcopy.clam,  imgread.clam
+	imgwrite-norgb.clam,  imgcopy.clam,  imgread.clam
 	sobel.clam (general test)
