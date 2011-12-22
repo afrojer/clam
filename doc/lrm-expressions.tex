@@ -28,18 +28,18 @@ negative of the numeric operand.
 
 \subsection{Channel/Calc Expresions}
 \label{ssec:channelexpressions}
-\texttt{Channel} and \texttt{Calc} types are the basis of \texttt{Image} and
+Channel and \texttt{Calc} types are the basis of \texttt{Image} and
 \texttt{Kernel} objects respectively. There are several operators that
-manipulate \texttt{Channel}s and \texttt{Calc}s.
+manipulate Channels and \texttt{Calc}s.
 
 \subsubsection{\texttt{:} operator}
 \label{sssec:colonop}
-Extract or use an individual \texttt{Channel} in an image.
+Extract or use an individual Channel in an image.
 \startsyn
 \emph{image-identifier}\texttt{:}\emph{channel-identifier}
 \stopsyn
 The resulting expression has a type corresponding to the
-extracted \texttt{Channel}.
+extracted Channel.
 
 \subsection{Composition Operators}
 \label{ssec:compositionops}
@@ -63,7 +63,8 @@ Also note that even single \texttt{Calc}s need to be preceded by \texttt{|}
 \label{ssec:convolutionop}
 
 The convlution operator, or \texttt{**}, performs the calculations of a
-\texttt{Kernel} on a \texttt{Channel}, and evaluates to a new \texttt{Image}.
+\texttt{Kernel} on a Channel, and evaluates to a new \texttt{Image} 
+with a Channel for the result of each (non-transient) calculation.
 When the \texttt{Kernel} is evaluated, as many operations as possible are
 parallelized to improve performance.
 
@@ -79,8 +80,8 @@ are not added to the result \texttt{Image}.
 \label{ssec:escapedC}
 
 Escaped ``C'' expressions can be used on the right side of the \texttt{:=}
-when defining a \texttt{Channel}. The escaped code must be a single expression
-in C that will evaluate to the equivalent type as the \texttt{Channel} in C.
+when defining a Channel. The escaped code must be a single expression
+in C that will evaluate to the equivalent type as the Channel in C.
 The expression cannot contain these characters/tokens:
 \texttt{; \# \{ \} " ' /* */}. All parentheses within the expression must be matched.
 
@@ -92,8 +93,7 @@ The equivalent types are:
 Uint8  & char \\
 Uint16 & int \\
 Uint32 & long \\
-Angle  & double \\
-Float  & double
+Angle  & double
 \end{tabular}\end{center}
 
 When the channel described by an escaped ``C'' expression must be evaluated,
@@ -116,7 +116,7 @@ The \texttt{imgread} expression reads in an \texttt{Image} object from
 a known image format located on the file system. The expression results
 in an \texttt{Image} object which can be assigned using the \texttt{=}
 operator (see section~\ref{sssec:equalop}). The resulting \texttt{Image}
-object has 3 \texttt{Channel}s named \emph{Red}, \emph{Green}, and
+object has 3 Channels named \emph{Red}, \emph{Green}, and
 \emph{Blue}. Each of the channels correspond to the red, green, and blue
 image data read into the \texttt{Image} object. This expression is invoked
 as a ``C'' style function, and expects 1 parameter: either the path of the
@@ -157,6 +157,6 @@ object. Only used once for each \texttt{Calc}, with declaration.
 
 \subsubsection{\texttt{|=} assignment operator}
 \label{sssec:barequalop}
-Add a single \texttt{Channel} or a (possible one-member) list of \texttt{Calc}s object to an \texttt{Image} or
+Add a single Channel or a (possible one-member) list of \texttt{Calc}s object to an \texttt{Image} or
 \texttt{Kernel} object. Assignments using this operator are ordered by statement
 order, and subsequent operations can rely on this order.
