@@ -8,14 +8,15 @@
 
 % NOTE: I'd love for this image to have text wrap around it, but
 %       I can't figure out how... :(
-\begin{figure}
+\begin{wrapfigure}{r}{60mm}
 \begin{center}
-\includegraphics[width=60mm]{figures/layers.png}
+\includegraphics[width=40mm]{figures/layers.png}
 \caption{A diagram showing the layers of \sys{}. The raw source code is
-fed into the top of the cake and binary executables come out the bottom.}
+fed into the top of the cake and binary executables come out the bottom.
+This image was manipulated by \sys{} using a Gaussian blur filter.}
 \label{fig:layers}
 \end{center}
-\end{figure}
+\end{wrapfigure}
 
 Our design incorporates six layers: the scanner, the parser, the verifier,
 the semantic converter, the backend C generation, and C image manipulation
@@ -26,7 +27,7 @@ implements the program described by the input text.
 The scanner generates as its output a one-dimensional list of
 tokens (see Figure~\ref{fig:tokens}).
 
-\begin{figure}[h]
+\begin{figure}
 \begin{center}
 \begin{tabular}{l l l l l l l}
 
