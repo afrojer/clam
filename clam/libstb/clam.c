@@ -68,39 +68,21 @@ int clam_imgchan_exists(clam_img *img, const char *name)
 }
 
 
-clam_imgchan *clam_imgchan_ref(clam_img *img, const char *name)
+clam_imgchan *__clam_imgchan_ref(clam_img *img, const char *name, int *idx)
 {
+	int ii = 0;
 	clam_imgchan *ch;
 	list_for_each_entry(ch, &img->chan, list) {
 		if (strcmp(name, ch->name) == 0) {
 			goto out;
 		}
+		ii++;
 	}
 	bail("Invalid channel: %s", name);
 out:
+	if (idx) *idx = ii;
 	return ch;
 }
-
-#define clam_imgchan_eval(__img, __type, __ch) \
-{ \
-	int pix, sz; \
-	unsigned char *chan_ptr; \
-	unsigned char **pp; \
-	__type *val; \
-	if (!((__ch)->p)) { \
-		sz = (__img)->width * (__img)->height; \
-		val = (__type *)malloc(sz * (__ch)->stride); \
-		clam_alloc_check(val); \
-		(__ch)->p = (unsigned char *)val; \
-		clam_img_setup_calc(__img); \
-		for (pix = 0; pix < sz; ++pix) { \
-			pp = (__img)->curr_p; \
-			*val++ = (__type)( cfunc ); \
-			clam_img_next_pix(__img); \
-		} \
-	} \
-}
-
 
 clam_imgchan *__clam_imgchan_copy(clam_img *dst, const char *dname,
 				clam_imgchan *schan)
@@ -139,6 +121,8 @@ void clam_img_resize(clam_img *img, int width, int height)
 	free(img->curr_s); img->curr_s = NULL;
 }
 
+/* The ugly ugly dispatch function... this is the price you pay for making
+ * all your types just "magically" work together... */
 void clam_convolve_matrix(clam_img *outimg,
 			  clam_imgchan *ch,
 			  clam_calc *calc)
@@ -339,40 +323,6 @@ void clam_convolve_matrix(clam_img *outimg,
 	}
 }
 
-
-#define clam_convolve_cfunc(CALC,TYPE,CFUNC...) \
-{ \
-	clam_imgchan *__outchanref; \
-	__clam_imgchan_add(__IMG, (CALC)->type, (CALC)->name, 0); \
-	__outchanref = clam_imgchan_ref(__IMG, (CALC)->name); \
-	clam_imgchan_eval(__IMG, TYPE, __outchanref); \
-}
-
-#define clam_convfunc_start(IDX,IMGNAME,CHANNAME) \
-clam_img *__convolution ## IDX(clam_kernel *kern) { \
-	clam_kcalc *__kc; \
-	clam_img *__IMG; \
-	clam_imgchan *__CONVCHAN = clam_imgchan_ref(IMGNAME, #CHANNAME); \
-	__IMG = clam_img_alloc(); \
-	list_for_each_entry_reverse(__kc, &kern->allcalc, list) { \
-		clam_calc *__c = __kc->calc; \
-		if (__c->ismat) { \
-			clam_convolve_matrix(__IMG, __CONVCHAN, __c); \
-		} else { \
-
-#define clam_convfunc_chk(CHAN) \
-			if (strcmp(__c->name, #CHAN) == 0) \
-				goto do_ ## CHAN;
-
-#define clam_convfunc_lastchk() \
-			continue;
-
-#define clam_convfunc_end(IDX) \
-		} \
-	} \
-	clam_img_cleanup(__IMG, kern); \
-	return __IMG; \
-}
 
 void clam_img_cleanup(clam_img *img, clam_kernel *kern)
 {

@@ -519,14 +519,9 @@ int imgwrite(clam_img *img, clam_img_fmt fmt, const char *filename)
 		return -1;
 	}
 
-	if (img->num_chan < 3) {
-		r = 0;
-		g = (img->num_chan > 1) ? 1 : 0;
-		b = (img->num_chan > 2) ? 2 : 0;
-
-	} else {
-		r = 0; g = 1; b = 2;
-	}
+	__clam_imgchan_ref(img, "Red", &r);
+	__clam_imgchan_ref(img, "Green", &g);
+	__clam_imgchan_ref(img, "Blue", &b);
 
 	/* re-interleave the Red/Green/Blue channels */
 	sz = img->width * img->height;
