@@ -126,7 +126,6 @@ rule token = parse
   | "Image"            { IMAGET   }
   | "Kernel"           { KERNELT  }
   | "Calc"             { CALCT    }
-  | "Channel"          { CHANNELT }
   | "Uint8"            { UINT8T   }
   | "Uint16"           { UINT16T  }
   | "Uint32"           { UINT32T  }
