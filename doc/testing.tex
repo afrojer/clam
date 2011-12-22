@@ -53,8 +53,8 @@ in matrix parsing and definition of kernel calculation lists.\\
 \texttt{image-eq-image.clam} checks \texttt{=} assignment for images to images. This should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/image-eq-image.clam}
 
-\texttt{image-eq-image.clam} checks \texttt{|=} assignment for images to images. This is not supported and fails:
-\lstinputlisting[language=CLAM]{../clam/tests/image-eq-image.clam}
+\texttt{image-oreq-image.clam} checks \texttt{|=} assignment for images to images. This is not supported and fails:
+\lstinputlisting[language=CLAM]{../clam/tests/image-oreq-image.clam}
 
 \texttt{image-defeq.clam} checks \texttt{:=} assignment for images. This is not supported and fails:
 \lstinputlisting[language=CLAM]{../clam/tests/image-defeq.clam}
@@ -65,7 +65,7 @@ in matrix parsing and definition of kernel calculation lists.\\
 CString verification checks that invalid CStrings are caught before being passed to GCC, where they
 could cause fatal errors. Of course, it is impossible to catch \emph{all} possible errors without
 building an understanding of C syntax directly into CLAM, so we are satisfied with catching common
-errors and rely on the user for everything else. (For example, a CString of the form \texttt{\#[while(1)]\#},
+errors and rely on the user and GCC error messages for everything else. (For example, a CString of the form \texttt{\#[while(1)]\#},
 while certainly disruptive, will compile and it is the user's fault that the program stalls.)
 For each possible issue that we \emph{did} chose to catch, we wrote unit tests to confirm that they were caught.\\
 
