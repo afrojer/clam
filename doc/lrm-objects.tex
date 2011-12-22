@@ -1,10 +1,10 @@
 \section{Objects and Definitions}
 \label{sec:objdef}
-An \emph{object} in \sys{} is either a named collection of \texttt{Channel}s, called an
+An \emph{object} in \sys{} is either a named collection of Channels, called an
 \texttt{Image}, or a named collection of calculation bases, called a
-\texttt{Kernel}. A \texttt{Channel} is a mathematical matrix of numeric values
+\texttt{Kernel}. A Channel is a mathematical matrix of numeric values
 whose individual components are not directly accessible via \sys{} language
-semantics -- \texttt{Channel} values are manipulated via the convolution
+semantics -- Channel values are manipulated via the convolution
 operator (see~\ref{ssec:convolutionop}). A calculation basis, known as a
 \texttt{Calc}, is a collection of either calculation constants
 (see~\ref{sssec:calcconstants}) or calculation expressions (see~\ref{ssec:escapedC}),
@@ -12,13 +12,13 @@ or both.
 
 \subsection{\texttt{Image} objects}
 \label{ssec:images}
-An \texttt{Image} is a collection of named \texttt{Channel}s. \texttt{Channel}s can
+An \texttt{Image} is a collection of named Channels. Channels can
 be dynamically added \comment{or removed} using the channel composition
 operator (see section~\ref{sssec:barequalop}, or by assigning to a previously
-undeclared \texttt{Channel} name. 
+undeclared Channel name. 
 
 For example, to create a gray-scale image from a single, pre-existing
-\texttt{Channel}:
+Channel:
 \begin{lstlisting}[language=CLAM,escapechar=\%]
 Image outImg;
 outImg:Red = calcImg:G;
