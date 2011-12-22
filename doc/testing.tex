@@ -62,8 +62,21 @@ in matrix parsing and definition of kernel calculation lists.\\
 \section{CString Verification}
 \label{testing:cstrings}
 
+CString verification checks that invalid CStrings are caught before being passed to GCC, where they
+could cause fatal errors. Of course, it is impossible to catch \emph{all} possible errors without
+building an understanding of C syntax directly into CLAM, so we are satisfied with catching common
+errors and rely on the user for everything else. (For example, a CString of the form \texttt{\#[while(1)]\#},
+while certainly disruptive, will compile and it is the user's fault that the program stalls.)
+For each possible issue that we \emph{did} chose to catch, we wrote unit tests to confirm that they were caught.\\
+
+
+
 \section{Image Processing Verification}
 \label{test:output}
+
+Image processing verification consists of full-fledged programs that actually read, manipulate and write images.
+While the testing framework provides image-comparison functionality, most verification here is actually done
+with the naked eye.
 
 
 We start from part 1, using small unit tests to find out bugs in the syntax of CLAM. We carefully went through those data types and operators defined in CLAM to ensure the convergence. In detail, the default value of each basic type, the validity operands of all kinds of operators, and different ways of declaration are main points in this part. We also plan to fix those syntax bugs, especially in the parser and the verifier, immediately after them were found. Thus, at the end of the part 1, our  parser become more robust and capable of handling syntax errors.
