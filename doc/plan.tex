@@ -1,4 +1,5 @@
 \chapter{Project Plan}
+\label{chap:projplan}
 
 \section{Overview}
 The \sys{} project used a distributed development model as suggested by the
@@ -39,17 +40,89 @@ inexorably entwined. Thus the major focus of development at the end of the proje
 this area, and collaborative programming techniques such as pair-programming were employed to
 speed development and improve code quality.
 
-%Identify process used for planning, specification, development and testing
+Our testing procedure, described in chapter~\ref{chap:testplan}, is based around unit tests
+divided into four major categories: syntactic tests, semantic/type tests, CString tests, and
+functional output tests. Each category is designed to exercise a specific area of the \sys{}
+compiler, and each test uses a simple pass/fail metric. Unit tests were developed in parallel
+to other development, and were used extensively to fix bugs and refine the language syntax.
 
 \section{Administration}
-Show your project timeline
 
-Identify roles and responsibilities of each team member
+Although \sys{} development did not follow a strict timeline, there was a well-defined order
+in which major pieces of the design had to be completed.
+Figure~\ref{fig:timeline} shows the timeline that \sys{} development followed which was
+reconstructed from the version control logs. Note that there was a compression of activity
+near the end of the development cycle. This was an unfortunate side-effect of a loosely-defined
+schedule.
+\begin{figure}[h!]
+\begin{center}
+  \begin{tikzpicture}[x=0.75cm, y=0.9cm]
+    \begin{ganttchart}[vgrid, hgrid,
+                       bar={draw=green!90, fill=green!20, rounded corners=3pt},
+                       milestone={fill=orange!20, draw=orange!90}]{16}
+      \gantttitle{Sept.}{4} \gantttitle{Oct.}{4} \gantttitle{Nov.}{5} \gantttitle{Dec.}{3} \\
+      \ganttbar{Language Definition}{2}{3.5} \\
+      \ganttmilestone{Language Proposal}{3.5} \\
+      \ganttbar{Framework/Infrastructure}{3.5}{6.25} \\
+      \ganttmilestone{LRM}{8.25} \\
+      \ganttbar{Scanner/Parser}{5}{10.25} \\
+      \ganttbar{Verifier}{9}{13.5} \\
+      \ganttbar{SAST}{9}{14} \\
+      \ganttbar{Semantic/Backend}{13}{15} \\
+      \ganttbar{C Implementation}{13.5}{15} \\
+      \ganttbar{Unit Tests/Bugfixes}{12.5}{15} \\
+      \ganttmilestone{Functional \sys{}}{14.75}
+    \end{ganttchart}
+  \end{tikzpicture}
+  \caption{\sys{} Development Timeline}
+  \label{fig:timeline}
+\end{center}
+\end{figure}
 
-\section{Coding Style Guide}
-Include a one-page programming style guide used by the team
+Each member of the \sys{} team played a role in the development process. Figure~\ref{fig:devroles}
+details the code and documentation responsibilities of each member. In addition to each documentation
+area specified in the figure, each team member contributed a \emph{lessons learned} paragraph. These
+were collected into Chapter~\ref{chap:lessons}.
+
+\begin{figure}[h!]
+  \begin{center}
+    \begin{tabular}{ l | l | l }
+      {\bf Developer} & {\bf Code Responsibilities} & {\bf Documentation Responsibilities} \\
+      \hline
+      \multirow{3}{*}{Jeremy Andrus} & Framework, Scanner/Parser, & Introduction (Ch.\ref{chap:intro}), LRM (Ch.\ref{chap:lrm}), \\
+      & Verifier, C Implementation & Project Plan (Ch.\ref{chap:projplan}), Code Reference (App.\ref{chap:coderef}), \\
+      & & VCS History (App.\ref{chap:vcshistory}) \\
+      \hline
+      \multirow{2}{*}{Robert Martin} & SAST, Semantic, Backend & Architectural Design (Ch.\ref{chap:archdesign}), LRM (Ch.\ref{chap:lrm}), \\
+      & & Introduction (Ch.\ref{chap:intro})\\
+      \hline
+      \multirow{2}{*}{Kevin Sun} & Unit Tests, Verifier Bugfixes & Language Tutorial (Ch.\ref{chap:tutorial}), Test Plan (Ch.\ref{chap:testplan}),\\
+      & & LRM (Ch.\ref{chap:lrm})\\
+      \hline
+      \multirow{2}{*}{Yongxu Zhang} & Unit Tests, Verifier Bugfixes & Test Plan (Ch.\ref{chap:testplan}) \\
+      & & \\
+    \end{tabular}
+    \caption{Roles and Responsibilities}
+    \label{fig:devroles}
+  \end{center}
+\end{figure}
 
 \section{Development Environment}
-Describe the software development environment used (tools and languages)
+The \sys{} compiler is written in Objective Caml (OCaml) and C/C++. The bulk of the compilation is
+done in OCaml which generates C/C++. A \sys{} C library was written which implements the
+low-level details of the image processing described by the language including structures,
+memory management, and a convolution framework written in a C++ template function.
 
-A complete log of project activity can be found in appendix~\ref{appendix:vcshistory}
+Compiling \sys{} requires the \texttt{gcc} compiler and the OCaml toolchain available for
+download from the OCaml website: \url{http://caml.inria.fr/download}. In order to produce
+machine-executable binaries, \sys{} must invoke the \texttt{g++} compiler which should be
+accessible from the user's default \emph{PATH}.
+
+\sys{} documentation, including all charts, code examples, and course-related documents,
+were written in \LaTeX{}. This allowed the team to work on the same document in a coherent,
+distributed manner.
+
+All source code and documentation was managed in the \texttt{git}~\cite{git:website}
+distributed version control system. A ``master'' repository was kept on a Columbia CRF backed-up
+server, and \emph{hook} scripts were used to notify all team members when code was pushed to this
+repository. A complete log of project activity can be found in Appendix~\ref{chap:vcshistory}.
