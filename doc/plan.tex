@@ -1,7 +1,45 @@
 \chapter{Project Plan}
 
 \section{Overview}
-Identify process used for planning, specification, development and testing
+The \sys{} project used a distributed development model as suggested by the
+\texttt{git}~\cite{git:website} version control system. Each team member was expected
+to keep up with overall development through automated emails sent out via \texttt{git}
+hook scripts run on every successful push.
+
+Initial planning and design of the \sys{} language came out of the previous experience of
+group members in image processing. Specification of language syntax was driven by the desire
+to simplify basic image processing and linear algebra calculations which are onerous to
+implement in other languages. The core of this development hinged on the \emph{convolution}
+(section~\ref{ssec:convolutionop}) operator. When used in combination with a flexible matrix
+definition syntax, a simple convolution operator can eliminate quadruply--nested for--loops and
+clarify program operation. This paradigm lead us directly to our elegant matrix definition
+syntax, and a \texttt{Kernel} (section~\ref{ssec:kernels}) formalism that allows efficient
+ordering of calculations and further reduces the number of lines of code necessary to implement
+most algorithm.
+
+We took a practical approach to formalizing the language semantics by attempting to implement
+a real--world algorithm in the most compact yet readable manner possible. We chose
+the \emph{Sobel}~\cite{sobel:wikipedia} operator which is a standard edge detection algorithm
+used in computer vision. Calculating the Sobel operator involves a luminance calculation,
+two separate convolutions, and two additional calculations on the convolution output. Using
+this algorithm as a guide, we developed a syntax which balanced complexity and readability,
+and is able to implement the complete Sobel operator in 12 lines of code
+(see section~\ref{sec:tutorial:fullexample} for a source listing).
+
+After language specification and semantics were reasonably well-defined, we began development
+of the scanner and parser. We quickly realized that the most challenging pieces of the \sys{}
+design would be the strict type--checking and backend C implementations. With this in mind,
+the project was put on a loose timeline where priority was given to the verifier
+(see section~\ref{chap:archdesign}) and to the C library implementation of the \sys{} syntax.
+
+Fortunately formal verification of types and syntax could happen substantially in parallel
+with the backend and semantically checked abstract syntax tree (SAST) generation. However, we found
+that the details of the generated C code, the backend implementation, and the SAST were
+inexorably entwined. Thus the major focus of development at the end of the project was on
+this area, and collaborative programming techniques such as pair-programming were employed to
+speed development and improve code quality.
+
+%Identify process used for planning, specification, development and testing
 
 \section{Administration}
 Show your project timeline
