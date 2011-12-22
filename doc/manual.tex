@@ -6,8 +6,12 @@ The \sys{} programming language is a linear algebra manipulation language
 specifically targeted for image processing. It provides an efficient way to
 express complex image manipulation algorithms through compact matrix
 operations. \sys{} programs are first compiled into a ''C`` module which is
-further compiled into a machine binary by an existing 
-This reference is inspired by the C reference manual~\cite{DBLP:KernighanR88}.
+further compiled into a machine binary by an existing C compiler. This two-step
+process is completely automated by the \sys{} compiler, and by default no C code
+is output (this can be changed with compiler arguments - see section~\ref{sec:compiling}).
+
+This language reference is inspired by the C reference manual~\cite{DBLP:KernighanR88}.
+It details the syntax of the \sys{} language.
 
 \input{lrm-lexical}
 \input{lrm-types}
@@ -17,6 +21,7 @@ This reference is inspired by the C reference manual~\cite{DBLP:KernighanR88}.
 \input{lrm-misc}
 \input{lrm-grammar}
 
+\clearpage
 \section{Examples}
 The following example implements a Sobel image filter using the
 \sys{} language.

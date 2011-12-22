@@ -1,0 +1,1 @@
+Image a = imgread("foo" "bar" ".jpg");

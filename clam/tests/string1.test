@@ -1,0 +1,12 @@
+#!/bin/bash
+TEST_DESC="Consecutive String Constants"
+. _buildup.sh
+
+compile_it
+if [ $ERRORS -eq 0 ]; then
+	run_it
+else
+    error "Couldn't compile consecutive string constants, e.g. \"foo\" \"bar\""
+fi
+
+. _breakdown.sh

@@ -79,6 +79,7 @@ let backslash_escapes = ['\\' '"' '\'' 'n' 't' 'b' 'r']
 let invalidcstr_char  = ['{' '}' ';' '#' '"' ''' ] | "/*" | "*/" | "//"
 let cstr_cast = ['('] whitespace* alpha alphanum* whitespace* [')']
 let cstr_libcall = alpha alphanum* ['(']
+let consecutive_strings = ['"'] whitespace* ['"']
 
 rule token = parse
     newline            { Lexing.new_line lexbuf; token lexbuf }
@@ -146,7 +147,8 @@ rule token = parse
 
 (* fancy string parsing from OCaml compiler code :-) *)
 and parse_string = parse
-    '"'     { () }
+    consecutive_strings  { parse_string lexbuf }
+  | '"'     { () }
   | newline { Lexing.new_line lexbuf; parse_string lexbuf }
   | '\\' ("\010" | "\013" | "\013\010") ([' ' '\009'] * as spaces)
     { incr_loc lexbuf (String.length spaces);
