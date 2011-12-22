@@ -22,41 +22,43 @@ potentially problematic cases (many of the more straightforward rules were not d
 All of these tests are only compiled and not executed. The testing process uncovered a number of errors
 in matrix parsing and definition of kernel calculation lists.\\
 
-\texttt{matrix1.clam} tests that a simple matrix parses correctly, and should compile:
+\begin{itemize}
+
+\item \texttt{matrix1.clam} tests that a simple matrix parses correctly, and should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/matrix1.clam}
 (This originally failed because a scale factor was required, but now it is accepted.)
 
-\texttt{matrix2.clam} tests that a matrix with scaling factor parses correctly, and should compile:
+\item \texttt{matrix2.clam} tests that a matrix with scaling factor parses correctly, and should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/matrix2.clam}
 
-\texttt{matrix3.clam} tests whether the parser catches ill-formed matrices, and should not compile:
+\item \texttt{matrix3.clam} tests whether the parser catches ill-formed matrices, and should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/matrix3.clam}
 (This originally succeeded due to incorrect matrix parsing rules, but now it fails.)
 
-\texttt{matrix4.clam} tests whether the parser catches another type of ill-formed matrix, and should also not compile:
+\item \texttt{matrix4.clam} tests whether the parser catches another type of ill-formed matrix, and should also not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/matrix4.clam}
 (This originally succeeded due to incorrect matrix parsing rules, but now it fails.)
 
-\texttt{keyword-id.clam} tests whether the parser allows keywords to be identifiers, and should not compile:
+\item \texttt{keyword-id.clam} tests whether the parser allows keywords to be identifiers, and should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/keyword-id.clam}
 
-\texttt{1calc-ker.clam} tests whether the parser allows \texttt{Kernel} definitions with only one \texttt{Calc}, and should compile:
+\item \texttt{1calc-ker.clam} tests whether the parser allows \texttt{Kernel} definitions with only one \texttt{Calc}, and should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/keyword-id.clam}
 (This originally failed because the original syntax caused reduce/reduce errors, so we changed both the parser and the test.
 There was originally no \texttt{|} after the \texttt{=}.)
 
-\texttt{convoperand.clam} tests whether the \texttt{**} enforces a strict order of operands, and should not compile:
+\item \texttt{convoperand.clam} tests whether the \texttt{**} enforces a strict order of operands, and should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/convoperand.clam}
 (We only allow convolutions of the form \emph{channel-ref} \texttt{**} \emph{identifier}, in order to simplify
 to translation into C code.)
 
-\texttt{defcalc1.clam}, \texttt{defcalc2.clam}, and \texttt{defcalc3.clam} test various ways of declaring \texttt{Calc}s,
+\item \texttt{defcalc1.clam}, \texttt{defcalc2.clam}, and \texttt{defcalc3.clam} test various ways of declaring \texttt{Calc}s,
 and all three should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/defcalc1.clam}
 \lstinputlisting[language=CLAM]{../clam/tests/defcalc2.clam}
 \lstinputlisting[language=CLAM]{../clam/tests/defcalc3.clam}
 
-\texttt{rval-calc.clam}, \texttt{rval-matrix.clam}, \texttt{rval-chanref.clam}, \texttt{rval-conv.clam},
+\item \texttt{rval-calc.clam}, \texttt{rval-matrix.clam}, \texttt{rval-chanref.clam}, \texttt{rval-conv.clam},
 \texttt{rval-cstr.clam}, \texttt{rval-image.clam}, \texttt{rval-imgread.clam}, and \texttt{rval-kernel.clam}
 test various "do nothing" statements consisting solely of r-values. Theses should all compile, though their
 return values of the last line of each test are discarded so they do nothing:
@@ -71,11 +73,13 @@ return values of the last line of each test are discarded so they do nothing:
 (The parser accepted all of these, though most originally caused errors in the C translator
 that had to be fixed (see "C Compiler Verification" below).)
 
-\texttt{equality-trans.clam} checks that assignment expressions can be nested. This should compile:
+\item \texttt{equality-trans.clam} checks that assignment expressions can be nested. This should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/equality-trans.clam}
 
-\texttt{comment1.clam} checks that a program with only a comment (and zero statements) compiles. This should compile:
+\item \texttt{comment1.clam} checks that a program with only a comment (and zero statements) compiles. This should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/comment1.clam}
+
+\end{itemize}
 
 \section{Semantic Verification}
 \label{testing:semantic}
@@ -87,67 +91,88 @@ These tests depend on \texttt{clam/verifier.ml}, as well as \texttt{clam/environ
 The testing process uncovered a number of errors in matrix verification (separate from syntax)
 and the creation of default RGB Channels.\\
 
-\texttt{zerocalc1.clam} and \texttt{zerocalc2.clam} check that a matrix scaling-factor can
+\begin{itemize}
+
+\item\texttt{zerocalc1.clam} and \texttt{zerocalc2.clam} check that a matrix scaling-factor can
 have a numerator of zero, but not a denominator of zero.
 The former should certainly compile, while the latter should not:
 \lstinputlisting[language=CLAM]{../clam/tests/zerocalc1.clam}
 \lstinputlisting[language=CLAM]{../clam/tests/zerocalc2.clam}
 (\texttt{zerocalc2.clam} originally passed verification, but that was fixed.)
 
-\texttt{invalid1.clam} checks that undeclared identifiers are caught. This should not compile:
+\item\texttt{invalid1.clam} checks that undeclared identifiers are caught. This should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/invalid1.clam}
 
-\texttt{undefined1.clam} checks that an undefined Channel reference cannot be an r-value. This should not compile:
+\item\texttt{undefined1.clam} checks that an undefined Channel reference cannot be an r-value. This should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/undefined1.clam}
 
-\texttt{imgchannel1.clam} checks that an \texttt{Image} has default channels when read. This should compile:
+\item\texttt{imgchannel1.clam} checks that an \texttt{Image} has default channels when read. This should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/imgchannel1.clam}
 
-\texttt{imgchannel2.clam} checks that an undefined \texttt{Calc} cannot be applied to an \texttt{Image}. This should not compile:
+\item\texttt{imgchannel2.clam} checks that an undefined \texttt{Calc} cannot be applied to an \texttt{Image}. This should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/imgchannel2.clam}
 
-\texttt{imgchannel3.clam} checks that a \texttt{Calc} defined as a matrix cannot be applied to an \texttt{Image}. This should not compile:
+\item\texttt{imgchannel3.clam} checks that a \texttt{Calc} defined as a matrix cannot be applied to an \texttt{Image}. This should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/imgchannel3.clam}
 
-\texttt{imgchannel4.clam} checks that a \texttt{Calc} defined as a CString \emph{can} be applied to an \texttt{Image}. This should compile:
+\item\texttt{imgchannel4.clam} checks that a \texttt{Calc} defined as a CString \emph{can} be applied to an \texttt{Image}. This should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/imgchannel4.clam}
 
-\texttt{image-eq-image.clam} checks \texttt{=} assignment for images to images. This should compile:
+\item\texttt{image-eq-image.clam} checks \texttt{=} assignment for images to images. This should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/image-eq-image.clam}
 
-\texttt{image-oreq-image.clam} checks \texttt{|=} assignment for images to images. This is not supported and doesn't compile:
+\item\texttt{image-oreq-image.clam} checks \texttt{|=} assignment for images to images. This is not supported and doesn't compile:
 \lstinputlisting[language=CLAM]{../clam/tests/image-oreq-image.clam}
 
-\texttt{image-defeq.clam} checks \texttt{:=} assignment for images. This is not supported and doesn't compile:
+\item\texttt{image-defeq.clam} checks \texttt{:=} assignment for images. This is not supported and doesn't compile:
 \lstinputlisting[language=CLAM]{../clam/tests/image-defeq.clam}
 
-\texttt{imgread-bad.clam} checks that l-value identifiers have to be declared first. This shouldn't compile:
+\item\texttt{imgread-bad.clam} checks that l-value identifiers have to be declared first. This shouldn't compile:
 \lstinputlisting[language=CLAM]{../clam/tests/imgread-bad.clam}
 
-\texttt{imgread-bad2.clam} checks that \texttt{imgread} must be called with only one argument. This shouldn't compile:
+\item\texttt{imgread-bad2.clam} checks that \texttt{imgread} must be called with only one argument. This shouldn't compile:
 \lstinputlisting[language=CLAM]{../clam/tests/imgread-bad2.clam}
 
-\texttt{imgread-bad3.clam} checks that \texttt{imgread} can only be called with a literal string or integer. This shouldn't compile:
+\item\texttt{imgread-bad3.clam} checks that \texttt{imgread} can only be called with a literal string or integer. This shouldn't compile:
 \lstinputlisting[language=CLAM]{../clam/tests/imgread-bad3.clam}
 
-\texttt{imgwrite-bad1.clam} checks that \texttt{imgwrite} can't be called with incorrect number and type of arguments. This shouldn't compile:
+\item\texttt{imgread.clam} checks that \texttt{imgread} can actually called with a correct argument. This should compile:
+\lstinputlisting[language=CLAM]{../clam/tests/imgread-bad.clam}
+
+\item\texttt{imgwrite-bad1.clam} checks that \texttt{imgwrite} can't be called with incorrect number and type of arguments. This shouldn't compile:
 \lstinputlisting[language=CLAM]{../clam/tests/imgwrite-bad1.clam}
 
-\texttt{defchannels.clam} checks that the default RGB Channels don't exist for a declared-but-not-read \texttt{Image}. This shouldn't compile:
+\item\texttt{defchannels.clam} checks that the default RGB Channels don't exist for a declared-but-not-read \texttt{Image}. This shouldn't compile:
 \lstinputlisting[language=CLAM]{../clam/tests/defchannels.clam}
 (Allowing default RGB channels for an unread \texttt{Image} is problematic because CLAM
 does not allow explicit manipulation of Channel \emph{size}.)
 
-\texttt{sizediff.clam} checks that the default Channels from \texttt{Image}s of different sizes
+\item\texttt{imgwrite-norgb.clam} checks that a declared-but-not-read \texttt{Image} without RGB channels
+(and more importantly, without a \emph{size}) cannot be written. This shouldn't compile:
+\lstinputlisting[language=CLAM]{../clam/tests/imgwrite-norgb.clam}
+
+\item\texttt{sizediff.clam} checks that the default Channels from \texttt{Image}s of different sizes
 cannot be assigned to each other, because all Channels of an \texttt{Image} should have the same size. This shouldn't compile:
 \lstinputlisting[language=CLAM]{../clam/tests/sizediff.clam}
 
-\texttt{at-channel.clam} checks that transient \texttt{Calc}s marked with \texttt{@} in a \texttt{Kernel}
+\item\texttt{at-channel.clam} checks that transient \texttt{Calc}s marked with \texttt{@} in a \texttt{Kernel}
 do not result in Channels after a convolution. This shouldn't compile:
 \lstinputlisting[language=CLAM]{../clam/tests/at-channel.clam}
 
-\textt{addker.clam} checks a \texttt{Kernel} can be appended to another \texttt{Kernel} using \texttt{|=}. This should compile:
+\item\textt{addker.clam} checks a \texttt{Kernel} can be appended to another \texttt{Kernel} using \texttt{|=}. This should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/addker.clam}
+
+\item\textt{DefEq.clam} checks that \texttt{=} cannot be used to define a \texttt{Calc}. This should not compile:
+\lstinputlisting[language=CLAM]{../clam/tests/DefEq.clam}
+
+\item\textt{ckernel.clam} checks that \texttt{Kernel}s must be defined using \texttt{Calc} \emph{identifiers}
+and not anonymous \texttt{Calc} expressions. This should not compile:
+\lstinputlisting[language=CLAM]{../clam/tests/ckernel.clam}
+
+\item\textt{cimage.clam} checks that \texttt{Image}s cannot be defined using \texttt{Calc} expressions. This should not compile:
+\lstinputlisting[language=CLAM]{../clam/tests/cimage.clam}
+
+\end{itemize}
 
 \section{CString Verification}
 \label{testing:cstrings}
@@ -157,14 +182,40 @@ could cause fatal errors. Of course, it is impossible to catch \emph{all} possib
 building an understanding of C syntax directly into CLAM, so we are satisfied with catching common
 mistakes and rely on the user and GCC error messages for everything else. (For example, a CString of the form \texttt{\#[while(1)]\#},
 while certainly disruptive, will compile and it is the user's fault that the program stalls.)
-For each possible issue that we \emph{did} choose to catch, we wrote unit tests to confirm that they were caught.\\
+For each possible issue that we \emph{did} choose to catch, we wrote unit tests to confirm that they were caught.
+Catching of invalid CStrings is done entirely in \texttt{clam/scanner.mll}. Testing reveals errors
+in parentheses matching, which were promptly corrected.\\
+
+\begin{itemize}
+
+\item\textt{cstring1.clam} checks that C preprocessor cannot be used in a CString. This should not compile:
+\lstinputlisting[language=CLAM]{../clam/tests/cstring1.clam}
+
+\item\textt{cstring2.clam} checks that C comments cannot be used in a CString. This should not compile:
+\lstinputlisting[language=CLAM]{../clam/tests/cstring2.clam}
+
+\item\textt{cstring3.clam} checks that empty CStrings are OK, and just result in an empty statement. This should compile:
+\lstinputlisting[language=CLAM]{../clam/tests/cstring3.clam}
+
+\item\textt{cstring4.clam} checks that library calls in a CString must be closed. This should not compile:
+\lstinputlisting[language=CLAM]{../clam/tests/cstring4.clam}
+(This originally did compile because the scanner didn't record nesting-level properly. It was fixed.)
+
+\item\textt{cstring5.clam} checks that parentheses in a CString must be matched. This should not compile:
+\lstinputlisting[language=CLAM]{../clam/tests/cstring5.clam}
+(This originally did compile because the scanner didn't record nesting-level properly. It was fixed.)
+
+\item\textt{cstring6.clam} is a sanity check that "normal" CStrings do in fact work. This should obviously compile:
+\lstinputlisting[language=CLAM]{../clam/tests/cstring6.clam}
+
+\end{itemize}
 
 \section{C Compiler Verification}
 \label{test:ccompiler}
 
 A few of the above tests, which originally compiled, began failing once the C backend was hooked up.
 The most common errors were with C syntax and memory allocation.
-So while we didn't write tests specifically targeted at the C backend,
+While we didn't write tests specifically targeted at the C backend,
 the tests we wrote for other parts of the architecture also helped us identify problems in the C translator. 
 
 \section{Image Processing Verification}
@@ -172,19 +223,17 @@ the tests we wrote for other parts of the architecture also helped us identify p
 
 These are comprehensive tests, consisting of full-fledged programs that actually
 read, manipulate and write images. While the testing framework provides image-comparison functionality,
-most verification here is actually done with the naked eye.
+most verification here is actually done with the naked eye.\\
+
+\begin{itemize}
+
+\item\textt{imgcopy.clam} copies an image. This should compile, run, and copy an image:
+\lstinputlisting[language=CLAM]{../clam/tests/imgcopy.clam}
+
+\item\textt{sobel.clam} applies the Sobel operation to an image. This should compile, run, and output
+a map of the luminosity gradient:
+\lstinputlisting[language=CLAM]{../clam/tests/sobel.clam}
+
+\end{itemize}
 
 
-CLAM Syntax:
-	Assignments: 
-		addker2img.clam, , DefEq.clam
-
-
-
-Warped C syntax:
-	cstring1.clam, cstring2.clam, cstring3.clam, cstring4.clam, cstring5.clam, cstring6.clam
-	cimage.clam
-	ckernel.clam
-
-	imgwrite-norgb.clam,  imgcopy.clam,  imgread.clam
-	sobel.clam (general test)

@@ -1,2 +1,1 @@
-Kernel t1=#[Red*2]#;
-Kernel t2=#[Red]# | #[Blue]#;
+Kernel t1 = #[Red*2]# | #[Blue]#;
