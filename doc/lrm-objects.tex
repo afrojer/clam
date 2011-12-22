@@ -6,9 +6,17 @@ An \emph{object} in \sys{} is either a named collection of Channels, called an
 whose individual components are not directly accessible via \sys{} language
 semantics -- Channel values are manipulated via the convolution
 operator (see~\ref{ssec:convolutionop}). A calculation basis, known as a
-\texttt{Calc}, is a collection of either calculation constants
-(see~\ref{sssec:calcconstants}) or calculation expressions (see~\ref{ssec:escapedC}),
-or both.
+\texttt{Calc}, is either a calculation constant
+(see~\ref{sssec:calcconstants}) or a calculation expression (see~\ref{ssec:escapedC}).
+
+\subsection{\texttt{Calc} objects}
+\label{ssec:calc}
+A  \texttt{Calc} object is an immutable object initialized with the \texttt{:=} assignment operator
+(see section~\ref{sssec:colonequalop}). Its assigned value is either a CString (section~\ref{ssec:escapedC}),
+or a calculation constant (\emph{matrix} - section~\ref{sssec:calcconstants}). The calculation
+described by a \texttt{Calc} object will be performed for each pixel in an \texttt{Image} Channel.
+The calculation is performed using either the convolution operator (section~\ref{sssec:convolutionop}),
+or the channel composition operator (section~\ref{sssec:barequalop}).
 
 \subsection{\texttt{Image} objects}
 \label{ssec:images}
@@ -29,7 +37,7 @@ outImg:Blue = calcImg:G;
 \subsection{\texttt{Kernel} objects}
 \label{ssec:kernels}
 A \texttt{Kernel} is an ordered collection of calculation bases which is used by the convolution
-operator (see section~\ref{ssec:convolutionop}). Each calculation has to be identified with a \texttt{Calc}
+operator (see section~\ref{ssec:convolutionop}). Each calculation must to be identified with a \texttt{Calc}
 identifier, but the underlying basis can be either
 a matrix calculation constant (see~\ref{sssec:calcconstants}) or an escaped C expression
 (see~\ref{ssec:escapedC}). A \texttt{Kernel} is composed either using the composition

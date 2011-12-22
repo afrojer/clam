@@ -3,7 +3,7 @@
 
 \subsection{Basic Types}
 \label{ssec:types}
-There are four basic types defined by the \sys{} language.
+There are three basic types defined by the \sys{} language.
 Type identifiers always begin with an upper-case letter followed by a sequence
 of zero or more legal identifier characters. The list of built-in types is as follows:
 \startsyn
@@ -15,14 +15,15 @@ of zero or more legal identifier characters. The list of built-in types is as fo
 \subsubsection{Atom Types}
 \label{sssec:atomtypes}
 The \texttt{Calc} type may be further modified
-to specify individual element, or ``atom'' types. This specifies either the type
-of the resulting calculation performed by a \texttt{Calc} object. (When calculation
-results go out of bounds for their type, their values are clamped - set to the max or min value.)
+to specify individual element, or ``atom'' types. This specifies the type
+of the resulting calculation performed by a \texttt{Calc} object (either CString or Matrix --
+see section~\ref{ssec:calc}). When calculation results exceed the bounds of the specified type,
+values are clamped (set to the max or min value appropriately).
 An \emph{atom-type} identifier is denoted using the \texttt{<} and \texttt{>}
 characters immediately following the identifier of the object whose atom type
 is being specified:
 \startsyn
-\emph{basic-type} \emph{identifier}\texttt{<}\emph{atom-type}\texttt{>}
+\texttt{Calc} \emph{identifier}\texttt{<}\emph{atom-type}\texttt{>}
 \stopsyn
 Legal \emph{atom-type}s are as follows:
 \startsyn

@@ -9,4 +9,5 @@ the result stored in previously declared variables, or write an image to a file.
 "Statements" consisting of a lone r-value (an identifier,
 channel reference, escaped-C string, matrix, or \texttt{imgread()} call)
 will be accepted but will perform no useful action - they are evaluated but
-their return values are discarded (or are they erased during translation?)
+their return values are discarded. Additionally, the \sys{} compiler may
+optionally remove these statements as an optimization.
