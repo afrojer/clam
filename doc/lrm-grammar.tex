@@ -1,2 +1,40 @@
 \section{Grammar}
-MISSING: explicitly spell out all the above rules in a concise way.
+
+\subsection{1. Expressions.}
+
+\begin{center}\begin{tabular}{l l}
+\emph{expression}: & \emph{identifier}\\
+& \emph{integer}\\
+& \emph{literal-string}\\
+& \emph{c-string}\\
+& \emph{matrix}\\
+& \emph{matrix-scale matrix}\\
+& \emph{kernel-calc-list}\\
+& \emph{channel-ref}\\
+& \emph{identifier} \texttt{=} \emph{expression}\\
+& \emph{channel-ref} \texttt{=} \emph{expression}\\
+& \emph{channel-ref} \texttt{**} \emph{identifier}\\
+& \emph{identifier} \texttt{|=} \emph{expression}\\
+& \emph{library-function} \texttt{(} \emph{argument-list} \texttt{)}\\
+\\
+\emph{matrix-scale}: & \texttt{[} \emph{integer} \texttt{/} \emph{integer} \texttt{]}\\
+\\
+\emph{matrix}: & \texttt{\{} \emph{row-list} \texttt{\}}\\
+\\
+\emph{row-list}: & \emph{matrix-row}\\
+& \emph{row-list} \texttt{,} \emph{matrix-row}\\
+\\
+\emph{matrix-row}: & \emph{integer}\\
+& \emph{matrix-row} \emph{integer}\\
+\\
+\emph{kernel-calc-list}: & \texttt{@}\emph{identifier}\\
+& \texttt{|} \emph{identifier}\\
+& \texttt{| @}\emph{identifier}\\
+& \emph{kernel-calc-list} \texttt{|} \emph{identifier}\\
+& \emph{kernel-calc-list} \texttt{| @}\emph{identifier}\\
+\\
+\emph{channel-ref}: & \emph{identifier}\texttt{:}\emph{identifier}\\
+\\
+\emph{argument-list}: & \emph{literal-string}\\
+& \emph{argument-list} \texttt{,} \emph{literal-string}\\
+\end{tabular}\end{center}
