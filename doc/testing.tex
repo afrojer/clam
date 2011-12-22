@@ -1,13 +1,63 @@
 \chapter{Test Plan}
 \label{chap:testplan}
 
+Our unit test framework consists of pairs of identically named files in the \texttt{clam/tests/} directory.
+Each pair consists of a CLAM program with extension \texttt{.clam} and an executable shell script
+with extension \texttt{.test}. The CLAM file contains the code to be tested, while the shell script
+specifies how to test that code: whether to compile and run or only compile, whether the test is supposed to fail,
+what the expected output should look like, and what command line arguments to pass.
+The \texttt{_buildup.sh} sets up the testing environment and defines common procedures such as
+\texttt{compile_it} and \texttt{run_it}. Furthermore, \texttt{all.test} runs all tests in the directory,
+tallies successes and failures and outputs a summary at the end.\\
+
 Our testing is divided into four sections: syntax verification, semantic/type verification, CString verification, and functional output verification (image processing results comparison). 
 
 \section{Syntax Verification}
 \label{testing:syntax}
 
+Syntax verification is meant to confirm that the parser accepts all token strings,
+and rejects all invalid ones as defined in our language reference manual.
+We achieve this by inspecting \texttt{clam/parser.mly} and writing unit tests for
+potentially problematic cases (many of the more straightforward rules were not deemed test-worthy).
+The testing process uncovered a number of errors
+in matrix parsing and definition of kernel calculation lists.\\
+
+\texttt{matrix1.clam} tests that a simple matrix parses correctly, and should pass:
+\lstinputlisting[language=CLAM]{../clam/tests/matrix1.clam}
+(This originally failed because a scale factor was required, but now it is accepted.)
+
+\texttt{matrix2.clam} tests that a matrix with scaling factor parses correctly, and should pass:
+\lstinputlisting[language=CLAM]{../clam/tests/matrix2.clam}
+
+\texttt{matrix3.clam} tests whether the parser catches ill-formed matrices, and should fail:
+\lstinputlisting[language=CLAM]{../clam/tests/matrix3.clam}
+(This originally succeeded due to incorrect matrix parsing rules, but now it fails.)
+
+\texttt{matrix4.clam} tests whether the parser catches another type of ill-formed matrix, and should also fail:
+\lstinputlisting[language=CLAM]{../clam/tests/matrix4.clam}
+(This originally succeeded due to incorrect matrix parsing rules, but now it fails.)
+
+\texttt{keyword-id.clam} tests whether the parser allows keywords to be identifiers, and should fail:
+\lstinputlisting[language=CLAM]{../clam/tests/keyword-id.clam}
+
+
 \section{Semantic Verification}
 \label{testing:semantic}
+
+Semantic verification is meant to confirm that the verifier accepts all valid parse trees,
+and rejects all invalid ones as defined our language reference manual.
+We achieve this by going through the various rules in \texttt{clam/verifier.ml}
+and one of more unit tests for each. The testing process uncovered a number of errors
+in matrix parsing and definition of kernel calculation lists.\\
+
+\texttt{image-eq-image.clam} checks \texttt{=} assignment for images to images. This should compile:
+\lstinputlisting[language=CLAM]{../clam/tests/image-eq-image.clam}
+
+\texttt{image-eq-image.clam} checks \texttt{|=} assignment for images to images. This is not supported and fails:
+\lstinputlisting[language=CLAM]{../clam/tests/image-eq-image.clam}
+
+\texttt{image-defeq.clam} checks \texttt{:=} assignment for images. This is not supported and fails:
+\lstinputlisting[language=CLAM]{../clam/tests/image-defeq.clam}
 
 \section{CString Verification}
 \label{testing:cstrings}
@@ -24,8 +74,6 @@ The functionalities of built-in functions and calculation operators in CLAM are 
 
 CLAM Syntax:
 	Assignments: 
-		image_eq_image.clam, image_oreq_image.clam
-		image_oreq_image2.clam, image_defeq.clam 
 		addker2img.clam, addker.clam, DefEq.clam
 
 	** operator:
@@ -33,9 +81,8 @@ CLAM Syntax:
 
 	Variable deceleration:
 		1calc_ker.clam, zerocalc1.clam, zerocalc2.clam
-		matrix1.clam, matrix2.clam, matrix3.clam, matrix4.clam 
 		defcalc1.clam, defcalc2.clam, defcalc3.clam
-		keyword_id.clam,  id_overlap.clam, invalid_identifier.clam
+id_overlap.clam, invalid_identifier.clam
 		undefined_atomtype.clam
 		
 

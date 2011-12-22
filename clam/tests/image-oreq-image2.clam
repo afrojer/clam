@@ -1,3 +1,0 @@
-Image s = imgread("ucla.png");
-Image t = imgread("flatiron.jpg");
-t |= s; /* should not work because not same size */
