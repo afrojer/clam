@@ -8,7 +8,6 @@
  * Robert Martin <rdm2128@columbia.edu>
  * Kevin Sun <kfs2110@columbia.edu>
  * Yongxu Zhang <yz2419@columbia.edu>
- *
  *)
 { open Parser
 
@@ -79,6 +78,7 @@ let backslash_escapes = ['\\' '"' '\'' 'n' 't' 'b' 'r']
 let invalidcstr_char  = ['{' '}' ';' '#' '"' ''' ] | "/*" | "*/" | "//"
 let cstr_cast = ['('] whitespace* alpha alphanum* whitespace* [')']
 let cstr_libcall = alpha alphanum* ['(']
+(* mash consecutive strings together right in the scanner! *)
 let consecutive_strings = ['"'] whitespace* ['"']
 
 rule token = parse

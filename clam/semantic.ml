@@ -1,6 +1,6 @@
 (*
- * File: verifier.ml
- * Date: 2011-10-17
+ * File: sematic.ml
+ * Date: 2011-12-08
  *
  * PLT Fall 2011
  * CLAM Project
@@ -8,7 +8,6 @@
  * Robert Martin <rdm2128@columbia.edu>
  * Kevin Sun <kfs2110@columbia.edu>
  * Yongxu Zhang <yz2419@columbia.edu>
- *
  *)
 
 open Ast
@@ -25,7 +24,6 @@ open Printer
  *   4) Create VAST, the vast node that represents N
  *   5) Return (ENV, VAST)
  *)
-
 exception SemanticFailure of string
 
 let globalConvIdx = ref 0
@@ -40,18 +38,22 @@ let scope = ref {
 let type_of_vdecl = function
     ImageT(s) -> ImageType
   | KernelT(s) -> KernelType
-  | KCalcT(kc) -> raise(SemanticFailure("Kernel Calc does not have an associated type. Does this VDecl even exist!?"))
+  | KCalcT(kc) ->
+      raise(SemanticFailure("Kernel Calc does not have an associated type. "^
+                            "Does this VDecl even exist!?"))
   | ConvT(e1,e2)-> ImageType
   | CalcT(s,t) -> CalcType(t)
   | _ -> raise(SemanticFailure("Invalid use of internal type."))
 
 let type_of_vexpr = function
-    CalcEx(e) -> CalcType(Unknown) (* XXX: We have problems in how we handle the atomic types of Calcs *)
+    (* XXX: We have problems in how we handle the atomic types of Calcs *)
+    CalcEx(e) -> CalcType(Unknown)
   | KernelEx(e) -> KernelType
   | ImageEx(e) -> ImageType
   | ChanRefEx(e) -> ChanRefType
   | ImgWriteEx(im,f,fi) -> VoidType
-  | Debug(s) -> print_endline("XXX: pretending Debug is a type CalcType(Unknown)"); CalcType(Unknown)
+  | Debug(s) ->
+      print_endline("XXX: pretending Debug is a type CalcType(Unknown)"); CalcType(Unknown)
 
 
 let ident_of_vdecl = function
@@ -128,7 +130,8 @@ let rec imgwrite_of_elist elist =
       fname_expr :: fmt_expr :: img_expr :: [] -> ( (* Yes. They're in the list backwards. *)
         let imgEx =
           let ve = trans_expr img_expr in
-            match ve with ImageEx(ie) -> ie | _ -> raise(SemanticFailure("ImgWrite not passed an image?"))
+            match ve with   ImageEx(ie) -> ie
+                          | _ -> raise(SemanticFailure("ImgWrite not passed an image?"))
         in
         let fmtType = fmtType_of_expr fmt_expr in
         let filenameId = filenameId_of_expr fname_expr in
@@ -168,7 +171,8 @@ and trans_expr = function
   | ChanAssign(ch, e) -> (let chId = trans_chanRefIdLval ch in
                             let ve = trans_expr e in
                               match ve with
-                                  ChanRefEx(cve) -> ChanRefEx(ChanChain({ch_lhs = chId; ch_rhs = cve;}))
+                                  ChanRefEx(cve) ->
+                                    ChanRefEx(ChanChain({ch_lhs = chId; ch_rhs = cve;}))
                                 | _ -> raise(SemanticFailure("Must assign Channel to a channel type"))
                          )
   | LibCall(libf, elist) -> trans_libf libf elist
@@ -183,11 +187,13 @@ and trans_eq_assign s e =
       | KernelType -> (match ve with
               KernelEx(ke) -> KernelEx(KChain({ k_lhs = s; k_rhs = ke; }))
             | CalcEx(t) ->
-                (match t with   CIdent(cnm,typ) -> KernelEx(KChain({ k_lhs = s; k_rhs = KCalcList([cnm],[],"")}))
+                (match t with   CIdent(cnm,typ) ->
+                                  KernelEx(KChain({ k_lhs = s; k_rhs = KCalcList([cnm],[],"")}))
                               | _ -> raise(SemanticFailure("Bad Kernel Assignment"))
                 )
             | _ -> raise(SemanticFailure("Bad assignment")))
-      | ImageType -> (match ve with ImageEx(ie) -> ImageEx(ImChain({ i_lhs = s; i_rhs = ie; })) | _ -> raise(SemanticFailure("Bad assignment")))
+      | ImageType -> (match ve with ImageEx(ie) -> ImageEx(ImChain({ i_lhs = s; i_rhs = ie; }))
+                                    | _ -> raise(SemanticFailure("Bad assignment")))
       | _ -> raise(SemanticFailure("Identifier claims to be an impossible data type"))
 
 and trans_or_assign s e =
@@ -199,9 +205,12 @@ and trans_or_assign s e =
                 | _ -> raise(SemanticFailure("|= Calc must have Kernel or Image as its L-Value"))
               )
       | KernelEx(ke) -> (match (type_of_ident scope s) with
-                | KernelType -> (match ke with   KCalcList(all,unused,_) -> KernelEx(KCalcList((List.rev all),unused,s))
-                                               | KIdent(ki) -> let v_kc = kernt_of_id !scope.venv ki in
-                                                    KernelEx(KCalcList((List.rev v_kc.kallcalc),v_kc.kunusedcalc,s))
+                | KernelType -> (match ke with   KCalcList(all,unused,_) ->
+                                                    KernelEx(KCalcList((List.rev all),unused,s))
+                                               | KIdent(ki) ->
+                                                    let v_kc = kernt_of_id !scope.venv ki in
+                                                    KernelEx(KCalcList((List.rev v_kc.kallcalc),
+                                                                       v_kc.kunusedcalc,s))
                                                | _ -> raise (Failure("|= Kernel can't be complex?!")))
                 | _ -> raise(SemanticFailure("|= Kernel must have Kernel as its L-Value")) )
       | _ -> raise(SemanticFailure("Unexpected expression is an R-Value for OrEq operation"))
@@ -230,7 +239,7 @@ let trans_action_expr expr = match expr with
     Assign(s,op,e) -> trans_expr expr
   | ChanAssign(chref,e) -> trans_expr expr
   | LibCall(libf,elist) -> trans_expr expr
-  | _ -> Debug("Expression result ignored!") (* TODO: Can side effects be hiding in the expression? *)
+  | _ -> Debug("Expression result ignored!") (* TODO: Can side effects be hiding in the expr? *)
 
 let trans_stmt = function
     Expr(e) -> trans_action_expr e
@@ -247,4 +256,3 @@ let translate_ast env ast =
   let gather nodes stmt = (trans_stmt stmt) :: nodes in
     let nodelist = List.fold_left gather [] ast in
       (!scope, List.rev nodelist)
-

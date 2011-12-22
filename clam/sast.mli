@@ -7,9 +7,7 @@
  * Jeremy C. Andrus <jeremya@cs.columbia.edu>
  * Robert Martin <rdm2128@columbia.edu>
  * Kevin Sun <kfs2110@columbia.edu> * Yongxu Zhang <yz2419@columbia.edu>
- *
  *)
-
 
 (* Identifiers *)
 type calcId = string
@@ -77,10 +75,8 @@ and chanRefEx =
     ChanChain of chanAssign
   | ChanIdent of chanRefId
 
-
 (* Output images *)
 type imgWrite = { im: imgEx; fil: filenameId; fmtType: fmtType; }
-
 
 type vExpr =
     CalcEx of calcEx
@@ -89,7 +85,5 @@ type vExpr =
   | ChanRefEx of chanRefEx
   | ImgWriteEx of imgEx * fmtType * filenameId
   | Debug of string
- 
 
 type vastRoot = vExpr list
-

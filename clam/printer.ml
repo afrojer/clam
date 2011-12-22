@@ -8,7 +8,6 @@
  * Robert Martin <rdm2128@columbia.edu>
  * Kevin Sun <kfs2110@columbia.edu>
  * Yongxu Zhang <yz2419@columbia.edu>
- *
  *)
 
 open ExtString
@@ -16,9 +15,7 @@ open Ast
 open Envtypes
 open Sast
 
-(*
- * Strings that represent CLAM things
- *)
+(* Strings that represent CLAM things *)
 let string_of_op = function
     Eq -> "="
   | OrEq -> "|="
@@ -60,9 +57,7 @@ let string_of_type = function
 let string_of_chan ch =
   ch.image ^ "." ^ ch.channel
 
-(*
- * Printing CLAM compiler messages
- *)
+(* Printing CLAM compiler messages *)
 let print_clamerr = function
     Parseutil.ParseErr(exn,(file,line,cnum,tok,tail)) ->
       let extra = Printexc.to_string exn in
@@ -77,9 +72,7 @@ let print_clamerr = function
       prerr_endline estr;
   | _ -> ()
 
-(*
- * Environment Printing
- *)
+(* Environment Printing *)
 let string_of_scope scope =
   let _ = scope.venv in
     "Environment:\n" ^
@@ -88,9 +81,7 @@ let string_of_scope scope =
 let print_scope scope =
   print_endline (string_of_scope scope)
 
-(*
- * CLAM AST Printing
- *)
+(* CLAM AST Printing *)
 type 'a ptree = Node of 'a * ('a ptree list)
 
 let tree_of_atom a =
@@ -135,10 +126,14 @@ let rec tree_of_expr expr =
     | KernCalc(kc) -> ("KernCalc", [tree_of_kerncalc kc])
     | ChanMat(mat) -> ("ChanMat", [tree_of_chanmat mat])
     | ChanRef(ref) -> ("ChanRef", [tree_of_chanref ref])
-    | Convolve(ref, kid) -> ("Convolve", [tree_of_chanref ref; tree_of_ident kid])
-    | Assign(id, op, e) -> ("Assign", [tree_of_ident id; tree_of_assign_op op; tree_of_expr e])
-    | ChanAssign(ref, e) -> ("ChanAssign", [tree_of_chanref ref; tree_of_expr e])
-    | LibCall(libf, elist) -> ("LibCall", List.append [tree_of_libf libf] (List.map tree_of_expr elist))
+    | Convolve(ref, kid) ->
+        ("Convolve", [tree_of_chanref ref; tree_of_ident kid])
+    | Assign(id, op, e) ->
+        ("Assign", [tree_of_ident id; tree_of_assign_op op; tree_of_expr e])
+    | ChanAssign(ref, e) ->
+        ("ChanAssign", [tree_of_chanref ref; tree_of_expr e])
+    | LibCall(libf, elist) ->
+        ("LibCall", List.append [tree_of_libf libf] (List.map tree_of_expr elist))
   in
   Node("Expression [" ^ fst(tupl) ^ "]", snd(tupl))
 
@@ -162,5 +157,3 @@ let rec string_of_tree prefix = function Node(str, ch) ->
 
 let string_of_ast ast =
   string_of_tree "" (tree_of_ast ast)
-
-

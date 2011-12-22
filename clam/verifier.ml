@@ -8,7 +8,6 @@
  * Robert Martin <rdm2128@columbia.edu>
  * Kevin Sun <kfs2110@columbia.edu>
  * Yongxu Zhang <yz2419@columbia.edu>
- *
  *)
 
 open Ast
@@ -372,7 +371,8 @@ and check_imgWrite env args =
         let env1, img_expr = check_expr env raw_img_expr in
         let _ = match type_of_expr env1 img_expr with
                     ImageT(s) -> ()
-                  | _ -> raise(Failure("At the moment, the validator is not pleased unless ImgWrite's 1st argument is an image identifier"))
+                  | _ -> raise(Failure("The validator is not pleased: "^
+                                       "ImgWrite's 1st arg is NOT an image identifier!"))
         in
         env1, LibCall(ImgWrite, [fname_expr; fmt_expr; img_expr])
       )
@@ -415,4 +415,3 @@ let verify program =
        allvars = [];}, [] ) program)
   in
   venv, (List.rev vslist)
-
