@@ -1,0 +1,17 @@
+Through the course of this project, there are several things that I learned.
+First, I learned that writing a compiler is
+much more complicated than I had first imagined. While OCaml's syntax and scanner/parser
+integration ease development quite a bit, there was still a lot of code to write.
+Second, I learned that the implementation of a backend generator, the definition of
+a C API that the generator will use, and the syntax tree that the generator takes as
+input are all intensely entwined. It was nearly impossible for us to separate the
+design of the C/C++ implementation library from the generator backend, and similarly it
+was impossible to separate the backend generator design from the abstract syntax tree
+that it took as input.
+
+Finally, I learned that self-motivation in a group setting seems to decrease proportionally
+to the number of members in the group. Idealistic dreams of independantly motivated
+developers all hacking towards a common goal are naive, and more realistic approaches to
+group dynamics must be applied. This means that nagging emails and explicit time spent
+on planning and organizing will inevitably save late-night hacking cycles near the end
+of the project.
