@@ -71,7 +71,10 @@ return values of the last line of each test are discarded so they do nothing:
 (The parser accepted all of these, though most originally caused errors in the C translator
 that had to be fixed (see "C Compiler Verification" below).)
 
-\texttt{comment1.clam} checks that a program with only a comment (and zero statements) compiles. It should compile:
+\texttt{equality-trans.clam} checks that assignment expressions can be nested. This should compile:
+\lstinputlisting[language=CLAM]{../clam/tests/equality-trans.clam}
+
+\texttt{comment1.clam} checks that a program with only a comment (and zero statements) compiles. This should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/comment1.clam}
 
 \section{Semantic Verification}
@@ -130,7 +133,21 @@ The former should certainly compile, while the latter should not:
 \texttt{imgwrite-bad1.clam} checks that \texttt{imgwrite} can't be called with incorrect number and type of arguments. This shouldn't compile:
 \lstinputlisting[language=CLAM]{../clam/tests/imgwrite-bad1.clam}
 
+\texttt{defchannels.clam} checks that the default RGB Channels don't exist for a declared-but-not-read \texttt{Image}. This shouldn't compile:
+\lstinputlisting[language=CLAM]{../clam/tests/defchannels.clam}
+(Allowing default RGB channels for an unread \texttt{Image} is problematic because CLAM
+does not allow explicit manipulation of Channel \emph{size}.)
 
+\texttt{sizediff.clam} checks that the default Channels from \texttt{Image}s of different sizes
+cannot be assigned to each other, because all Channels of an \texttt{Image} should have the same size. This shouldn't compile:
+\lstinputlisting[language=CLAM]{../clam/tests/sizediff.clam}
+
+\texttt{at-channel.clam} checks that transient \texttt{Calc}s marked with \texttt{@} in a \texttt{Kernel}
+do not result in Channels after a convolution. This shouldn't compile:
+\lstinputlisting[language=CLAM]{../clam/tests/at-channel.clam}
+
+\textt{addker.clam} checks a \texttt{Kernel} can be appended to another \texttt{Kernel} using \texttt{|=}. This should compile:
+\lstinputlisting[language=CLAM]{../clam/tests/addker.clam}
 
 \section{CString Verification}
 \label{testing:cstrings}
@@ -160,18 +177,8 @@ most verification here is actually done with the naked eye.
 
 CLAM Syntax:
 	Assignments: 
-		addker2img.clam, addker.clam, DefEq.clam
+		addker2img.clam, , DefEq.clam
 
-
-, 
-
-id-overlap.clam
-
-	Image operations syntax (not testing actual implementation):
-		, 
-		defchannels.clam, sizediff.clam, equality-trans.clam
-
-	The @ operator: at-channel.clam
 
 
 Warped C syntax:
