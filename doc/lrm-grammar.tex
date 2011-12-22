@@ -1,6 +1,6 @@
 \section{Grammar}
 
-\subsection{1. Expressions.}
+\subsection{Expressions}
 
 \begin{center}\begin{tabular}{l l}
 \emph{expression}: & \emph{identifier}\\
@@ -37,4 +37,39 @@
 \\
 \emph{argument-list}: & \emph{literal-string}\\
 & \emph{argument-list} \texttt{,} \emph{literal-string}\\
+\\
+\emph{library-function}: & \texttt{imgread}\\
+& \texttt{imgwrite}\\
 \end{tabular}\end{center}
+
+\subsection{Declarations}
+
+\begin{center}\begin{tabular}{l l}
+\emph{declaration}: & \texttt{Image} \emph{identifier}\\
+& \texttt{Kernel} \emph{identifier}\\
+& \texttt{Calc} \emph{identifier}\\
+& \texttt{Calc} \emph{identifier}\texttt{<}\emph{atomic-type}\texttt{>}\\
+\\
+\emph{atomic-type} & \texttt{Uint8}\\
+& \texttt{Uint16}\\
+& \texttt{Uint32}\\
+& \texttt{Int8}\\
+& \texttt{Int16}\\
+& \texttt{Int32}\\
+& \texttt{Angle}\\
+\end{tabular}\end{center}
+
+
+\subsection{Statements}
+
+\begin{center}\begin{tabular}{l l}
+\emph{statement}: & \emph{expression} \texttt{;}\\
+& \emph{declaration} \texttt{;}\\
+& \emph{declaration} \texttt{=} \emph{expression} \texttt{;}\\
+& \emph{declaration} \texttt{:=} \emph{expression} \texttt{;}\\
+\\
+\emph{program}: & \emph{statement}\\
+& \emph{statement} \emph{program}\\
+\end{tabular}\end{center}
+
+
