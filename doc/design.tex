@@ -14,7 +14,7 @@
 \includegraphics[width=40mm]{figures/layers.png}
 \caption{A diagram showing the layers of \sys{}. The raw source code is
 fed into the top of the cake and binary executables come out the bottom.
-This image was manipulated by \sys{} using a Gaussian blur filter.}
+(NOTE: This image was manipulated by \sys{} using a Gaussian blur filter.)}
 \label{fig:layers}
 \end{center}
 \end{wrapfigure}
@@ -24,9 +24,6 @@ the semantic converter, the backend C generation, and C image manipulation
 libraries (see Figure~\ref{fig:layers}). The compiler takes as input
 a text file containing a valid \sys{} program and outputs a binary that
 implements the program described by the input text.
-
-The scanner generates as its output a one-dimensional list of
-tokens (see Figure~\ref{fig:tokens}).
 
 \begin{figure}
 \begin{center}
@@ -40,11 +37,12 @@ tokens (see Figure~\ref{fig:tokens}).
     INTEGER & ID & EOF \\
 
 \end{tabular}
-\caption{A comprehensive list of tokens produced by the lexical analysis
-(scanner).}
-\end{center}
+\caption{A comprehensive list of tokens produced by the lexical analysis (scanner).}
 \label{fig:tokens}
+\end{center}
 \end{figure}
+
+The scanner generates as its output a one-dimensional list of tokens (see Figure~\ref{fig:tokens}).
 
 The parser reads this token list and uses our context-free grammar to generate
 an abstract syntax tree. The parser is not strict about which nodes have
@@ -52,6 +50,7 @@ which children, or whether or not it is meaningful to have the current
 structure: rather it just blindly assembles the tree. The abstract syntax tree
 has the nodes described in Figure~\ref{fig:astnodes}.
 
+\vspace{10mm}
 \begin{figure}
 \begin{center}
 \begin{tabular}{l | l}
@@ -111,14 +110,14 @@ Figure~\ref{fig:leads}.
 Unit Tests & Kevin and Yongxu \\
 Scanner & Jeremy \\
 Parser & Jeremy \\
-Verifier & Jeremy \\
+Verifier & Jeremy / Robert \\
 Semantic & Robert \\
-Backend & Robert \\
+Backend & Robert / Jeremy \\
 GCC & Richard Stallman et al. \\
 \end{tabular}
 \caption{Who Did What: The lead developer of each layer.}
-\end{center}
 \label{fig:leads}
+\end{center}
 \end{figure}
 
 
