@@ -159,17 +159,17 @@ cannot be assigned to each other, because all Channels of an \texttt{Image} shou
 do not result in Channels after a convolution. This shouldn't compile:
 \lstinputlisting[language=CLAM]{../clam/tests/at-channel.clam}
 
-\item\textt{addker.clam} checks a \texttt{Kernel} can be appended to another \texttt{Kernel} using \texttt{|=}. This should compile:
+\item\texttt{addker.clam} checks a \texttt{Kernel} can be appended to another \texttt{Kernel} using \texttt{|=}. This should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/addker.clam}
 
-\item\textt{DefEq.clam} checks that \texttt{=} cannot be used to define a \texttt{Calc}. This should not compile:
+\item\texttt{DefEq.clam} checks that \texttt{=} cannot be used to define a \texttt{Calc}. This should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/DefEq.clam}
 
-\item\textt{ckernel.clam} checks that \texttt{Kernel}s must be defined using \texttt{Calc} \emph{identifiers}
+\item\texttt{ckernel.clam} checks that \texttt{Kernel}s must be defined using \texttt{Calc} \emph{identifiers}
 and not anonymous \texttt{Calc} expressions. This should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/ckernel.clam}
 
-\item\textt{cimage.clam} checks that \texttt{Image}s cannot be defined using \texttt{Calc} expressions. This should not compile:
+\item\texttt{cimage.clam} checks that \texttt{Image}s cannot be defined using \texttt{Calc} expressions. This should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/cimage.clam}
 
 \end{itemize}
@@ -188,24 +188,24 @@ in parentheses matching, which were promptly corrected.\\
 
 \begin{itemize}
 
-\item\textt{cstring1.clam} checks that C preprocessor cannot be used in a CString. This should not compile:
+\item\texttt{cstring1.clam} checks that C preprocessor cannot be used in a CString. This should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/cstring1.clam}
 
-\item\textt{cstring2.clam} checks that C comments cannot be used in a CString. This should not compile:
+\item\texttt{cstring2.clam} checks that C comments cannot be used in a CString. This should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/cstring2.clam}
 
-\item\textt{cstring3.clam} checks that empty CStrings are OK, and just result in an empty statement. This should compile:
+\item\texttt{cstring3.clam} checks that empty CStrings are OK, and just result in an empty statement. This should compile:
 \lstinputlisting[language=CLAM]{../clam/tests/cstring3.clam}
 
-\item\textt{cstring4.clam} checks that library calls in a CString must be closed. This should not compile:
+\item\texttt{cstring4.clam} checks that library calls in a CString must be closed. This should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/cstring4.clam}
 (This originally did compile because the scanner didn't record nesting-level properly. It was fixed.)
 
-\item\textt{cstring5.clam} checks that parentheses in a CString must be matched. This should not compile:
+\item\texttt{cstring5.clam} checks that parentheses in a CString must be matched. This should not compile:
 \lstinputlisting[language=CLAM]{../clam/tests/cstring5.clam}
 (This originally did compile because the scanner didn't record nesting-level properly. It was fixed.)
 
-\item\textt{cstring6.clam} is a sanity check that "normal" CStrings do in fact work. This should obviously compile:
+\item\texttt{cstring6.clam} is a sanity check that "normal" CStrings do in fact work. This should obviously compile:
 \lstinputlisting[language=CLAM]{../clam/tests/cstring6.clam}
 
 \end{itemize}
@@ -227,10 +227,10 @@ most verification here is actually done with the naked eye.\\
 
 \begin{itemize}
 
-\item\textt{imgcopy.clam} copies an image. This should compile, run, and copy an image:
+\item\texttt{imgcopy.clam} copies an image. This should compile, run, and copy an image:
 \lstinputlisting[language=CLAM]{../clam/tests/imgcopy.clam}
 
-\item\textt{sobel.clam} applies the Sobel operation to an image. This should compile, run, and output
+\item\texttt{sobel.clam} applies the Sobel operation to an image. This should compile, run, and output
 a map of the luminosity gradient:
 \lstinputlisting[language=CLAM]{../clam/tests/sobel.clam}
 
