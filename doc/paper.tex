@@ -1,5 +1,5 @@
 %
-% paper.tex -- master LaTeX file for ``ImP: The Image Processing Language''
+% paper.tex -- master LaTeX file for 'CLAM: The Concise Linear Algebra Manipulation Language'
 %
 \newcommand{\sys}{CLAM}
 \newcommand{\longtitle}{\sys{}: The Concise Linear Algebra Manipulation Language}
@@ -56,6 +56,8 @@
     pdfdisplaydoctitle=true,
     plainpages=false]{hyperref}
 \usepackage{breakurl}
+\usepackage{multirow}
+\usepackage{pgfgantt}
 
 \setlength{\parindent}{0in}
 \addtolength{\parskip}{\baselineskip}
@@ -91,6 +93,7 @@
     \input{tutorial}
     % Language Reference Manual
     \chapter{Language Reference Manual}
+    \label{chap:lrm}
     \input{manual}
     \input{plan}
     \input{design}
