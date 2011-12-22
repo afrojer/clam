@@ -1,7 +1,22 @@
 \chapter{Test Plan}
 \label{chap:testplan}
 
-The test of CLAM contains three parts: CLAM syntax, wrapped C syntax, and linear algebra functionalities. We start from part 1, using small unit tests to find out bugs in the syntax of CLAM. We carefully went through those data types and operators defined in CLAM to ensure the convergence. In detail, the default value of each basic type, the validity operands of all kinds of operators, and different ways of declaration are main points in this part. We also plan to fix those syntax bugs, especially in the parser and the verifier, immediately after them were found. Thus, at the end of the part 1, our  parser become more robust and capable of handling syntax errors.
+Our testing is divided into four sections: syntax verification, semantic/type verification, CString verification, and functional output verification (image processing results comparison). 
+
+\section{Syntax Verification}
+\label{testing:syntax}
+
+\section{Semantic Verification}
+\label{testing:semantic}
+
+\section{CString Verification}
+\label{testing:cstrings}
+
+\section{Image Processing Verification}
+\label{test:output}
+
+
+We start from part 1, using small unit tests to find out bugs in the syntax of CLAM. We carefully went through those data types and operators defined in CLAM to ensure the convergence. In detail, the default value of each basic type, the validity operands of all kinds of operators, and different ways of declaration are main points in this part. We also plan to fix those syntax bugs, especially in the parser and the verifier, immediately after them were found. Thus, at the end of the part 1, our  parser become more robust and capable of handling syntax errors.
 
 In part two, we test the acceptance of wrapped C expression. The code in CLAM is translated into C language before being compiled, and C language expressions are supported during variable declaration. As a reason of that,  the parser needs to detect syntax errors in those wrapped C statements that may affect the compiling. Some tests about unreasonable statements are also involved such as 0 being denominator, or unclosed comment.
 
