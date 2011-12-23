@@ -1,0 +1,39 @@
+Welcome to CLAM, the Concise Linear Algebra Manipulation Langugage!
+Original Team Members:
+	Jeremy C. Andrus <jeremya@cs.columbia.edu>
+	Robert Martin <rdm2128@columbia.edu>
+	Kevin Sun <kfs2110@columbia.edu>
+	Yongxu Zhang <yz2419@columbia.edu>
+
+This repository contains all of the compiler source, documentation,
+and simple examples to get you started using CLAM. You're probably
+reading this because you want to compile and run CLAM. Let's cut to
+the chase.
+
+Prerequisites:
+	gcc/g++ in your path
+	OCaml distribution (ocamlc, ocamlyacc, ocamllex, etc.)
+
+Build CLAM:
+	cd clam && make
+
+Run CLAM:
+	./clam -i tests/clamsrc/blur.clam -o blur
+	./blur tests/lena.jpg lena-blur.png
+
+	See the documentation and clam/tests/clamsrc for more
+	information and example programs.
+
+Build CLAM docs:
+	You'll need a recent installation of LaTeX with several
+	(mostly standard) packages. Note: older TeX distributions
+	did not have the pgfgantt package which CLAM relies on
+	to generate a timeline Gantt chart. If you use the latest
+	MiKTeX (2.9) or TeXLive (2011) you should be OK.
+
+	You'll also need perl.
+
+	cd doc && make
+
+	Produces: clam.pdf
+
