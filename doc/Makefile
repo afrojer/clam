@@ -1,6 +1,6 @@
 
 # the source .tex
-SRC = paper
+SRC = clam
 SRCTEX = $(SRC).tex
 SRCBIB = $(SRC)*.bib
 # additional dependencies

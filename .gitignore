@@ -5,12 +5,12 @@
 *.pdfsync
 *.synctex*
 
-paper.pdf
-paper.dvi
-paper.ps
-paper.bbl
-paper.blg
-paper.toc
+clam.pdf
+clam.dvi
+clam.ps
+clam.bbl
+clam.blg
+clam.toc
 
 clam/obj/*
 clam/clam
