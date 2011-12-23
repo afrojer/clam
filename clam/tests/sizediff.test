@@ -4,12 +4,16 @@ TEST_DESC="Assign channels of different sizes"
 
 compile_it
 if [ $ERRORS -eq 0 ]; then
-	ERRORS=1
-	error "Assigned channels of different sizes!"
+	run_it
+	if [ $ERRORS -eq 0 ]; then
+		ERRORS=1
+		error "Assigned channels of different sizes!"
+	else
+		# The running of the program should fail.
+		ERRORS=0
+	fi
 else
-	# we purposely succeed b/c this test was
-	# designed to fail!
-	ERRORS=0
+	error "Why didn't this compile?!"
 fi
 
 . _breakdown.sh
